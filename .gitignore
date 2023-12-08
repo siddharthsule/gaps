@@ -1,4 +1,8 @@
-rivet-plots/
+# Folders Created after Building
 obj/
+bin/
+build/
+
+# Rivet and Yoda files
+rivet-plots/
 *.yoda
-bin/main
