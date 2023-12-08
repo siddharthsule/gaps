@@ -1,0 +1,4 @@
+rivet-plots/
+obj/
+*.yoda
+bin/main
