@@ -9,7 +9,6 @@
 
 // Jet and Event Shape Analysis
 #include "durham.h"
-#include "etflow.h"
 #include "jetmbr.h"
 #include "thrust.h"
 
@@ -47,7 +46,6 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
   DAnalysis da;
   TAnalysis ta;
   MBrAnalysis ma;
-  ETAnalysis ea;
 
   AlphaS as(91.1876, 0.1181);
   Shower sh(1., as);
@@ -69,7 +67,6 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
       if (ev.GetSize() > 4) {
         ta.Analyze(ev);
         da.Analyze(ev);
-        ea.Analyze(ev);
         ma.Analyze(ev);
       }
     } else {
@@ -83,7 +80,6 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
 
   ta.Finalize(filename);
   da.Finalize(filename);
-  ea.Finalize(filename);
   ma.Finalize(filename);
 
   return 0;
@@ -91,8 +87,8 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
 
 int main(int argc, char *argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 10000;
-  std::string filename = "test.yoda";
-  int remover = std::remove("test.yoda");
+  std::string filename = "output.yoda";
+  int remover = std::remove("outpt.yoda");
   runGenerator(N, filename);
   return 0;
 }
