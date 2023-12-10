@@ -6,6 +6,17 @@
 #include <cmath>
 #include <iostream>
 
+/**
+ * Why is this Header Only?
+ *
+ * When working with the Parton Shower, I found out that CUDA doesn't read
+ * other .cu files before compliling the main one. This means that functions in
+ * a file vec4.cu will not be accessible in shower.cu. They must be in the
+ * file vec4.cuh
+ *
+ * This is also applied to particle.cuh and (in c++ for now), qcd.h
+ **/
+
 class Vec4 {
  private:
   double E, px, py, pz;
@@ -109,7 +120,9 @@ class Vec4 {
     return -log(tan(theta / 2.));
   }
 
-  // Three Momenta Cross Product
+  // Three Momenta Dot and Cross Product
+  double Dot(const Vec4& v) const { return px * v.px + py * v.py + pz * v.pz; }
+
   Vec4 Cross(const Vec4& v) const {
     return Vec4(0.0, py * v.pz - pz * v.py, pz * v.px - px * v.pz,
                 px * v.py - py * v.px);
