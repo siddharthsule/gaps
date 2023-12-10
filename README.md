@@ -7,7 +7,7 @@ This project runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is 
 - **ee -> qq Matrix Element**: Fully implemented on GPU.
 - **Parton Shower**: Prepared for GPU use, not yet implemented.
 - **Hadronisation**: No attempts made yet.
-- **Jet + Event Shapes**: Implemented in simple C++, CUDA not necessary.
+- **Jet + Event Shapes**: Implemented in simple C++, CUDA not necessary (for now).
 
 ## Building the Program
 
