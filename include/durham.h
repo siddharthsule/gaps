@@ -1,9 +1,8 @@
 #ifndef DURHAM_H_
 #define DURHAM_H_
 
-#include "vec4.cuh"
-#include "particle.cuh"
 #include "histogram.h"
+#include "particle.cuh"
 
 // Durham class
 class Durham {

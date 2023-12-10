@@ -44,7 +44,7 @@ Event *gpuLOME(const int N) {
 // Validation of Result Data
 // Temporrily here, will be moved to a test suite
 // Not in particle.cuh, which is now just a header file
-bool IsEventCheckValid(const Event& ev) {
+bool IsEventCheckValid(const Event &ev) {
   Vec4 psum = Vec4();
 
   std::vector<int> csum(100, 0);
@@ -95,15 +95,13 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
   Event *events = gpuLOME(N);
 
   for (int i = 0; i < N; i++) {
-
     Event ev = events[i];
 
     double t = (ev.GetParton(0).GetMom() + ev.GetParton(1).GetMom()).M2();
     sh.Run(ev, t);
 
-    //std::cout << "Event " << i << " has " << ev.GetSize() << " partons" <<
-    //std::endl; for (auto& p : ev.partons) { std::cout << p.GetPid() << " ";}
-    
+    // std::cout << "Event " << i << " has " << ev.GetSize() << " partons" <<
+    // std::endl; for (auto& p : ev.partons) { std::cout << p.GetPid() << " ";}
 
     if (IsEventCheckValid(ev)) {
       if (ev.GetSize() > 4) {

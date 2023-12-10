@@ -15,7 +15,8 @@ class AlphaS {
 
  public:
   // Constructor
-  AlphaS(double mz, double asmz, int order = 1, double mb = 4.75, double mc = 1.27)
+  AlphaS(double mz, double asmz, int order = 1, double mb = 4.75,
+         double mc = 1.27)
       : order(order),
         mc2(mc * mc),
         mb2(mb * mb),
@@ -25,9 +26,7 @@ class AlphaS {
         asmc((*this)(mc2)) {}
 
   // Beta functions
-  double Beta0(int nf) {
-    return (11. / 6. * kCA) - (2. / 3. * kTR * nf);
-  }
+  double Beta0(int nf) { return (11. / 6. * kCA) - (2. / 3. * kTR * nf); }
 
   double Beta1(int nf) {
     return (17. / 6. * kCA * kCA) - ((5. / 3. * kCA + kCF) * kTR * nf);

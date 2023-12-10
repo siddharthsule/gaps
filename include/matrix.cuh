@@ -6,8 +6,7 @@
 #include "particle.cuh"
 
 class Matrix {
-public:
-
+ public:
   // Constructor
   Matrix(double alphas, double ecms = 91.2);
 
@@ -17,7 +16,7 @@ public:
   // Leading Order Matrix Element Generation
   __device__ double ME2(int fl, double s, double t);
 
-private:
+ private:
   double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
 };
 
@@ -25,4 +24,4 @@ private:
 __global__ void matrixSetupKernel(Matrix* matrix, double alphas, double ecms);
 __global__ void loPointKernel(Matrix* matrix, Event* ev, int n);
 
-#endif // MATRIX_CUH
+#endif  // MATRIX_CUH

@@ -81,8 +81,6 @@ std::tuple<double, Vec4> EShape::CalculateThrust(const Event& ev) {
 }
 
 std::vector<double> EShape::CalculateJetMBr(const Event& ev) {
-  
-  
   std::vector<double> jetmbr = {-5.0, -5.0, -5.0, -5.0};
   std::vector<Vec4> moms = GetMomenta(ev);
   std::tuple<double, Vec4> thrust = CalculateThrust(ev);
@@ -102,7 +100,7 @@ std::vector<double> EShape::CalculateJetMBr(const Event& ev) {
   for (const auto& mom : moms) {
     double mo_para = mom.Dot(t_axis);
     double mo_perp = (mom - (t_axis * mo_para)).P();
-    double enrg = mom.P(); // Equivalent to mom.E for massless particles
+    double enrg = mom.P();  // Equivalent to mom.E for massless particles
 
     e_vis += enrg;
     broad_denominator += 2.0 * enrg;
@@ -117,8 +115,7 @@ std::vector<double> EShape::CalculateJetMBr(const Event& ev) {
       n_against++;
     } else {
       p_with = p_with + (mom * 0.5);
-      p_against =
-          p_against + (mom * 0.5);
+      p_against = p_against + (mom * 0.5);
       broad_with += 0.5 * mo_perp;
       broad_against += 0.5 * mo_perp;
       n_with++;

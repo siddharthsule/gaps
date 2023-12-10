@@ -8,8 +8,7 @@
 #include "vec4.cuh"
 
 class Kernel {
-public:
-
+ public:
   explicit Kernel(int fl[3]) {
     for (int i = 0; i < 3; i++) flavs[i] = fl[i];
   }
@@ -19,7 +18,7 @@ public:
   virtual double Integral(double zm, double zp) = 0;
   virtual double GenerateZ(double zm, double zp) = 0;
 
-public:
+ public:
   int flavs[3];
 };
 

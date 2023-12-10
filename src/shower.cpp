@@ -78,7 +78,6 @@ Shower::Shower(double t0, AlphaS as) : t0(t0), as(as) {
     kernels[i] = new Pgq(flavs);
     i++;
   }
-
 }
 
 void Shower::MakeKinematics(Vec4* kinematics, const double z, const double y,
@@ -193,7 +192,8 @@ void Shower::GeneratePoint(Event& ev) {
             continue;
           }
 
-          double m2 = (ev.GetParton(ij).GetMom() + ev.GetParton(k).GetMom()).M2();
+          double m2 =
+              (ev.GetParton(ij).GetMom() + ev.GetParton(k).GetMom()).M2();
           if (m2 < 4.0 * t0) {
             continue;
           }

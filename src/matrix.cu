@@ -1,6 +1,7 @@
 // Attempt 1: Obtaining the Matrix Element Square on GPU
 
 #include <curand_kernel.h>
+
 #include <cmath>
 
 #include "matrix.cuh"
@@ -69,9 +70,9 @@ __global__ void loPointKernel(Matrix *matrix, Event *p_data, int n) {
 
     int fl = curand(&state) % 5 + 1;
     double s = 91.2;
-    
+
     // (pa - p1)^2 = -Ecms ( 1 - cos Theta), derived
-    double t = -91.2 * (1 - ct);  
+    double t = -91.2 * (1 - ct);
 
     double lome = matrix->ME2(fl, s, t);
     double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) / (2. * pow(91.2, 2.));
@@ -83,7 +84,7 @@ __global__ void loPointKernel(Matrix *matrix, Event *p_data, int n) {
 
     Particle p[4] = {Particle(-11, pa, 0, 0), Particle(11, pb, 0, 0),
                      Particle(fl, p1, 1, 0), Particle(-fl, p2, 0, 1)};
-    
-    new (&p_data[id]) Event(p, dxs); 
+
+    new (&p_data[id]) Event(p, dxs);
   }
 }

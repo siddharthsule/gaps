@@ -45,12 +45,12 @@ std::vector<double> Durham::Cluster(const Event& ev) {
     size_t jjx = imap[jj];
     p[jjx] = p[jjx] + p[imap[ii]];
     for (size_t i = ii; i < n; ++i) {
-      imap[i] = imap[i+1];
+      imap[i] = imap[i + 1];
     }
     for (size_t j = 0; j < jj; ++j) {
       kt2ij[jjx][imap[j]] = Yij(p[jjx], p[imap[j]]);
     }
-    for (size_t i = jj+1; i < n; ++i) {
+    for (size_t i = jj + 1; i < n; ++i) {
       kt2ij[imap[i]][jjx] = Yij(p[jjx], p[imap[i]]);
     }
     dmin = 1.0;
@@ -69,25 +69,27 @@ std::vector<double> Durham::Cluster(const Event& ev) {
 }
 
 DAnalysis::DAnalysis() : dur(), wtot(0.0) {
-    dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y23\n");
-    dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y34\n");
-    dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y45\n");
-    dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y56\n");
+  dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y23\n");
+  dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y34\n");
+  dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y45\n");
+  dur_hists.emplace_back(100, -5.0, 0.0, "/GPU_EvGEN/log10y56\n");
 }
 
 void DAnalysis::Analyze(const Event& ev) {
-    std::vector<double> kt2 = dur.Cluster(ev);
-    
-    for (size_t j = 0; j < dur_hists.size(); ++j) {
-        dur_hists[j].Fill((kt2.size() > j) ? std::log10(kt2[kt2.size()-1-j]) : -50.0, ev.GetDxs());
-    }
+  std::vector<double> kt2 = dur.Cluster(ev);
 
-    wtot += ev.GetDxs();
+  for (size_t j = 0; j < dur_hists.size(); ++j) {
+    dur_hists[j].Fill(
+        (kt2.size() > j) ? std::log10(kt2[kt2.size() - 1 - j]) : -50.0,
+        ev.GetDxs());
+  }
+
+  wtot += ev.GetDxs();
 }
 
 void DAnalysis::Finalize(const std::string& filename) {
-    for (auto& dur_hist : dur_hists) {
-        dur_hist.ScaleW(1.0/wtot);
-        dur_hist.Write(filename);
-    }
+  for (auto& dur_hist : dur_hists) {
+    dur_hist.ScaleW(1.0 / wtot);
+    dur_hist.Write(filename);
+  }
 }
