@@ -1,6 +1,6 @@
 # Event Generators on GPU
 
-This project runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Hoeche's Tutorial on Parton Showers ([arxiv:1411.4085](https://arxiv.org/abs/1411.4085)).
+This project runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Höche's Tutorial on Parton Showers ([arxiv:1411.4085](https://arxiv.org/abs/1411.4085)).
 
 ## Current Progress
 

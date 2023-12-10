@@ -9,8 +9,7 @@
 
 // Jet and Event Shape Analysis
 #include "durham.h"
-#include "jetmbr.h"
-#include "thrust.h"
+#include "eshape.h"
 
 // Dipole Shower
 #include "qcd.h"
@@ -88,8 +87,7 @@ bool IsEventCheckValid(const Event& ev) {
 
 int runGenerator(const int &N, const std::string &filename = "test.yoda") {
   DAnalysis da;
-  TAnalysis ta;
-  MBrAnalysis ma;
+  EAnalysis ea;
 
   AlphaS as(91.1876, 0.1181);
   Shower sh(1., as);
@@ -109,9 +107,8 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
 
     if (IsEventCheckValid(ev)) {
       if (ev.GetSize() > 4) {
-        ta.Analyze(ev);
         da.Analyze(ev);
-        ma.Analyze(ev);
+        ea.Analyze(ev);
       }
     } else {
       std::cout << "Event failed validation" << std::endl;
@@ -122,9 +119,8 @@ int runGenerator(const int &N, const std::string &filename = "test.yoda") {
     }
   }
 
-  ta.Finalize(filename);
   da.Finalize(filename);
-  ma.Finalize(filename);
+  ea.Finalize(filename);
 
   return 0;
 }
