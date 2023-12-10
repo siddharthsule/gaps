@@ -7,58 +7,128 @@
 #include <iostream>
 
 class Vec4 {
-public:
+ private:
+  double E, px, py, pz;
 
-    // Constructor - Define key attributes Energy and Momentum
-    // Used in ME and out [HOST + DEVICE]
-    __host__ __device__ Vec4(double E=0., double px=0., double py=0., double pz=0.) : E(E), px(px), py(py), pz(pz) {}
+ public:
+  // Constructor - Define key attributes Energy and Momentum
+  // Used in ME and out [HOST + DEVICE]
+  __host__ __device__ Vec4(double E = 0., double px = 0., double py = 0.,
+                           double pz = 0.)
+      : E(E), px(px), py(py), pz(pz) {}
 
-    // All others are not used in ME, so HOST only
+  // Get Method to Obtain Attribute Value
+  double operator[](int i) const {
+    switch (i) {
+      case 0:
+        return E;
+      case 1:
+        return px;
+      case 2:
+        return py;
+      case 3:
+        return pz;
+      default:
+        // CUDA does not support exceptions, so we just return 0
+        return 0;
+    }
+  }
 
-    // Print a Column Vector with the attributes
-    friend std::ostream& operator<<(std::ostream& os, const Vec4& v);
+  // Print a Column Vector with the attributes
+  friend std::ostream& operator<<(std::ostream& os, const Vec4& v) {
+    os << "(" << v.E << "," << v.px << "," << v.py << "," << v.pz << ")";
+    return os;
+  }
 
-    // Get Method to Obtain Attribute Value
-    double operator[](int i) const;
+  // Simple Mathematics with Four vectors
+  Vec4 operator+(const Vec4& v) const {
+    return Vec4(E + v.E, px + v.px, py + v.py, pz + v.pz);
+  }
 
-    // Simple Mathematics with Four vectors
-    Vec4 operator+(const Vec4& v) const;
-    Vec4 operator-(const Vec4& v) const;
-    Vec4 operator-() const;
+  Vec4 operator-() const { return Vec4(-E, -px, -py, -pz); }
 
-    // Multiplication (and Dot Product)
-    double operator*(const Vec4& v) const;
-    Vec4 operator*(double v) const;
+  Vec4 operator-(const Vec4& v) const {
+    return Vec4(E - v.E, px - v.px, py - v.py, pz - v.pz);
+  }
 
-    Vec4 operator/(double v) const;
+  // Multiplication (and Dot Product)
+  double operator*(const Vec4& v) const {
+    return E * v.E - px * v.px - py * v.py - pz * v.pz;
+  }
 
-    // Magnitude of the Vector
-    double M2() const;
-    double M() const;
+  Vec4 operator*(double v) const { return Vec4(E * v, px * v, py * v, pz * v); }
 
-    // Three Momenta
-    double P2() const;
-    double P() const;
+  // Division
+  Vec4 operator/(double v) const { return Vec4(E / v, px / v, py / v, pz / v); }
 
-    // Transverse Momenta
-    double PT2() const;
-    double PT() const;
+  // Magnitude of the Vector
+  double M2() const { return (*this) * (*this); }
 
-    // Angles
-    double Theta() const;
-    double Phi() const;
-    double Rapidity() const;
-    double Eta() const;
+  double M() const {
+    double m2 = M2();
+    return m2 > 0 ? sqrt(m2) : 0;
+  }
 
-    // Cross Product
-    Vec4 Cross(const Vec4& v) const;
+  // 3 Momenta
+  double P2() const { return px * px + py * py + pz * pz; }
 
-    // Boost
-    Vec4 Boost(const Vec4& v) const;
-    Vec4 BoostBack(const Vec4& v) const;
+  double P() const {
+    double p2 = P2();
+    return p2 > 0 ? sqrt(p2) : 0;
+  }
 
-private:
-    double E, px, py, pz;
+  // Transverse Momenta
+  double PT2() const { return px * px + py * py; }
+
+  double PT() const {
+    double pt2 = PT2();
+    return pt2 > 0 ? sqrt(pt2) : 0;
+  }
+
+  // Angles
+  double Theta() const {
+    double p = P();
+    return p != 0 ? acos(pz / p) : 0;
+  }
+
+  double Phi() const {
+    if (px == 0 && py == 0) {
+      return 0.0;
+    } else {
+      return atan2(py, px);
+    }
+  }
+
+  double Rapidity() const {
+    double denominator = (E - pz);
+    return denominator != 0 ? 0.5 * log((E + pz) / denominator) : 0;
+  }
+
+  double Eta() const {
+    double theta = Theta();
+    return -log(tan(theta / 2.));
+  }
+
+  // Three Momenta Cross Product
+  Vec4 Cross(const Vec4& v) const {
+    return Vec4(0.0, py * v.pz - pz * v.py, pz * v.px - px * v.pz,
+                px * v.py - py * v.px);
+  }
+
+  // Boosts
+  Vec4 Boost(const Vec4& v) const {
+    double rsq = M();
+    double v0 = (E * v.E - px * v.px - py * v.py - pz * v.pz) / rsq;
+    double c1 = (v.E + v0) / (rsq + E);
+    return Vec4(v0, v.px - c1 * px, v.py - c1 * py, v.pz - c1 * pz);
+  }
+
+  Vec4 BoostBack(const Vec4& v) const {
+    double rsq = M();
+    double v0 = (E * v.E + px * v.px + py * v.py + pz * v.pz) / rsq;
+    double c1 = (v.E + v0) / (rsq + E);
+    return Vec4(v0, v.px + c1 * px, v.py + c1 * py, v.pz + c1 * pz);
+  }
 };
 
-#endif // VEC4_CUH_
+#endif  // VEC4_CUH_

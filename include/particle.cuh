@@ -3,8 +3,7 @@
 
 #include <cuda_runtime.h>
 
-#include <vector>
-
+// Particles have Vec4 Momentum
 #include "vec4.cuh"
 
 class Particle {
@@ -29,7 +28,10 @@ class Particle {
 
   // If two partons are in a Colour Connected Pair
   // For Parton Shower [HOST]
-  bool IsColorConnected(Particle p);
+  // Boolean - If two partons are in a Colour Connected Pair
+  bool IsColorConnected(Particle p) {
+    return (col > 0 && col == p.anticol) || (anticol > 0 && anticol == p.col);
+  }
 
  private:
   int pid;
@@ -38,9 +40,13 @@ class Particle {
   int anticol;
 };
 
+// Event Class
+// Built to contain the partons and the dxs as one accesible object
+// In future, can use to store thrust, log10y23 to parallelise those
 class Event {
  private:
   // Very Temporary Solution - Allows 30 Emissions
+  // Mainly done to avoid using std::vector for GPU Showering
   // But of course, this is not a good solution
   Particle partons[34];
   double dxs;
@@ -74,8 +80,5 @@ class Event {
   // Increment Number of Emissions
   void IncrementEmissions() { nEmissions++; }
 };
-
-// Validation of Parton Shower Result sData
-bool IsEventCheckValid(const Event& ev);
 
 #endif  // PARTICLE_CUH_
