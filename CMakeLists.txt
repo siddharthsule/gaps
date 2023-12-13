@@ -20,17 +20,17 @@ file(GLOB INCS "${INCDIR}/*.h" "${INCDIR}/*.cuh")
 # Set all source files to compile with CUDA
 set_source_files_properties(${SRCS} PROPERTIES LANGUAGE CUDA)
 
-# Add executable
-add_executable(GPUEvGen ${SRCS})
-
-# Set CUDA architecture off, so it uses the one available
-set_property(TARGET GPUEvGen PROPERTY CUDA_ARCHITECTURES OFF)
-
 # Include directories
 include_directories(${INCDIR})
 
 # Set output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+
+# Add executable
+add_executable(GPUEvGen ${SRCS})
+
+# Set CUDA architecture off, so it uses the one available
+set_property(TARGET GPUEvGen PROPERTY CUDA_ARCHITECTURES OFF)
 
 # Set CUDA properties
 set_target_properties(
