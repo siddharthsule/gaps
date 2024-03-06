@@ -1,7 +1,7 @@
 #ifndef QCD_H_
 #define QCD_H_
 
-#include <cmath>
+#include "base.h"
 
 const double kNC = 3.0;
 const double kTR = 0.5;
@@ -26,14 +26,14 @@ class AlphaS {
         asmc((*this)(mc2)) {}
 
   // Beta functions
-  double Beta0(int nf) { return (11. / 6. * kCA) - (2. / 3. * kTR * nf); }
+  double Beta0(int nf) const { return (11. / 6. * kCA) - (2. / 3. * kTR * nf); }
 
-  double Beta1(int nf) {
+  double Beta1(int nf) const {
     return (17. / 6. * kCA * kCA) - ((5. / 3. * kCA + kCF) * kTR * nf);
   }
 
   // Alpha_s at order 0 and 1
-  double As0(double t) {
+  double As0(double t) const {
     double tref, asref, b0;
     if (t >= mb2) {
       tref = mz2;
@@ -51,7 +51,7 @@ class AlphaS {
     return 1. / (1. / asref + b0 * log(t / tref));
   }
 
-  double As1(double t) {
+  double As1(double t) const {
     double tref, asref, b0, b1, w;
     if (t >= mb2) {
       tref = mz2;

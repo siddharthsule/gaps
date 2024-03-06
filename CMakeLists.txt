@@ -2,11 +2,14 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 # Project name and languages used
-project(GPUEvGen LANGUAGES CXX CUDA)
+project(gaps LANGUAGES CXX CUDA)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add the --expt-extended-lambda flag to the CUDA flags
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-extended-lambda")
 
 # Define directories
 set(BINDIR ${CMAKE_SOURCE_DIR}/bin)
@@ -27,14 +30,14 @@ include_directories(${INCDIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
 
 # Add executable
-add_executable(GPUEvGen ${SRCS})
+add_executable(gaps ${SRCS})
 
-# Set CUDA architecture off, so it uses the one available
-set_property(TARGET GPUEvGen PROPERTY CUDA_ARCHITECTURES OFF)
+# Set CUDA architecture to 7.0 for Tesla V100
+set_property(TARGET gaps PROPERTY CUDA_ARCHITECTURES 70)
 
 # Set CUDA properties
 set_target_properties(
-    GPUEvGen
+    gaps
     PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
 )

@@ -1,0 +1,48 @@
+#ifndef BASE_CUH_
+#define BASE_CUH_
+
+/**
+ * The Base Class
+ * --------------
+ * 
+ * This file contains the neccessary includes and definitions that are used 
+ * throughout the program. This includes CUDA Libraries, Thrust Libraries,
+ * C++ Libraries, and some global variables. Make changes here if you want to
+ * change the global settings of the program!
+ * 
+ * (but also be careful with what you change, as it may break the program...)
+*/
+
+// CUDA Libraries
+#include <cuda_runtime.h> // CUDA Runtime
+#include <curand_kernel.h> // CURAND Library
+
+// Thrust Libraries
+#include <thrust/device_vector.h> // ALL EVENTS ON DEVICE
+
+// C++ Libraries (Genreally Used)
+#include <cstdlib> // SYS EXIT Command
+#include <cmath> // Math Functions
+#include <fstream> // File I/O
+#include <iostream> // Standard I/O
+
+// Max Number of Partons, set to save memory
+// 50 works for all, but observables calc is slow
+// 100 works for ME + PS, but not for Observables
+const int maxPartons = 30;
+
+// LEP 91.2 settings
+const double mz = 91.1876;
+const double asmz = 0.118;
+
+// Cutoff and its value of alpha_s (pre-calculated)
+const double tC = 1.0;
+const double asmax = 0.440886;
+
+// Number of Histogram Bins: Common for all Plots (for now...)
+const int nBins = 100;
+
+// Sync Device and Check for CUDA Errors
+void syncGPUAndCheck(const char *operation);
+
+#endif // BASE_CUH_

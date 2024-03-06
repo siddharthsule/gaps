@@ -1,12 +1,12 @@
 #ifndef HISTOGRAM_H_
 #define HISTOGRAM_H_
 
-#include <cmath>
+#include "base.h"
+
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <vector>
 
 // Bin1D class
 class Bin1D {
@@ -17,17 +17,17 @@ class Bin1D {
   double w2;
   double wx;
   double wx2;
-  double n;
+  double N;
 
  public:
   Bin1D(double xmin, double xmax)
-      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), n(0.0) {}
+      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), N(0.0) {}
 
   std::string Format(const std::string& tag) const {
     std::stringstream ss;
     ss << std::scientific << std::setprecision(6);
     ss << tag << "\t" << tag << "\t" << w << "\t" << w2 << "\t" << wx << "\t"
-       << wx2 << "\t" << static_cast<int>(n);
+       << wx2 << "\t" << static_cast<int>(N);
     return ss.str();
   }
 
@@ -35,7 +35,7 @@ class Bin1D {
     std::stringstream ss;
     ss << std::scientific << std::setprecision(6);
     ss << xmin << "\t" << xmax << "\t" << w << "\t" << w2 << "\t" << wx << "\t"
-       << wx2 << "\t" << static_cast<int>(n);
+       << wx2 << "\t" << static_cast<int>(N);
     return ss.str();
   }
 
@@ -46,7 +46,7 @@ class Bin1D {
     w2 += weight * weight;
     wx += weight * x;
     wx2 += weight * weight * x;
-    n += 1.0;
+    N += 1.0;
   }
 
   void ScaleW(double scale) {
@@ -69,14 +69,14 @@ class Histo1D {
 
  public:
   // Constructor for Histo1D
-  Histo1D(int nbin, double xmin, double xmax, const std::string& name)
+  Histo1D(double xmin, double xmax, const std::string& name)
       : name(name),
         uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
         total(xmin - 100., xmax + 100.),
         scale(1.) {
-    double width = (xmax - xmin) / nbin;
-    for (int i = 0; i < nbin; ++i) {
+    double width = (xmax - xmin) / nBins;
+    for (int i = 0; i < nBins; ++i) {
       double xlow = xmin + i * width;
       double xhigh = xlow + width;
       bins.push_back(Bin1D(xlow, xhigh));
@@ -102,14 +102,33 @@ class Histo1D {
   }
 
   void Fill(double x, double w) {
-    if (x < uflow.xmax) {
-      uflow.Fill(x, w);
-    } else if (x >= oflow.xmin) {
-      oflow.Fill(x, w);
-    } else {
-      int bin = static_cast<int>((x - bins[0].xmin) / bins[0].Width());
-      bins[bin].Fill(x, w);
+    int l = 0;
+    int r = bins.size() - 1;
+    int c = (l + r) / 2;
+    double a = bins[c].xmin;
+
+    while (r - l > 1) {
+      if (x < a) {
+        r = c;
+      } else {
+        l = c;
+      }
+      c = (l + r) / 2;
+      a = bins[c].xmin;
     }
+
+    if (x > bins[r].xmin) {
+      if (x > bins[r].xmax) {
+        oflow.Fill(x, w);
+      } else {
+        bins[r].Fill(x, w);
+      }
+    } else if (x < bins[l].xmin) {
+      uflow.Fill(x, w);
+    } else {
+      bins[l].Fill(x, w);
+    }
+
     total.Fill(x, w);
   }
 

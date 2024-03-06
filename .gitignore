@@ -1,8 +1,19 @@
 # Folders Created after Building
-obj/
 bin/
 build/
 
 # Rivet and Yoda files
 rivet-plots/
 *.yoda
+
+# Shower Time Measuremnts
+*.dat
+
+# IDE files
+.vscode/
+
+# Any Temporary Results
+results/
+
+# plots
+test/*.pdf

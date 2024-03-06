@@ -1,96 +1,111 @@
-// To Measure Wall Clock Time and Write to File
 #include <chrono>
 #include <fstream>
+#include <string>
+#include <thread>
 
 // Base Components
-#include "base.cuh"
+#include "base.h"
 
-// Matrix Element
-#include "matrix.cuh"
+// ME
+#include "matrix.h"
 
-// Parton Shower
-#include "shower.cuh"
+// Shower
+#include "shower.h"
 
-// Jet and Event Shape Analysis
-#include "observables.cuh"
+// Analysis
+#include "observables.h"
 
 /**
- * GAPS: a GPU-Amplified Parton Shower
- * -----------------------------------
+ * GAPS: C++ Shower for Comparison
+ * ------------------------------------
  *
- * This program is a simple event generator for e+e- -> partons. It is designed
- * to be a simple example of how to use the GPU to calculate matrix elements and
- * perform parton showering. The program is designed to be a proof of concept as
- * well as a intuitive example of how to use the GPU for event generation.
+ * This program is a translation of S. Höche's "Introduction to Parton Showers"
+ * Python tutorial[1], with added functionality for parallelisation, a Event
+ * class and event shape analyses.
  *
- * This program is based on S. Höche's "Introduction to Parton Showers" Python
- * tutorial[1]. This program calculates ee -> qq and then showers the partons.
+ * The purpose of this program is to compare the performance of the C++ and
+ * CUDA versions of the shower, and to compare the performance of the C++ with
+ * parallelisation and CUDA.
  *
  * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
  */
 
-void runGenerator(const int N, const std::string filename) {
+void runGenerator(const int& N, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
 
   std::cout << "-------------------------------------------------" << std::endl;
-  std::cout << "|      GAPS: a GPU-Amplified Parton Shower      |" << std::endl;
+  std::cout << "|        GAPS: C++ Shower for Comparison        |" << std::endl;
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Process: e+ e- --> q qbar" << std::endl;
   std::cout << "Number of Events: " << N << std::endl;
   std::cout << "" << std::endl;
 
   // ---------------------------------------------------------------------------
-  // Initialisation
+  // Inititalisation
 
   std::cout << "Initialising..." << std::endl;
-  thrust::device_vector<Event> d_events(N);
+  std::vector<Event> events(N);
 
   // ---------------------------------------------------------------------------
-  // ME Generation
+  // Matrix Element Generation
 
-  std::cout << "Generating Matrix Elements..." << std::endl;
+  std::cout << "Generating Matrix Elements (C++)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  calcLOME(d_events);
+  Matrix xs(0.118);
+
+  for (int i = 0; i < N; i++) {
+    xs.GenerateLOPoint(events[i]);
+  }
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
 
   // ---------------------------------------------------------------------------
-  // Do the Showering
+  // Showering
 
-  std::cout << "Showering Partons..." << std::endl;
+  std::cout << "Showering Partons (C++)..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
-  runShower(d_events);
+  Shower sh;
+
+  for (int i = 0; i < N; i++) {
+    double t =
+        (events[i].GetParton(0).GetMom() + events[i].GetParton(1).GetMom())
+            .M2();
+    sh.Run(events[i], t);
+    // std::cerr << "Events Showered: " << i + 1 << "\r";
+  }
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_sh = end - start;
 
   // ---------------------------------------------------------------------------
-  // Analyze Events
+  // Analysis
 
-  std::cout << "Analyzing Events..." << std::endl;
+  std::cout << "Analyzing Events (C++)..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
-  // Analysis
-  doAnalysis(d_events, filename);
+  // Remove existing file
+  std::remove(filename.c_str());
+
+  Analysis an;
+
+  // Analyze events
+  for (int i = 0; i < N; i++) {
+    if (events[i].Validate()) {
+      an.Analyze(events[i]);
+    } else {
+      std::cout << "Event failed validation" << std::endl;
+    }
+  }
+
+  // Storage
+  an.Finalize(filename);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;
-
-  // ---------------------------------------------------------------------------
-  // Empty the device vector (Not neccessary, but good practice)
-
-  d_events.clear();
-  d_events.shrink_to_fit();
-
-  /**
-   * Maybe in the future, to allow > 10^6 events, we can split the large number
-   * into smaller batches. Right now, we write events to file directly from the
-   * do... functions, so the code is not ready for this.
-   */
 
   // ---------------------------------------------------------------------------
   // Results
@@ -109,7 +124,7 @@ void runGenerator(const int N, const std::string filename) {
 
   // Open the file in append mode. This will create the file if it doesn't
   // exist.
-  std::ofstream outfile("cuda-time.dat", std::ios_base::app);
+  std::ofstream outfile("cpp-time.dat", std::ios_base::app);
 
   // Write diff_sh.count() to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
@@ -119,14 +134,13 @@ void runGenerator(const int N, const std::string filename) {
   outfile.close();
 
   std::cout << "Histograms written to " << filename << std::endl;
-  std::cout << "Timing data written to cuda-time.dat" << std::endl;
+  std::cout << "Timing data written to cpp-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
-// -----------------------------------------------------------------------------
-int main(int argc, char *argv[]) {
-  int N = argc > 1 ? atoi(argv[1]) : 100000;
-  runGenerator(N, "cuda-shower.yoda");
+
+int main(int argc, char* argv[]) {
+  int N = argc > 1 ? atoi(argv[1]) : 10000;
+  runGenerator(N, "cpp-shower.yoda");
 
   return 0;
 }
-// -----------------------------------------------------------------------------
