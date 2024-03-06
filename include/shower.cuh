@@ -1,0 +1,59 @@
+#ifndef SHOWER_CUH_
+#define SHOWER_CUH_
+
+// qcd includes all the necessary headers
+#include "qcd.cuh"
+
+/**
+ * A Dipole Shower on GPU
+ * ----------------------
+ *
+ * NOTE: Kernel = CUDA function, Splitting Function = QCD function
+ *
+ * This is the main result of the published work. It is a full implementation of
+ * a dipole shower on the GPU. It is designed to be as fast as possible*, and
+ * uses a number of tricks to achieve this. The main trick is to use a single
+ * kernel to perform the entire shower, and to use a number of optimisations to
+ * make the code as fast as possible.
+ *
+ * With the Event Object storing all the neccessary information and with the
+ * fact that kernel's can't be member functions, the Shower Class has been
+ * removed
+ *
+ * *: as possible as a second year PhD student can make it ;)
+ */
+
+// Kinematics
+__device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
+                               const double phi, const Vec4 pijt,
+                               const Vec4 pkt);
+
+// Colours
+__device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
+                            const int colij[2], const int colk[2],
+                            const int rand);
+
+// Initialise the curandStates
+__global__ void initCurandStates(curandState *states, int N);
+
+// Selecting the Winner Emission
+__global__ void selectWinnerSplitFunc(Event *events, curandState *states,
+                                      int N);
+
+// Kernel Functions That together make the Shower
+__global__ void checkCutoff(Event *events, double cutoff, int N);
+__global__ void vetoAlg(Event *events, double *asval, bool *veto,
+                        curandState *states, int N);
+__global__ void doSplitting(Event *events, bool *veto, curandState *states,
+                            int N);
+
+// Emissions can be limited to a certain number, but used as a debugging tool
+__global__ void limitEmissions(Event *events, int limit, int N);
+
+// Count the number of completed events
+__global__ void countCompletedEvents(Event *events, int *d_completed, int N);
+
+// All tasks wrapped into a function
+void runShower(thrust::device_vector<Event> &d_events);
+
+#endif  // SHOWER_CUH_
