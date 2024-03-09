@@ -1,7 +1,6 @@
+// To Measure Wall Clock Time and Write to File
 #include <chrono>
 #include <fstream>
-#include <string>
-#include <thread>
 
 // Base Components
 #include "base.h"
@@ -71,11 +70,7 @@ void runGenerator(const int& N, const std::string& filename) {
   Shower sh;
 
   for (int i = 0; i < N; i++) {
-    double t =
-        (events[i].GetParton(0).GetMom() + events[i].GetParton(1).GetMom())
-            .M2();
-    sh.Run(events[i], t);
-    // std::cerr << "Events Showered: " << i + 1 << "\r";
+    sh.Run(events[i]);
   }
 
   end = std::chrono::high_resolution_clock::now();
@@ -92,13 +87,9 @@ void runGenerator(const int& N, const std::string& filename) {
 
   Analysis an;
 
-  // Analyze events
+  // Analyze events (Including Validation of Colour and Momentum Conservation)
   for (int i = 0; i < N; i++) {
-    if (events[i].Validate()) {
       an.Analyze(events[i]);
-    } else {
-      std::cout << "Event failed validation" << std::endl;
-    }
   }
 
   // Storage
@@ -137,10 +128,12 @@ void runGenerator(const int& N, const std::string& filename) {
   std::cout << "Timing data written to cpp-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 10000;
-  runGenerator(N, "cpp-shower.yoda");
+  runGenerator(N, "cpp.yoda");
 
   return 0;
 }
+// -----------------------------------------------------------------------------

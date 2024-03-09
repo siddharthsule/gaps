@@ -32,6 +32,7 @@ __device__ double AlphaS::Beta1(int nf) {
   return (17. / 6. * kCA * kCA) - ((5. / 3. * kCA + kCF) * kTR * nf);
 }
 
+// Alpha_s at order 0 and 1 (One-Loop and Two-Loop)
 __device__ double AlphaS::As0(double t) {
   double tref, asref, b0;
   if (t >= mb2) {

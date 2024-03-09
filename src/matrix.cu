@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "matrix.cuh"
 
 // Host constructor
@@ -13,7 +15,7 @@ Matrix::Matrix(double alphas, double ecms)
       ze(0.01),
       ws(0.25) {}
 
-// Device setup function
+// Device setup function - Default Values in matrix.cuh
 __device__ void Matrix::setup(double alphas, double ecms) {
   this->alphas = alphas;
   this->ecms = ecms;
@@ -47,9 +49,7 @@ __device__ double Matrix::ME2(int fl, double s, double t) {
 }
 
 // Kernel to set up the Matrix object on the device
-__global__ void matrixSetupKernel(Matrix *matrix) {
-  matrix->setup(asmz);
-}
+__global__ void matrixSetupKernel(Matrix *matrix) { matrix->setup(); }
 
 // Kernel to generate the Event
 __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
@@ -67,8 +67,7 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   double phi = 2. * M_PI * curand_uniform(&state);
 
   int fl = curand(&state) % 5 + 1;
-
-  double p0 = matrix->GetECMS() / 2.;
+  double p0 = matrix->GetECMS() / 2.;  // Need to use Get because outside class
 
   Vec4 pa(p0, 0., 0., p0);
   Vec4 pb(p0, 0., 0., -p0);
@@ -76,11 +75,11 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   Vec4 p2(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);
 
   double lome = matrix->ME2(fl, (pa + pb).M2(), (pa - p1).M2());
-  double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) / (2. * pow(matrix->GetECMS(), 2.));
+  double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) /
+               (2. * pow(matrix->GetECMS(), 2.));
 
   Parton p[4] = {Parton(-11, -pa, 0, 0), Parton(11, -pb, 0, 0),
                  Parton(fl, p1, 1, 0), Parton(-fl, p2, 0, 1)};
-
 
   Event &ev = events[idx];
 
@@ -92,12 +91,10 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   // Set the ME Params
   ev.SetDxs(dxs);
   ev.SetHard(4);
-  
 }
 
 // Function to generate the LO Matrix Elements + Momenta
 void calcLOME(thrust::device_vector<Event> &d_events) {
-
   // Number of Events - Can get from d_events.size()
   int N = d_events.size();
 
@@ -106,10 +103,14 @@ void calcLOME(thrust::device_vector<Event> &d_events) {
   cudaMalloc(&d_matrix, sizeof(Matrix));
 
   // Set up the device Matrix object
+  DEBUG_MSG("Running @matrixSetupKernel");
   matrixSetupKernel<<<1, 1>>>(d_matrix);
+  syncGPUAndCheck("matrixSetupKernel");
 
   // Generate the LO Matrix Elements
-  loPointKernel<<<(N + 255) / 256, 256>>>(d_matrix, thrust::raw_pointer_cast(d_events.data()), N);
+  DEBUG_MSG("Running @loPointKernel");
+  loPointKernel<<<(N + 255) / 256, 256>>>(
+      d_matrix, thrust::raw_pointer_cast(d_events.data()), N);
   syncGPUAndCheck("loPointKernel");
 
   // Free Memory

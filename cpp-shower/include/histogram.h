@@ -1,23 +1,17 @@
 #ifndef HISTOGRAM_H_
 #define HISTOGRAM_H_
 
-#include "base.h"
-
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <string>
 
+#include "base.h"
+
 // Bin1D class
 class Bin1D {
  public:
-  double xmin;
-  double xmax;
-  double w;
-  double w2;
-  double wx;
-  double wx2;
-  double N;
+  double xmin, xmax, w, w2, wx, wx2, n;
 
  public:
   Bin1D(double xmin, double xmax)
@@ -69,7 +63,7 @@ class Histo1D {
 
  public:
   // Constructor for Histo1D
-  Histo1D(double xmin, double xmax, const std::string& name)
+  Histo1D(double xmin = 0.0, double xmax = 1.0, const std::string& name = "hst")
       : name(name),
         uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),

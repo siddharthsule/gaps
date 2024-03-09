@@ -13,7 +13,12 @@ rivet-plots/
 .vscode/
 
 # Any Temporary Results
-results/
+results-*/
 
-# plots
+# Plots
 test/*.pdf
+
+# Any Profiling Results
+*.nsys-rep
+*.sqlite
+profile.log

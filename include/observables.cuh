@@ -34,6 +34,7 @@ class Analysis {
   double wtot;  // Scale by Weight for 1/sigma d(sigma)/d Observable
   double ntot;  // Scale by Number for d(sigma)/d Observable
 
+  // Can't have strings as device variables, in future could use char*
   __host__ __device__ Analysis() : wtot(0.0), ntot(0.0) {
     hists[0] = Histo1D(-4.3, -0.3);  // /gaps/log10y23
     hists[1] = Histo1D(-4.3, -0.3);  // /gaps/log10y34
@@ -47,6 +48,9 @@ class Analysis {
     hists[9] = Histo1D(0.0, 0.2);    // "/gaps/njb"
   }
 };
+
+// Validate Events - Colour and Momentum Conservation
+__global__ void validateEvents(Event* events, int N);
 
 // Fill Histograms simultaneously
 __global__ void fillHistos(Analysis* an, Event* events, int N);

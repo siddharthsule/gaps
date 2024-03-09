@@ -13,6 +13,9 @@
  * (but also be careful with what you change, as it may break the program...)
 */
 
+// -----------------------------------------------------------------------------
+// Import Libraries
+
 // CUDA Libraries
 #include <cuda_runtime.h> // CUDA Runtime
 #include <curand_kernel.h> // CURAND Library
@@ -25,6 +28,12 @@
 #include <cmath> // Math Functions
 #include <fstream> // File I/O
 #include <iostream> // Standard I/O
+
+// -----------------------------------------------------------------------------
+// Program Settings - CAREFUL WITH CHANGES
+
+// Debugging - only debug levels 0 and 1 (true or false)
+const bool debug = false;
 
 // Max Number of Partons, set to save memory
 // 50 works for all, but observables calc is slow
@@ -42,7 +51,14 @@ const double asmax = 0.440886;
 // Number of Histogram Bins: Common for all Plots (for now...)
 const int nBins = 100;
 
+// -----------------------------------------------------------------------------
+// Common Functions
+
 // Sync Device and Check for CUDA Errors
 void syncGPUAndCheck(const char *operation);
 
+// Debugging Function - Available in Kernels too!
+__host__ __device__ void DEBUG_MSG(const char *msg);
+
+// -----------------------------------------------------------------------------
 #endif // BASE_CUH_

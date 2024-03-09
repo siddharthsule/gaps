@@ -1,5 +1,28 @@
-#include "observables.cuh"
 #include <fstream>
+
+#include "observables.cuh"
+
+// -----------------------------------------------------------------------------
+// Validate Events before binning
+
+__global__ void validateEvents(Event* events, int N) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (idx >= N) {
+    return;
+  }
+
+  Event& ev = events[idx];
+  ev.SetValidity(ev.Validate());
+
+  if (!ev.GetValidity()) {
+    printf("Invalid Event\n");
+  }
+}
+
+// For now the event is validated before every observable, but this could be
+// optimized by validating once and then passing a flag to the observables
+// This is true for both C++ and CUDA, so our comparison is still valid
 
 // -----------------------------------------------------------------------------
 // Jet Rates
@@ -22,7 +45,7 @@ __global__ void doCluster(Event* events, int N) {
 
   Event& ev = events[idx];
 
-  if (!ev.Validate()) {
+  if (!ev.GetValidity()) {
     return;
   }
 
@@ -137,7 +160,7 @@ __global__ void calculateThr(Event* events, int N) {
 
   Event& ev = events[idx];
 
-  if (!ev.Validate() || ev.GetSize() < 5) {
+  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
     return;
   }
 
@@ -213,7 +236,7 @@ __global__ void CalculateJetMBr(Event* events, int N) {
 
   Event& ev = events[idx];
 
-  if (!ev.Validate() || ev.GetSize() < 5) {
+  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
     return;
   }
 
@@ -324,7 +347,7 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
    * to a file from the device. Therefore, we will create a host object to
    * store the histograms, and then copy the results back to the host for
    * writing to file.
-  */
+   */
 
   // Device Analysis Object
   Analysis *h_an, *d_an;
@@ -337,6 +360,10 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   // Get Event Data
   int N = d_events.size();
   Event* d_events_ptr = thrust::raw_pointer_cast(d_events.data());
+
+  // Validate the Events
+  validateEvents<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
+  syncGPUAndCheck("validateEvents");
 
   // Calculare the Observables
   doCluster<<<(N + 255) / 256, 256>>>(d_events_ptr, N);

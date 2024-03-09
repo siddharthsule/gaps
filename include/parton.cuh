@@ -76,6 +76,9 @@ class Event {
 
   // Analysis Variables --------------------------------------------------------
 
+  // Event Validity - Momentum and Colour Conservation
+  bool validity = true;
+
   // Jet Rates using the Durham Algorithm
   double y23 = -50.0, y34 = -50.0, y45 = -50.0, y56 = -50.0;
 
@@ -114,6 +117,8 @@ class Event {
   __device__ bool GetEndShower() const { return endShower; }
 
   // Analysis Getters
+  __device__ bool GetValidity() const { return validity; }
+
   __device__ double GetY23() const { return y23; }
   __device__ double GetY34() const { return y34; }
   __device__ double GetY45() const { return y45; }
@@ -166,6 +171,8 @@ class Event {
   __device__ void SetEndShower(bool endShower) { this->endShower = endShower; }
 
   // Set Analysis Variables
+  __device__ void SetValidity(bool validity) { this->validity = validity; }
+
   __device__ void SetY23(double y23) { this->y23 = y23; }
   __device__ void SetY34(double y34) { this->y34 = y34; }
   __device__ void SetY45(double y45) { this->y45 = y45; }

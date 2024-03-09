@@ -207,7 +207,8 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
 // -----------------------------------------------------------------------------
 
-__global__ void checkCutoff(Event *events, double cutoff, int N) {
+__global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
+                            int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -230,6 +231,7 @@ __global__ void checkCutoff(Event *events, double cutoff, int N) {
    */
   if (!(ev.GetShowerT() > cutoff)) {
     ev.SetEndShower(true);
+    atomicAdd(d_completed, 1); // Increment the number of completed events
   }
 }
 
@@ -482,7 +484,7 @@ __global__ void doSplitting(Event *events, bool *veto, curandState *states,
   MakeColours(ev, coli, colj, flavs, colij, colk, curand_uniform(&state));
   states[idx] = state;
 
-  // Modify Emitter
+  // Modify Splitter
   ev.SetPartonPid(win_ij, flavs[1]);
   ev.SetPartonMom(win_ij, moms[0]);
   ev.SetPartonCol(win_ij, coli[0]);
@@ -501,23 +503,7 @@ __global__ void doSplitting(Event *events, bool *veto, curandState *states,
 
 // -----------------------------------------------------------------------------
 
-__global__ void countCompletedEvents(Event *events, int *d_completed, int N) {
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-
-  if (idx >= N) {
-    return;
-  }
-
-  Event &ev = events[idx];
-  atomicAdd(d_completed, ev.GetEndShower() ? 1 : 0);
-}
-
-// -----------------------------------------------------------------------------
-
 void runShower(thrust::device_vector<Event> &d_events) {
-  // print statements only if true
-  bool debug = false;
-
   // Number of Events - Can get from d_events.size()
   int N = d_events.size();
 
@@ -534,6 +520,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
   cudaMalloc(&d_veto, N * sizeof(bool));
   int *d_completed;
   cudaMalloc(&d_completed, sizeof(int));
+  cudaMemset(d_completed, 0, sizeof(int));
 
   // Allocate space for curand states
   curandState *d_states;
@@ -551,10 +538,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
   // ---------------------------------------------------------------------------
   // Prepare the Shower
 
-  if (debug) {
-    std::cout << "Running @prepShower" << std::endl;
-  }
-
+  DEBUG_MSG("Running @prepShower");
   prepShower<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
   syncGPUAndCheck("prepShower");
 
@@ -568,40 +552,28 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // -------------------------------------------------------------------------
     // Select the winner kernel
 
-    if (debug) {
-      std::cout << "Running @selectWinnerSplitFunc" << std::endl;
-    }
-
+    DEBUG_MSG("Running @selectWinnerSplitFunc");
     selectWinnerSplitFunc<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
     syncGPUAndCheck("selectWinnerSplitFunc");
 
     // -------------------------------------------------------------------------
     // Check Cutoff
 
-    if (debug) {
-      std::cout << "Running @checkCutoff" << std::endl;
-    }
-
-    checkCutoff<<<(N + 255) / 256, 256>>>(d_events_ptr, 1.0, N);
+    DEBUG_MSG("Running @checkCutoff");
+    checkCutoff<<<(N + 255) / 256, 256>>>(d_events_ptr, d_completed, tC, N);
     syncGPUAndCheck("checkCutoff");
 
     // -------------------------------------------------------------------------
     // Calculate AlphaS for Veto Algorithm
 
-    if (debug) {
-      std::cout << "Running @asKernel" << std::endl;
-    }
-
+    DEBUG_MSG("Running @asKernel");
     asKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, d_asval, N);
     syncGPUAndCheck("asKernel");
 
     // -------------------------------------------------------------------------
     // Veto Algorithm
 
-    if (debug) {
-      std::cout << "Running @vetoAlg" << std::endl;
-    }
-
+    DEBUG_MSG("Running @vetoAlg");
     vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_asval, d_veto, d_states,
                                       N);
     syncGPUAndCheck("vetoAlg");
@@ -609,29 +581,23 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // -------------------------------------------------------------------------
     // Splitting Algorithm
 
-    if (debug) {
-      std::cout << "Running @doSplitting" << std::endl;
-    }
-
+    DEBUG_MSG("Running @doSplitting");
     doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_states, N);
     syncGPUAndCheck("doSplitting");
 
     // -------------------------------------------------------------------------
-    // Check for Completed Events - Until Paper is Published, we will use this
+    // Import the Number of Completed Events
 
-    cudaMemset(d_completed, 0, sizeof(int));
-    countCompletedEvents<<<(N + 255) / 256, 256>>>(d_events_ptr, d_completed,
-                                                   N);
     cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
-
     cycle++;
 
+    // Until Paper is Published, we will use this
     completedPerCycle.push_back(completed);
   }
 
   // ---------------------------------------------------------------------------
   // Write completedPerCycle to file
-  std::ofstream file("cuda-cycles.dat");
+  std::ofstream file("gaps-cycles.dat");
   for (auto &i : completedPerCycle) {
     file << i << std::endl;
   }
