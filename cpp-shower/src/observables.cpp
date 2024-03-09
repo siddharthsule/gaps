@@ -3,6 +3,7 @@
 // -----------------------------------------------------------------------------
 // Jet Rates
 
+// Yij function Used for the Durham analysis
 double Yij(const Vec4& p, const Vec4& q, double ecm2) {
   double pq = p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
   double min_pq = std::min(p[0], q[0]);
@@ -10,25 +11,45 @@ double Yij(const Vec4& p, const Vec4& q, double ecm2) {
   return 2.0 * std::pow(min_pq, 2) * (1.0 - std::min(max_pq, 1.0)) / ecm2;
 }
 
+// Durham Clustering Algorithm
 void Cluster(Event& ev) {
+  if (!ev.GetValidity()) {
+    return;
+  }
+  // For C++, one can use the std::vector class to store the parton 4-momenta.
+  // Howver, this would be inefficient for CUDA, so we use a pre-set array size
+  // To make the comparison fair, we make this class use the same array size
+  // as well.
+
+  // Get the center of mass energy squared
   double ecm2 = (ev.GetParton(0).GetMom() + ev.GetParton(1).GetMom()).M2();
-  std::vector<Vec4> p;
-  for (size_t i = 2; i < ev.GetSize(); ++i) {
-    p.push_back(ev.GetParton(i).GetMom());
+
+  // Extract the 4-momenta of the partons
+  Vec4 p[maxPartons];
+  for (int i = 2; i < ev.GetSize(); ++i) {
+    p[i - 2] = ev.GetParton(i).GetMom();
   }
 
-  std::vector<double> kt2;
-  size_t N = p.size();
-  std::vector<size_t> imap(N);
-  for (size_t i = 0; i < N; ++i) {
+  // kt2 will store the kt2 values for each clustering step
+  // If not changed, set to -1 so we can ignore when histogramming
+  double kt2[maxPartons] = {-1.0};
+  int counter = 0;
+
+  // Number of partons (which will change when clustered), lower case to avoid N
+  int n = ev.GetPartonSize();
+
+  // imap will store the indices of the partons
+  int imap[maxPartons];
+  for (int i = 0; i < ev.GetPartonSize(); ++i) {
     imap[i] = i;
   }
 
-  std::vector<std::vector<double>> kt2ij(N, std::vector<double>(N, 0.0));
+  // kt2ij will store the kt2 values for each pair of partons
+  double kt2ij[maxPartons][maxPartons] = {0.0};
   double dmin = 1.0;
-  size_t ii = 0, jj = 0;
-  for (size_t i = 0; i < N; ++i) {
-    for (size_t j = 0; j < i; ++j) {
+  int ii = 0, jj = 0;
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {
       double dij = kt2ij[i][j] = Yij(p[i], p[j], ecm2);
       if (dij < dmin) {
         dmin = dij;
@@ -38,23 +59,25 @@ void Cluster(Event& ev) {
     }
   }
 
-  while (N > 2) {
-    --N;
-    kt2.push_back(dmin);
-    size_t jjx = imap[jj];
+  // Cluster the partons
+  while (n > 2) {
+    --n;
+    kt2[counter] = dmin;
+    counter++;
+    int jjx = imap[jj];
     p[jjx] = p[jjx] + p[imap[ii]];
-    for (size_t i = ii; i < N; ++i) {
+    for (int i = ii; i < n; ++i) {
       imap[i] = imap[i + 1];
     }
-    for (size_t j = 0; j < jj; ++j) {
+    for (int j = 0; j < jj; ++j) {
       kt2ij[jjx][imap[j]] = Yij(p[jjx], p[imap[j]], ecm2);
     }
-    for (size_t i = jj + 1; i < N; ++i) {
+    for (int i = jj + 1; i < n; ++i) {
       kt2ij[imap[i]][jjx] = Yij(p[jjx], p[imap[i]], ecm2);
     }
     dmin = 1.0;
-    for (size_t i = 0; i < N; ++i) {
-      for (size_t j = 0; j < i; ++j) {
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < i; ++j) {
         double dij = kt2ij[imap[i]][imap[j]];
         if (dij < dmin) {
           dmin = dij;
@@ -66,56 +89,54 @@ void Cluster(Event& ev) {
   }
 
   // Store the kt2 values in the output arrays
-  if (!kt2.empty()) {
-    ev.SetY23(kt2.size() > 0 ? std::log10(kt2[kt2.size() - 1 - 0]) : -50.0);
-    ev.SetY34(kt2.size() > 1 ? std::log10(kt2[kt2.size() - 1 - 1]) : -50.0);
-    ev.SetY45(kt2.size() > 2 ? std::log10(kt2[kt2.size() - 1 - 2]) : -50.0);
-    ev.SetY56(kt2.size() > 3 ? std::log10(kt2[kt2.size() - 1 - 3]) : -50.0);
-  }
+  ev.SetY23(counter > 0 ? log10(kt2[counter - 1 - 0]) : -50.0);
+  ev.SetY34(counter > 1 ? log10(kt2[counter - 1 - 1]) : -50.0);
+  ev.SetY45(counter > 2 ? log10(kt2[counter - 1 - 2]) : -50.0);
+  ev.SetY56(counter > 3 ? log10(kt2[counter - 1 - 3]) : -50.0);
 }
 
-// ----------------------------------------------------------------------------- 
+// -----------------------------------------------------------------------------
 // Event Shapes
 
-std::vector<Vec4> GetMomenta(const Event& ev) {
-  std::vector<Vec4> moms;
-
-  // Get Momenta for partons starting at 2
-  for (size_t i = 2; i < ev.GetSize(); ++i) {
-    Vec4 pmom = ev.GetParton(i).GetMom();
-    moms.push_back(pmom);
+void bubbleSort(Vec4* moms, int n) {
+  for (int i = 0; i < n - 1; i++) {
+    for (int j = 0; j < n - i - 1; j++) {
+      if (moms[j].P() < moms[j + 1].P()) {
+        Vec4 temp = moms[j];
+        moms[j] = moms[j + 1];
+        moms[j + 1] = temp;
+      }
+    }
   }
-
-  // Sort by mag2 in descending order (of 3 Momenta)
-  std::sort(moms.begin(), moms.end(),
-            [](const Vec4& a, const Vec4& b) { return a.P() > b.P(); });
-
-  return moms;
 }
 
 void CalculateThrust(Event& ev) {
-  std::vector<Vec4> moms = GetMomenta(ev);
-
-  if (moms.size() < 3) {
+  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
     return;
   }
 
-  // Sum of all momenta
-  double momsum = 0.0;
-  for (auto& mom : moms) {
-    momsum += mom.P();
+  Vec4 moms[maxPartons];
+  for (int i = 2; i < ev.GetSize(); ++i) {
+    moms[i - 2] = ev.GetParton(i).GetMom();
   }
 
-  double thrust = 0.0;
+  bubbleSort(moms, maxPartons);
+
+  double momsum = 0.0;
+  for (int i = 0; i < ev.GetPartonSize(); ++i) {
+    momsum += moms[i].P();
+  }
+
+  double thr = 0.0;
   Vec4 t_axis = Vec4();
 
-  for (size_t k = 1; k < moms.size(); ++k) {
-    for (size_t j = 0; j < k; ++j) {
+  for (int k = 1; k < ev.GetPartonSize(); ++k) {
+    for (int j = 0; j < k; ++j) {
       Vec4 tmp_axis = moms[j].Cross(moms[k]);
       Vec4 p_thrust = Vec4();
-      std::vector<Vec4> p_combin;
+      Vec4 p_combin[4];
 
-      for (size_t i = 0; i < moms.size(); ++i) {
+      for (int i = 0; i < ev.GetPartonSize(); ++i) {
         if (i != j && i != k) {
           if (moms[i].Dot(tmp_axis) >= 0) {
             p_thrust = p_thrust + moms[i];
@@ -125,48 +146,50 @@ void CalculateThrust(Event& ev) {
         }
       }
 
-      p_combin.push_back((p_thrust + moms[j] + moms[k]));
-      p_combin.push_back((p_thrust + moms[j] - moms[k]));
-      p_combin.push_back((p_thrust - moms[j] + moms[k]));
-      p_combin.push_back((p_thrust - moms[j] - moms[k]));
+      p_combin[0] = (p_thrust + moms[j] + moms[k]);
+      p_combin[1] = (p_thrust + moms[j] - moms[k]);
+      p_combin[2] = (p_thrust - moms[j] + moms[k]);
+      p_combin[3] = (p_thrust - moms[j] - moms[k]);
 
-      for (auto p : p_combin) {
-        double temp = p.P();
-        if (temp > thrust) {
-          thrust = temp;
-          t_axis = p;  // will unit-ify below
+      for (int i = 0; i < 4; ++i) {
+        double temp = p_combin[i].P();
+        if (temp > thr) {
+          thr = temp;
+          t_axis = p_combin[i];
         }
       }
     }
   }
 
-  thrust /= momsum;
-  thrust = 1.0 - thrust;
+  thr /= momsum;
+  thr = 1.0 - thr;
 
   t_axis = t_axis / (t_axis).P();
   if (t_axis[2] < 0) {
     t_axis = t_axis * -1.0;
   }
 
-  if (thrust < 1e-12) {
-    thrust = -5.0;
+  if (thr < 1e-12) {
+    thr = -5.0;
   }
 
-  ev.SetThr(thrust);
+  ev.SetThr(thr);
   ev.SetTAxis(t_axis);
 }
 
 void CalculateJetMBr(Event& ev) {
-  std::vector<Vec4> moms = GetMomenta(ev);
-
-  if (moms.size() < 3) {
+  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
     return;
   }
 
-  // Momentum Sum (Should be 91.2 GeV)
+  Vec4 moms[maxPartons];
+  for (int i = 2; i < ev.GetSize(); ++i) {
+    moms[i - 2] = ev.GetParton(i).GetMom();
+  }
+
   double momsum = 0.0;
-  for (const auto& mom : moms) {
-    momsum += mom.P();
+  for (int i = 0; i < ev.GetSize(); ++i) {
+    momsum += moms[i].P();
   }
 
   Vec4 p_with, p_against;
@@ -174,25 +197,25 @@ void CalculateJetMBr(Event& ev) {
   double e_vis = 0.0, broad_with = 0.0, broad_against = 0.0,
          broad_denominator = 0.0;
 
-  for (const auto& mom : moms) {
-    double mo_para = mom.Dot(ev.GetTAxis());
-    double mo_perp = (mom - (ev.GetTAxis() * mo_para)).P();
-    double enrg = mom.P();  // Equivalent to mom.E for massless partons
+  for (int i = 0; i < ev.GetPartonSize(); ++i) {
+    double mo_para = moms[i].Dot(ev.GetTAxis());
+    double mo_perp = (moms[i] - (ev.GetTAxis() * mo_para)).P();
+    double enrg = moms[i].P();
 
     e_vis += enrg;
     broad_denominator += 2.0 * enrg;
 
     if (mo_para > 0.0) {
-      p_with = p_with + mom;
+      p_with = p_with + moms[i];
       broad_with += mo_perp;
       n_with++;
     } else if (mo_para < 0.0) {
-      p_against = p_against + mom;
+      p_against = p_against + moms[i];
       broad_against += mo_perp;
       n_against++;
     } else {
-      p_with = p_with + (mom * 0.5);
-      p_against = p_against + (mom * 0.5);
+      p_with = p_with + (moms[i] * 0.5);
+      p_against = p_against + (moms[i] * 0.5);
       broad_with += 0.5 * mo_perp;
       broad_against += 0.5 * mo_perp;
       n_with++;
@@ -200,22 +223,22 @@ void CalculateJetMBr(Event& ev) {
     }
   }
 
-  double e2_vis = std::pow(e_vis, 2.0);
+  double e2_vis = e_vis * e_vis;
 
-  double mass2_with = std::abs(p_with.M2() / e2_vis);
-  double mass2_against = std::abs(p_against.M2() / e2_vis);
+  double mass2_with = fabs(p_with.M2() / e2_vis);
+  double mass2_against = fabs(p_against.M2() / e2_vis);
 
-  double mass_with = std::sqrt(mass2_with);
-  double mass_against = std::sqrt(mass2_against);
+  double mass_with = sqrt(mass2_with);
+  double mass_against = sqrt(mass2_against);
 
   broad_with /= broad_denominator;
   broad_against /= broad_denominator;
 
-  double mH = std::max(mass_with, mass_against);
-  double mL = std::min(mass_with, mass_against);
+  double mH = fmax(mass_with, mass_against);
+  double mL = fmin(mass_with, mass_against);
 
-  double bW = std::max(broad_with, broad_against);
-  double bN = std::min(broad_with, broad_against);
+  double bW = fmax(broad_with, broad_against);
+  double bN = fmin(broad_with, broad_against);
 
   if (n_with == 1 || n_against == 1) {
     ev.SetHJM(mH);
@@ -232,6 +255,13 @@ void CalculateJetMBr(Event& ev) {
 // Observable Analysis
 
 void Analysis::Analyze(Event& ev) {
+  // Validate Event
+  ev.SetValidity(ev.Validate());
+
+  if (!ev.GetValidity()) {
+    printf("Invalid Event\n");
+    return;
+  }
 
   // Cluster
   Cluster(ev);

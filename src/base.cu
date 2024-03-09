@@ -1,5 +1,6 @@
 #include "base.cuh"
 
+// Sync Device and Check for Errors
 void syncGPUAndCheck(const char *operation) {
   // synchronize with the device
   cudaDeviceSynchronize();
@@ -13,5 +14,12 @@ void syncGPUAndCheck(const char *operation) {
 
     // abort the program
     std::exit(EXIT_FAILURE);
+  }
+}
+
+// Debug messages
+__host__ __device__ void DEBUG_MSG(const char *message) {
+  if (debug) {
+    printf("DEBUG: %s\n", message);
   }
 }

@@ -32,7 +32,7 @@ class AlphaS {
     return (17. / 6. * kCA * kCA) - ((5. / 3. * kCA + kCF) * kTR * nf);
   }
 
-  // Alpha_s at order 0 and 1
+  // Alpha_s at order 0 and 1 (One-Loop and Two-Loop)
   double As0(double t) const {
     double tref, asref, b0;
     if (t >= mb2) {

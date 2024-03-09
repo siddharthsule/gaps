@@ -4,24 +4,12 @@
 // Base Class, with all the important definitions
 #include "base.h"
 
-/**
- * Why is this Header Only?
- *
- * When working with the Parton Shower, I found out that CUDA doesn't read
- * other .cu files before compliling the main one. This means that functions in
- * a file vec4.cu will not be accessible in shower.cu. They must be in the
- * file vec4.cuh
- *
- * This is also applied to parton.cuh and (in c++ for now), qcd.h
- **/
-
 class Vec4 {
  private:
   double E, px, py, pz;
 
  public:
   // Constructor - Define key attributes Energy and Momentum
-  // Used in ME and out [HOST + DEVICE]
   Vec4(double E = 0., double px = 0., double py = 0., double pz = 0.)
       : E(E), px(px), py(py), pz(pz) {}
 
@@ -37,7 +25,6 @@ class Vec4 {
       case 3:
         return pz;
       default:
-        // CUDA does not support exceptions, so we just return 0
         return 0;
     }
   }

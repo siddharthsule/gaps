@@ -1,11 +1,17 @@
 #ifndef BASE_H_
 #define BASE_H_
 
+// -----------------------------------------------------------------------------
+// Import Libraries
+
 #include <cmath> // Math Functions
 #include <vector> // Vector
 #include <random> // Random Number Generation
 #include <fstream> // File I/O
 #include <iostream> // Standard I/O
+
+// -----------------------------------------------------------------------------
+// Program Settings - CAREFUL WITH CHANGES
 
 // Max Number of Partons, set to save memory
 const int maxPartons = 30;

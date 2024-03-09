@@ -44,6 +44,8 @@ void Shower::SelectWinner(Event& ev, std::mt19937& gen) {
       int sf = 16;  // Default or Null Splitting Function
       double tt = 0.0;
 
+      // Different from S.H.'s Tutorial here, see shower.cu for more info.
+
       // Quark/Anti-Quark
       if (ev.GetParton(ij).GetPid() != 21) {
         // Flavour:  -5 -4 -3 -2 -1  1  2  3  4  5
@@ -300,18 +302,20 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
           int colj[2] = {0, 0};
           MakeColours(ev, coli, colj, flavs, colij, colk, dis(gen));
 
+          // Modify Splitter
           ev.SetPartonPid(win_ij, flavs[1]);
           ev.SetPartonMom(win_ij, moms[0]);
           ev.SetPartonCol(win_ij, coli[0]);
           ev.SetPartonAntiCol(win_ij, coli[1]);
 
-          ev.SetPartonPid(ev.GetSize(), flavs[2]);
-          ev.SetPartonMom(ev.GetSize(), moms[1]);
-          ev.SetPartonCol(ev.GetSize(), colj[0]);
-          ev.SetPartonAntiCol(ev.GetSize(), colj[1]);
-
+          // Modify Recoiled Spectator
           ev.SetPartonMom(win_k, moms[2]);
 
+          // Add Emitted Parton
+          Parton em = Parton(flavs[2], moms[1], colj[0], colj[1]);
+          ev.SetParton(ev.GetSize(), em);
+
+          // Increment Emissions (IMPORTANT)
           ev.IncrementEmissions();
 
           return;
@@ -321,9 +325,7 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
   }
 }
 
-void Shower::Run(Event& ev, double t_in) {
-  ev.SetShowerT(t_in);
-  ev.SetShowerC(1);
+void Shower::Run(Event& ev) {
 
   /**
    * Thread Local

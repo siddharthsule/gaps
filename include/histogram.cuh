@@ -22,14 +22,6 @@ class Bin1D {
 
   __host__ __device__ double Width() const { return xmax - xmin; }
 
-  __host__ void Fill(double x, double weight) {
-    w += weight;
-    w2 += weight * weight;
-    wx += weight * x;
-    wx2 += weight * weight * x;
-    n += 1.0;
-  }
-
   __device__ void AtomicFill(double x, double weight) {
     atomicAdd(&w, weight);
     atomicAdd(&w2, weight * weight);
@@ -46,6 +38,14 @@ class Bin1D {
   }
 };
 
+/**
+ * Name component of Histo1D
+ * -------------------------
+ * 
+ * Unfortunately, std::string is not a feature in CUDA, so we have to provide
+ * the name additinally whern writing to file. This is the only difference
+ * between the CUDA and C++ versions of the code.
+*/
 // Histo1D class
 class Histo1D {
  public:
@@ -58,9 +58,9 @@ class Histo1D {
 
  public:
   __host__ __device__ Histo1D(double xmin = 0.0, double xmax = 1.0)
-      : uflow(xmin - nBins, xmin),
-        oflow(xmax, xmax + nBins),
-        total(xmin - nBins, xmax + nBins),
+      : uflow(xmin - 100., xmin),
+        oflow(xmax, xmax + 100.),
+        total(xmin - 100., xmax + 100.),
         scale(1.) {
     double width = (xmax - xmin) / nBins;
     for (int i = 0; i < nBins; ++i) {
@@ -70,6 +70,7 @@ class Histo1D {
     }
   }
 
+  // Atomic Binning! Each event is binned simultaneously here
   __device__ void Fill(double x, double w) {
     int l = 0;
     int r = nBins - 1;
@@ -112,6 +113,7 @@ class Histo1D {
   }
 };
 
+// Writing is done outside of the class in CUDA implementation
 std::string ToString(Histo1D h, std::string name);
 void Write(Histo1D h, std::string name, const std::string& filename);
 

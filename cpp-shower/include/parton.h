@@ -64,6 +64,9 @@ class Event {
 
   // Analysis Variables --------------------------------------------------------
 
+  // Event Validity - Momentum and Colour Conservation
+  bool validity = true;
+
   // Jet Rates using the Durham Algorithm
   double y23 = -50.0, y34 = -50.0, y45 = -50.0, y56 = -50.0;
 
@@ -102,6 +105,8 @@ class Event {
   double GetWinParam(int i) const { return winParams[i]; }
 
   // Get Analysis Variables
+  bool GetValidity() const { return validity; }
+
   double GetY23() const { return y23; }
   double GetY34() const { return y34; }
   double GetY45() const { return y45; }
@@ -147,6 +152,8 @@ class Event {
   void SetWinParam(int i, double winParams) { this->winParams[i] = winParams; }
 
   // Set Analysis Variables
+  void SetValidity(bool validity) { this->validity = validity; }
+
   void SetY23(double y23) { this->y23 = y23; }
   void SetY34(double y34) { this->y34 = y34; }
   void SetY45(double y45) { this->y45 = y45; }

@@ -23,6 +23,24 @@
  * *: as possible as a second year PhD student can make it ;)
  */
 
+// Initialise the curandStates
+__global__ void initCurandStates(curandState *states, int N);
+
+// Prepare Events for the Shower
+__global__ void prepShower(Event *events, int N);
+
+// Selecting the Winner Emission
+__global__ void selectWinnerSplitFunc(Event *events, curandState *states,
+                                      int N);
+
+// Check the Cutoff
+__global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
+                            int N);
+
+// Veto Algorithm
+__global__ void vetoAlg(Event *events, double *asval, bool *veto,
+                        curandState *states, int N);
+
 // Kinematics
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
                                const double phi, const Vec4 pijt,
@@ -33,25 +51,9 @@ __device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
                             const int colij[2], const int colk[2],
                             const int rand);
 
-// Initialise the curandStates
-__global__ void initCurandStates(curandState *states, int N);
-
-// Selecting the Winner Emission
-__global__ void selectWinnerSplitFunc(Event *events, curandState *states,
-                                      int N);
-
-// Kernel Functions That together make the Shower
-__global__ void checkCutoff(Event *events, double cutoff, int N);
-__global__ void vetoAlg(Event *events, double *asval, bool *veto,
-                        curandState *states, int N);
+// Perform the Splitting
 __global__ void doSplitting(Event *events, bool *veto, curandState *states,
                             int N);
-
-// Emissions can be limited to a certain number, but used as a debugging tool
-__global__ void limitEmissions(Event *events, int limit, int N);
-
-// Count the number of completed events
-__global__ void countCompletedEvents(Event *events, int *d_completed, int N);
 
 // All tasks wrapped into a function
 void runShower(thrust::device_vector<Event> &d_events);

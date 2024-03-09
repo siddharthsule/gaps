@@ -7,16 +7,16 @@
 /**
  * Four Momenta
  * ------------
- * 
+ *
  * This file contains the definition of the Four Momenta class, which is used to
  * represent the four-momentum of particles in the event. It is a simple class
  * with the four attributes (E, px, py, pz) and some basic operations that can
  * be performed with them.
- * 
- * 
+ *
+ *
  * Why is this Header Only? I thought if the functions are small and simple, and
- * only act on the class attributes, it is better to keep them in the header and
- * avoid having a separate .cu file.
+ * only act on the class attributes, it might be convenient to keep them in the
+ * header and avoid having a separate .cu file.
  */
 
 class Vec4 {
@@ -26,8 +26,7 @@ class Vec4 {
  public:
   // Constructor - Define key attributes Energy and Momentum
   // Used in ME and out [HOST + DEVICE]
-  __device__ Vec4(double E = 0., double px = 0., double py = 0.,
-                           double pz = 0.)
+  __device__ Vec4(double E = 0., double px = 0., double py = 0., double pz = 0.)
       : E(E), px(px), py(py), pz(pz) {}
 
   // Get Method to Obtain Attribute Value

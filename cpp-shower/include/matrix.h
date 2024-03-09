@@ -6,6 +6,9 @@
 
 // Matrix class
 class Matrix {
+ private:
+  double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
+
  public:
   // Constructor
   Matrix(double alphas, double ecms = 91.2);
@@ -15,9 +18,6 @@ class Matrix {
 
   // Generate a leading order point
   void GenerateLOPoint(Event &ev);
-
- private:
-  double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
 };
 
 #endif  // MATRIX_H_

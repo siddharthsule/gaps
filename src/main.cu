@@ -109,7 +109,7 @@ void runGenerator(const int N, const std::string filename) {
 
   // Open the file in append mode. This will create the file if it doesn't
   // exist.
-  std::ofstream outfile("cuda-time.dat", std::ios_base::app);
+  std::ofstream outfile("gaps-time.dat", std::ios_base::app);
 
   // Write diff_sh.count() to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
@@ -119,14 +119,16 @@ void runGenerator(const int N, const std::string filename) {
   outfile.close();
 
   std::cout << "Histograms written to " << filename << std::endl;
-  std::cout << "Timing data written to cuda-time.dat" << std::endl;
+  std::cout << "Timing data written to gaps-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
 // -----------------------------------------------------------------------------
+
 int main(int argc, char *argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 100000;
-  runGenerator(N, "cuda-shower.yoda");
+  runGenerator(N, "gaps.yoda");
 
   return 0;
 }
+
 // -----------------------------------------------------------------------------

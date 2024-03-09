@@ -4,14 +4,12 @@
 #include "histogram.h"
 #include "parton.h"
 
-#include <algorithm>
-
 // Jet Rates using the Durham Algorithm
 double Yij(const Vec4& p, const Vec4& q);
 void Cluster(Event& ev);
 
 // Event Shapes
-std::vector<Vec4> GetMomenta(const Event& ev);
+void bubbleSort(Vec4* moms, int n);
 void CalculateThrust(Event& ev);
 void CalculateJetMBr(Event& ev);
 
@@ -24,24 +22,27 @@ void CalculateJetMBr(Event& ev);
  * same class for all events!
  */
 class Analysis {
-  std::vector<Histo1D> hists;
-  double wtot;
-  double ntot;
+ public:
+  Histo1D hists[10];
+
+  double wtot;  // Scale by Weight for 1/sigma d(sigma)/d Observable
+  double ntot;  // Scale by Number for d(sigma)/d Observable
 
  public:
   Analysis() : wtot(0.0), ntot(0.0) {
-    hists.push_back(Histo1D(-4.3, -0.3, "/gaps/log10y23\n"));
-    hists.push_back(Histo1D(-4.3, -0.3, "/gaps/log10y34\n"));
-    hists.push_back(Histo1D(-4.3, -0.3, "/gaps/log10y45\n"));
-    hists.push_back(Histo1D(-4.3, -0.3, "/gaps/log10y56\n"));
-    hists.push_back(Histo1D(0.0, 0.5, "/gaps/tvalue\n"));
-    hists.push_back(Histo1D(0.0, 0.5, "/gaps/tzoomd\n"));
-    hists.push_back(Histo1D(0.0, 1.0, "/gaps/hjm\n"));
-    hists.push_back(Histo1D(0.0, 0.5, "/gaps/ljm\n"));
-    hists.push_back(Histo1D(0.0, 0.5, "/gaps/wjb\n"));
-    hists.push_back(Histo1D(0.0, 0.2, "/gaps/njb\n"));
+    hists[0] = Histo1D(-4.3, -0.3, "/gaps/log10y23\n");
+    hists[1] = Histo1D(-4.3, -0.3, "/gaps/log10y34\n");
+    hists[2] = Histo1D(-4.3, -0.3, "/gaps/log10y45\n");
+    hists[3] = Histo1D(-4.3, -0.3, "/gaps/log10y56\n");
+    hists[4] = Histo1D(0.0, 0.5, "/gaps/tvalue\n");
+    hists[5] = Histo1D(0.0, 0.5, "/gaps/tzoomd\n");
+    hists[6] = Histo1D(0.0, 1.0, "/gaps/hjm\n");
+    hists[7] = Histo1D(0.0, 0.5, "/gaps/ljm\n");
+    hists[8] = Histo1D(0.0, 0.5, "/gaps/wjb\n");
+    hists[9] = Histo1D(0.0, 0.2, "/gaps/njb\n");
   }
 
+  // Member Functions Here, but not in CUDA
   void Analyze(Event& ev);
   void Finalize(const std::string& filename);
 };
