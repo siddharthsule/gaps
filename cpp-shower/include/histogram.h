@@ -15,13 +15,13 @@ class Bin1D {
 
  public:
   Bin1D(double xmin, double xmax)
-      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), N(0.0) {}
+      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), n(0.0) {}
 
   std::string Format(const std::string& tag) const {
     std::stringstream ss;
     ss << std::scientific << std::setprecision(6);
     ss << tag << "\t" << tag << "\t" << w << "\t" << w2 << "\t" << wx << "\t"
-       << wx2 << "\t" << static_cast<int>(N);
+       << wx2 << "\t" << static_cast<int>(n);
     return ss.str();
   }
 
@@ -29,7 +29,7 @@ class Bin1D {
     std::stringstream ss;
     ss << std::scientific << std::setprecision(6);
     ss << xmin << "\t" << xmax << "\t" << w << "\t" << w2 << "\t" << wx << "\t"
-       << wx2 << "\t" << static_cast<int>(N);
+       << wx2 << "\t" << static_cast<int>(n);
     return ss.str();
   }
 
@@ -40,7 +40,7 @@ class Bin1D {
     w2 += weight * weight;
     wx += weight * x;
     wx2 += weight * weight * x;
-    N += 1.0;
+    n += 1.0;
   }
 
   void ScaleW(double scale) {
