@@ -20,7 +20,7 @@ class Matrix {
   
  public:
   // Constructor
-  Matrix(double alphas = asmz, double ecms = mz);
+  Matrix(double alphas = asmz, double ecms = 91.2);
 
   // Setup function for device code
   __device__ void setup(double alphas = asmz, double ecms = 91.2);

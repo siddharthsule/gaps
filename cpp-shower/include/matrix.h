@@ -11,7 +11,7 @@ class Matrix {
 
  public:
   // Constructor
-  Matrix(double alphas, double ecms = 91.2);
+  Matrix(double alphas = asmz, double ecms = 91.2);
 
   // Leading Order Matrix Element Generation
   double ME2(int fl, double s, double t);
