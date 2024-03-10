@@ -52,7 +52,7 @@ void runGenerator(const int& N, const std::string& filename) {
   std::cout << "Generating Matrix Elements (C++)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  Matrix xs(0.118);
+  Matrix xs;
 
   for (int i = 0; i < N; i++) {
     xs.GenerateLOPoint(events[i]);
