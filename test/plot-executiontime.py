@@ -11,7 +11,7 @@ nev = np.array([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000,
                100000, 200000, 500000, 1000000])
 
 # Params
-nloops = 10
+nreps = 100
 
 dir_to_results = "../results-times/"
 
@@ -19,6 +19,7 @@ dir_to_results = "../results-times/"
 cpp_full = np.genfromtxt(dir_to_results + "cpp-time.dat", delimiter=',')
 cud_full = np.genfromtxt(dir_to_results + "gaps-time.dat", delimiter=',')
 
+# Calculate the average and standard deviation for all repetitions
 cpp_avg = np.zeros((len(nev), 4))
 cud_avg = np.zeros((len(nev), 4))
 
@@ -26,11 +27,11 @@ cpp_std = np.zeros((len(nev), 4))
 cud_std = np.zeros((len(nev), 4))
 
 for i in range(len(nev)):
-    cpp_avg[i] = np.mean(cpp_full[i*nloops:i*nloops+nloops], axis=0)
-    cud_avg[i] = np.mean(cud_full[i*nloops:i*nloops+nloops], axis=0)
+    cpp_avg[i] = np.mean(cpp_full[i*nreps:i*nreps+nreps], axis=0)
+    cud_avg[i] = np.mean(cud_full[i*nreps:i*nreps+nreps], axis=0)
 
-    cpp_std[i] = np.std(cpp_full[i*nloops:i*nloops+nloops], axis=0)
-    cud_std[i] = np.std(cud_full[i*nloops:i*nloops+nloops], axis=0)
+    cpp_std[i] = np.std(cpp_full[i*nreps:i*nreps+nreps], axis=0)
+    cud_std[i] = np.std(cud_full[i*nreps:i*nreps+nreps], axis=0)
 
 cpp = cpp_avg
 cud = cud_avg
