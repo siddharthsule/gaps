@@ -101,7 +101,7 @@ if [ "$runtype" == "full" ]; then
     for n in "${neventsarray[@]}"
     do
         # Run and store the output in a log file
-        for i in {1..10}
+        for i in {1..100}
         do
             echo "Running GAPS with $n events"
             ./bin/gaps $n
