@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy.stats import iqr
 
 import matplotlib as mpl
 mpl.rc_file("mplstyleerc")
@@ -20,21 +21,32 @@ cpp_full = np.genfromtxt(dir_to_results + "cpp-time.dat", delimiter=',')
 cud_full = np.genfromtxt(dir_to_results + "gaps-time.dat", delimiter=',')
 
 # Calculate the average and standard deviation for all repetitions
-cpp_avg = np.zeros((len(nev), 4))
-cud_avg = np.zeros((len(nev), 4))
+cpp_median = np.zeros((len(nev), 4))
+cud_median = np.zeros((len(nev), 4))
 
-cpp_std = np.zeros((len(nev), 4))
-cud_std = np.zeros((len(nev), 4))
+cpp_iqr = np.zeros((len(nev), 4))
+cud_iqr = np.zeros((len(nev), 4))
 
 for i in range(len(nev)):
-    cpp_avg[i] = np.mean(cpp_full[i*nreps:i*nreps+nreps], axis=0)
-    cud_avg[i] = np.mean(cud_full[i*nreps:i*nreps+nreps], axis=0)
 
-    cpp_std[i] = np.std(cpp_full[i*nreps:i*nreps+nreps], axis=0)
-    cud_std[i] = np.std(cud_full[i*nreps:i*nreps+nreps], axis=0)
+    """
+    # To Check if there are any outliers
+    if nev[i] == 5000:
+        print(cud_full[i*nreps:i*nreps+nreps])
 
-cpp = cpp_avg
-cud = cud_avg
+        fig, ax = plt.subplots()
+        ax.hist(cud_full[i*nreps:i*nreps+nreps, 0], bins=50)
+        fig.savefig("histo.pdf")
+    """
+
+    cpp_median[i] = np.median(cpp_full[i*nreps:i*nreps+nreps], axis=0)
+    cud_median[i] = np.median(cud_full[i*nreps:i*nreps+nreps], axis=0)
+
+    cpp_iqr[i] = iqr(cpp_full[i*nreps:i*nreps+nreps], axis=0)
+    cud_iqr[i] = iqr(cud_full[i*nreps:i*nreps+nreps], axis=0)
+
+cpp = cpp_median
+cud = cud_median
 
 # Convert the arrays to pandas DataFrames for easier printing
 columns_lin = ['Matrix  Element', 'Parton  Shower', 'Observables', 'Total']
@@ -65,8 +77,8 @@ fig.subplots_adjust(wspace=1, hspace=1)
 for i in range(2):
     for j in range(2):
         ax = axs[i, j]
-        ax.errorbar(nev, cpp[:, 2*i + j], yerr=cpp_std[:, 2*i + j], fmt='o', label='C++', color='C0')
-        ax.errorbar(nev, cud[:, 2*i + j], yerr=cud_std[:, 2*i + j], fmt='o', label='CUDA', color='C2')
+        ax.errorbar(nev, cpp[:, 2*i + j], yerr=cpp_iqr[:, 2*i + j], fmt='o', label='C++', color='C0')
+        ax.errorbar(nev, cud[:, 2*i + j], yerr=cud_iqr[:, 2*i + j], fmt='o', label='CUDA', color='C2')
         ax.plot(nev, cpp[:, 2*i + j], color='C0', alpha=0.3)
         ax.plot(nev, cud[:, 2*i + j], color='C2', alpha=0.3)
         ax.set_xscale('log')
