@@ -12,11 +12,11 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 
 ## Requirements
 
-You will need a NVIDIA GPU, desgined for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++ and the NVIDIA Development Toolkit, which contains the NVCC compiler.
+You will need an NVIDIA GPU, desgined for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++ and the NVIDIA Development Toolkit, which contains the NVCC compiler.
 
 ## Running the Code
 
-The executable ```gaps.sh``` is written to simply the use of the code. One can simply execute the command:
+The executable ```gaps.sh``` is written to simplify the use of the code. One can simply execute the command:
 
 ```bash
 ./gaps.sh
