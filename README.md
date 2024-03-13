@@ -48,10 +48,10 @@ rivet-mkhtml my-output.yoda:"Results" -s --mc-errs -c plots.conf
 
 ## Modifying Parameters
 
-To make it simple to replicate the results in the paper, we don't allow direct access to the physics paramters (yet!). For now, please use the ```base.cuh``` file to adjust paramters like $\alpha_s(m_Z)$, $t_{C}$ and $n_{Bins}$.
+To focus on the computational aspects and make it simple to replicate the results in the paper, we don't allow direct access to the physics parameters (yet!). For now, please use the ```base.cuh``` file to adjust parameters like $\alpha_s(m_Z)$, $t_{C}$ and $n_{Bins}$.
 
 ***
 
-### Mike Seymour + Sid Sule, February 2024
+### Sid Sule + Mike Seymour, February 2024
 
 For issues and queries, email: [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)
