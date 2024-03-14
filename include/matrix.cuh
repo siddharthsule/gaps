@@ -34,7 +34,7 @@ class Matrix {
 
 // CUDA Kernels to Setup Matrix and make LO Points
 // TIP: CUDA KERNELS CANNOT BE MEMBER FUNCTIONS
-__global__ void matrixSetupKernel(Matrix* matrix, const double& E);
+__global__ void matrixSetupKernel(Matrix* matrix, const double E);
 __global__ void loPointKernel(Matrix* matrix, Event* ev, int N);
 
 // All tasks wrapped in a function

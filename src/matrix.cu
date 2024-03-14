@@ -47,7 +47,7 @@ __device__ double Matrix::ME2(int fl, double s, double t) {
 }
 
 // Kernel to set up the Matrix object on the device
-__global__ void matrixSetupKernel(Matrix *matrix, const double &E) {
+__global__ void matrixSetupKernel(Matrix *matrix, const double E) {
   matrix->setup(asmz, E);
 }
 
