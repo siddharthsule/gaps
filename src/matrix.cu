@@ -1,5 +1,3 @@
-#include <chrono>
-
 #include "matrix.cuh"
 
 // Host constructor

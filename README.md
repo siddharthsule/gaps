@@ -1,6 +1,6 @@
 # GAPS: a GPU-Amplified Parton Shower
 
-Code for the Paper "An Algorithm to Parallelise Parton Showers on a GPU"
+Code for "An Algorithm to Parallelise Parton Showers on a GPU" [[arxiv:2403.08692](https://arxiv.org/abs/2403.08692)]
 
 The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be written to run in parallel on a GPU. The code runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Höche's Tutorial on Parton Showers [[arxiv:1411.4085](https://arxiv.org/abs/1411.4085)].
 
@@ -28,13 +28,13 @@ This should build the program and generate 10000 events on the GPU. More customi
 
 ```bash
 # Simulate different number of events and build the code using multiple cpu cores
-./gaps.sh -e nevents -c ncores
+./gaps.sh -n nevents -c ncores
 
 # Run C++ Simulation
-./gaps.sh -e nevents -c ncores -r cpp
+./gaps.sh -n nevents -c ncores -r cpp
 
 # Run the same number of events on C++ and CUDA and compare times
-./gaps.sh -e nevents -c ncores -r compare
+./gaps.sh -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in paper
 ./gaps.sh -c ncores -r full
@@ -52,6 +52,6 @@ To focus on the computational aspects and make it simple to replicate the result
 
 ***
 
-### Sid Sule + Mike Seymour, February 2024
+### Sid Sule + Mike Seymour, March 2024
 
 For issues and queries, email: [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)
