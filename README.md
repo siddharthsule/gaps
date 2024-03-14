@@ -28,13 +28,13 @@ This should build the program and generate 10000 events on the GPU. More customi
 
 ```bash
 # Simulate different number of events and build the code using multiple cpu cores
-./gaps.sh -e nevents -c ncores
+./gaps.sh -n nevents -c ncores
 
 # Run C++ Simulation
-./gaps.sh -e nevents -c ncores -r cpp
+./gaps.sh -n nevents -c ncores -r cpp
 
 # Run the same number of events on C++ and CUDA and compare times
-./gaps.sh -e nevents -c ncores -r compare
+./gaps.sh -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in paper
 ./gaps.sh -c ncores -r full

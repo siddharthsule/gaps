@@ -25,13 +25,13 @@ runtype="gaps"
 # ------------------------------------------------------------------------------
 # Use optargs to adjust default values and define run
 
-while getopts "e:c:r:" opt; do
+while getopts "n:c:r:" opt; do
     case $opt in
-        e) events=$OPTARG ;;
+        n) events=$OPTARG ;;
         c) ncores=$OPTARG ;;
         r) runtype=$OPTARG ;;
-        h) echo "Usage: $0 [-e events] [-c cores] [-r runtype] [-h help]"
-        echo "  -e: set the number of events (default: 10000)"
+        h) echo "Usage: $0 [-n nevents] [-c cores] [-r runtype] [-h help]"
+        echo "  -n: set the number of events (default: 10000)"
         echo "  -c: set the number of cores (default: 1)"
         echo "  -r: set the run type (default: gaps, options: gaps, cpp, compare, full)"
         echo "  -h: display this help message"
