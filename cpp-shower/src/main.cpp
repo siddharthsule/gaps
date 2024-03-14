@@ -133,7 +133,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
 
 int main(int argc, char* argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 10000;
-  double E = argc > 2 ? atoi(argv[2]) : 91.2;
+  double E = argc > 2 ? atof(argv[2]) : 91.2;
   runGenerator(N, E, "cpp.yoda");
 
   return 0;
