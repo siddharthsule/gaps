@@ -17,7 +17,7 @@
 class Matrix {
  private:
   double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
-
+  
  public:
   // Constructor
   Matrix(double alphas = asmz, double ecms = 91.2);
@@ -34,10 +34,10 @@ class Matrix {
 
 // CUDA Kernels to Setup Matrix and make LO Points
 // TIP: CUDA KERNELS CANNOT BE MEMBER FUNCTIONS
-__global__ void matrixSetupKernel(Matrix* matrix, const double E);
+__global__ void matrixSetupKernel(Matrix* matrix, double E);
 __global__ void loPointKernel(Matrix* matrix, Event* ev, int N);
 
 // All tasks wrapped in a function
-void calcLOME(thrust::device_vector<Event>& d_events, const double& E)
+void calcLOME(thrust::device_vector<Event>& d_events, double E);
 
 #endif  // MATRIX_CUH
