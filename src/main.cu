@@ -38,6 +38,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Process: e+ e- --> q qbar" << std::endl;
   std::cout << "Number of Events: " << N << std::endl;
+  std::cout << "Center of Mass Energy: " << E << " GeV" << std::endl;
   std::cout << "" << std::endl;
 
   // ---------------------------------------------------------------------------
