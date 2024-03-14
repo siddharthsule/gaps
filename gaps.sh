@@ -49,18 +49,18 @@ compile() {
     (cd $dir && mkdir -p build && cd build && cmake .. && make -j $ncores)
 }
 
-if [ "$runtype" == "gaps" ] || [ "$runtype" == "compare" ] || [ "$runtype" == "full" ]; then
+if [ "$runtype" = "gaps" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
     compile "."
 fi
 
-if [ "$runtype" == "cpp" ] || [ "$runtype" == "compare" ] || [ "$runtype" == "full" ]; then
+if [ "$runtype" = "cpp" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
     compile "cpp-shower"
 fi 
 
 # ------------------------------------------------------------------------------
 # Default: Just run GAPS
 
-if [ "$runtype" == "gaps" ]; then
+if [ "$runtype" = "gaps" ]; then
     echo "Running GAPS"
     ./bin/gaps $events
 fi
@@ -68,7 +68,7 @@ fi
 # ------------------------------------------------------------------------------
 # Run C++ Shower
 
-if [ "$runtype" == "cpp" ]; then
+if [ "$runtype" = "cpp" ]; then
     echo "Running C++ Shower"
     ./cpp-shower/bin/cpp-shower $events
 fi
@@ -76,7 +76,7 @@ fi
 # ------------------------------------------------------------------------------
 # Compare GAPS and C++ Shower
 
-if [ "$runtype" == "compare" ]; then
+if [ "$runtype" = "compare" ]; then
     echo "Running GAPS"
     ./bin/gaps $events
     echo "Running C++ Shower"
@@ -86,7 +86,7 @@ fi
 # ------------------------------------------------------------------------------
 # Do a full analysis, comparing GAPS and C++ Shower at many values of N
 
-if [ "$runtype" == "full" ]; then
+if [ "$runtype" = "full" ]; then
 
     # Remove previous results and make folder
     rm -rf results
