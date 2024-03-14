@@ -25,7 +25,7 @@ runtype="gaps"
 # ------------------------------------------------------------------------------
 # Use optargs to adjust default values and define run
 
-while getopts "n:c:r:" opt; do
+while getopts "n:c:r:h" opt; do
     case $opt in
         n) events=$OPTARG ;;
         c) ncores=$OPTARG ;;
