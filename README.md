@@ -1,5 +1,7 @@
 # GAPS: a GPU-Amplified Parton Shower
 
+> **Version 1.1.0**: Some extra features added on demand, folders restructured.
+
 Code for "An Algorithm to Parallelise Parton Showers on a GPU" [[arxiv:2403.08692](https://arxiv.org/abs/2403.08692)]
 
 The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be written to run in parallel on a GPU. The code runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Höche's Tutorial on Parton Showers [[arxiv:1411.4085](https://arxiv.org/abs/1411.4085)].

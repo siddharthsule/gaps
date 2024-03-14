@@ -47,7 +47,9 @@ __device__ double Matrix::ME2(int fl, double s, double t) {
 }
 
 // Kernel to set up the Matrix object on the device
-__global__ void matrixSetupKernel(Matrix *matrix) { matrix->setup(); }
+__global__ void matrixSetupKernel(Matrix *matrix, const double &E) {
+  matrix->setup(asmz, E);
+}
 
 // Kernel to generate the Event
 __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
@@ -92,7 +94,7 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
 }
 
 // Function to generate the LO Matrix Elements + Momenta
-void calcLOME(thrust::device_vector<Event> &d_events) {
+void calcLOME(thrust::device_vector<Event> &d_events, const double &E) {
   // Number of Events - Can get from d_events.size()
   int N = d_events.size();
 
@@ -102,7 +104,7 @@ void calcLOME(thrust::device_vector<Event> &d_events) {
 
   // Set up the device Matrix object
   DEBUG_MSG("Running @matrixSetupKernel");
-  matrixSetupKernel<<<1, 1>>>(d_matrix);
+  matrixSetupKernel<<<1, 1>>>(d_matrix, E);
   syncGPUAndCheck("matrixSetupKernel");
 
   // Generate the LO Matrix Elements

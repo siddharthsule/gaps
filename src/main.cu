@@ -29,7 +29,7 @@
  * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
  */
 
-void runGenerator(const int N, const std::string filename) {
+void runGenerator(const int& N, const double& E, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
 
@@ -52,7 +52,7 @@ void runGenerator(const int N, const std::string filename) {
   std::cout << "Generating Matrix Elements..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  calcLOME(d_events);
+  calcLOME(d_events, E);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
@@ -126,7 +126,8 @@ void runGenerator(const int N, const std::string filename) {
 
 int main(int argc, char *argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 100000;
-  runGenerator(N, "gaps.yoda");
+  double E = argc > 2 ? atof(argv[2]) : 91.2;
+  runGenerator(N, E, "gaps.yoda");
 
   return 0;
 }

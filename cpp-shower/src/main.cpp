@@ -29,7 +29,7 @@
  * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
  */
 
-void runGenerator(const int& N, const std::string& filename) {
+void runGenerator(const int& N, const double& E, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
 
@@ -52,7 +52,7 @@ void runGenerator(const int& N, const std::string& filename) {
   std::cout << "Generating Matrix Elements (C++)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  Matrix xs;
+  Matrix xs(asmz, E);
 
   for (int i = 0; i < N; i++) {
     xs.GenerateLOPoint(events[i]);
@@ -132,7 +132,8 @@ void runGenerator(const int& N, const std::string& filename) {
 
 int main(int argc, char* argv[]) {
   int N = argc > 1 ? atoi(argv[1]) : 10000;
-  runGenerator(N, "cpp.yoda");
+  double E = argc > 2 ? atoi(argv[2]) : 91.2;
+  runGenerator(N, E, "cpp.yoda");
 
   return 0;
 }
