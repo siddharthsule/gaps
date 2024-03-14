@@ -7,7 +7,7 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 ## What can the code do on the GPU?
 
 - Calculate the Matrix Element for $e^+ e^- \to q \bar{q}$ at 91.2 GeV
-- Simulate a Dipole Shower
+- Simulate a Final State Dipole Shower
 - Calculate Jet Rates and Event Shapes
 
 ## Requirements
