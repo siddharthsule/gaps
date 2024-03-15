@@ -17,6 +17,9 @@ results-*/
 
 # Plots
 test/*.pdf
+test/*.png
+doc/extra.*.pdf
+doc/extra.*.png
 
 # Any Profiling Results
 *.nsys-rep

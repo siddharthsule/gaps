@@ -503,6 +503,30 @@ __global__ void doSplitting(Event *events, bool *veto, curandState *states,
 
 // -----------------------------------------------------------------------------
 
+/*
+__global__ void countBools(Event *events, bool *veto, int *trueCount,
+                           int *falseCount, int N) {
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (idx >= N) {
+    return;
+  }
+
+  Event &ev = events[idx];
+
+  if (ev.GetEndShower()) {
+    return;
+  }
+
+  if (veto[idx]) {
+    atomicAdd(trueCount, 1);
+  } else {
+    atomicAdd(falseCount, 1);
+  }
+}
+*/
+
+// -----------------------------------------------------------------------------
+
 void runShower(thrust::device_vector<Event> &d_events) {
   // Number of Events - Can get from d_events.size()
   int N = d_events.size();
@@ -593,7 +617,34 @@ void runShower(thrust::device_vector<Event> &d_events) {
 
     // Until Paper is Published, we will use this
     completedPerCycle.push_back(completed);
+
+    // -------------------------------------------------------------------------
+    // Print number of Accepted / Vetoed Events - for A. V.
+
+    /*
+    // TRUE means that the event is vetoed
+    // FALSE means that the event is accepted
+
+    int *d_trueCount, *d_falseCount;
+    cudaMalloc(&d_trueCount, sizeof(int));
+    cudaMalloc(&d_falseCount, sizeof(int));
+    cudaMemset(d_trueCount, 0, sizeof(int));
+    cudaMemset(d_falseCount, 0, sizeof(int));
+
+    DEBUG_MSG("Running @countBools");
+    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_trueCount,
+                                         d_falseCount, N);
+    syncGPUAndCheck("countBools");
+
+    int h_trueCount(0), h_falseCount(0);  // Number of vetoed events
+    cudaMemcpy(&h_trueCount, d_trueCount, sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&h_falseCount, d_falseCount, sizeof(int),
+               cudaMemcpyDeviceToHost);
+
+    std::cout << cycle << ", " << N - completed << ", " << h_trueCount << ", "
+              << h_falseCount << std::endl;
   }
+  */
 
   // ---------------------------------------------------------------------------
   // Write completedPerCycle to file
