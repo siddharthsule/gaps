@@ -13,6 +13,8 @@ void bubbleSort(Vec4* moms, int n);
 void CalculateThrust(Event& ev);
 void CalculateJetMBr(Event& ev);
 
+void CalculateDalitz(Event& ev);
+
 /**
  * Slight Difference between C++ and CUDA codes
  * --------------------------------------------
@@ -24,6 +26,7 @@ void CalculateJetMBr(Event& ev);
 class Analysis {
  public:
   Histo1D hists[10];
+  Histo2D dalitz;
 
   double wtot;  // Scale by Weight for 1/sigma d(sigma)/d Observable
   double ntot;  // Scale by Number for d(sigma)/d Observable
@@ -40,6 +43,8 @@ class Analysis {
     hists[7] = Histo1D(0.0, 0.5, "/gaps/ljm\n");
     hists[8] = Histo1D(0.0, 0.5, "/gaps/wjb\n");
     hists[9] = Histo1D(0.0, 0.2, "/gaps/njb\n");
+
+    dalitz = Histo2D(0.0, 1.0, 0.0, 1.0, "/gaps/dalitz\n");
   }
 
   // Member Functions Here, but not in CUDA

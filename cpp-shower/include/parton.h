@@ -74,6 +74,9 @@ class Event {
   double thr = -50.0, hjm = -50.0, ljm = -50.0, wjb = -50.0, njb = -50.0;
   Vec4 t_axis = Vec4();
 
+  // Dalitz Plot
+  double dalitz[2] = {0.0, 0.0};
+
  public:
   // Constructor ---------------------------------------------------------------
 
@@ -118,6 +121,8 @@ class Event {
   double GetNJB() const { return njb; }
 
   Vec4 GetTAxis() const { return t_axis; }
+
+  double GetDalitz(int i) const { return dalitz[i]; }
 
   // Setters -------------------------------------------------------------------
 
@@ -165,6 +170,11 @@ class Event {
   void SetNJB(double njb) { this->njb = njb; }
 
   void SetTAxis(Vec4 t_axis) { this->t_axis = t_axis; }
+
+  void SetDalitz(double x1, double x2) {
+    dalitz[0] = x1;
+    dalitz[1] = x2;
+  }
 
   // Member Functions ----------------------------------------------------------
 

@@ -214,7 +214,7 @@ __global__ void calculateThr(Event* events, int N) {
   thr = 1.0 - thr;
 
   t_axis = t_axis / (t_axis).P();
-  if (t_axis[2] < 0) {
+  if (t_axis[3] < 0) {
     t_axis = t_axis * -1.0;
   }
 

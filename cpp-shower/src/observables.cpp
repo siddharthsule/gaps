@@ -165,7 +165,7 @@ void CalculateThrust(Event& ev) {
   thr = 1.0 - thr;
 
   t_axis = t_axis / (t_axis).P();
-  if (t_axis[2] < 0) {
+  if (t_axis[3] < 0) {
     t_axis = t_axis * -1.0;
   }
 
@@ -252,6 +252,28 @@ void CalculateJetMBr(Event& ev) {
 }
 
 // -----------------------------------------------------------------------------
+// Dalitz Plot
+
+void CalculateDalitz(Event& ev) {
+  if (!ev.GetValidity() || ev.GetPartonSize() != 3) {
+    return;
+  }
+
+  // By default, element 2 is quark and 3 is antiquark
+  // i.e. emission will be element 4
+
+  Vec4 p1 = ev.GetParton(2).GetMom();
+  Vec4 p2 = ev.GetParton(3).GetMom();
+
+  double x1 = 2 * p1.P() / (p1[0]+ p2[0]);
+  double x2 = 2 * p2.P() / (p1[0]+ p2[0]);
+
+  ev.SetDalitz(x1, x2);
+
+}
+
+
+// -----------------------------------------------------------------------------
 // Observable Analysis
 
 void Analysis::Analyze(Event& ev) {
@@ -272,6 +294,9 @@ void Analysis::Analyze(Event& ev) {
   // Calculate JetMBr
   CalculateJetMBr(ev);
 
+  // Calculate Dalitz
+  CalculateDalitz(ev);
+
   // Fill Histograms
   hists[0].Fill(ev.GetY23(), ev.GetDxs());
   hists[1].Fill(ev.GetY34(), ev.GetDxs());
@@ -284,6 +309,8 @@ void Analysis::Analyze(Event& ev) {
   hists[8].Fill(ev.GetWJB(), ev.GetDxs());
   hists[9].Fill(ev.GetNJB(), ev.GetDxs());
 
+  dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
+
   // Weighted Total
   wtot += ev.GetDxs();
   ntot += 1.0;
@@ -294,4 +321,6 @@ void Analysis::Finalize(const std::string& filename) {
     hist.ScaleW(1.0 / ntot);
     hist.Write(filename);
   }
+  dalitz.ScaleW(1.0 / ntot);
+  dalitz.Write(filename);
 }
