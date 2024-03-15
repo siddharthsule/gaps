@@ -643,8 +643,8 @@ void runShower(thrust::device_vector<Event> &d_events) {
 
     std::cout << cycle << ", " << N - completed << ", " << h_trueCount << ", "
               << h_falseCount << std::endl;
+    */
   }
-  */
 
   // ---------------------------------------------------------------------------
   // Write completedPerCycle to file

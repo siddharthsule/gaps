@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     int nBatches = N / maxEvents;
     int nRemainder = N % maxEvents;
     std::cout << "Number of Batches: " << nBatches << std::endl;
-    std::cout << "Number of Remainder: " << nRemainder << std::endl;
+    std::cout << "Size of Remainder: " << nRemainder << std::endl;
 
     // Run in batches
     for (int i = 0; i < nBatches; i++) {
