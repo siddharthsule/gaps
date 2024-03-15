@@ -60,9 +60,38 @@ cpp_cud_ratio = (cpp / cud)
 cpp_cud_ratio_df = pd.DataFrame(cpp_cud_ratio, index=nev, columns=columns_lin)
 
 # Print the DataFrame
-print("C++ / CUDA Ratio:")
+print("C++ / CUDA Ratio for different Number of Events:")
 print(cpp_cud_ratio_df)
 print("\n")
+
+# Initialize p as a 3D array
+p = np.zeros((2, 2, 2))
+
+# Define the labels for printing
+labels = ["CUDA Matrix Element Gradient", "CUDA Parton Shower Gradient",
+          "CUDA Observables Gradient", "CUDA Total Gradient"]
+
+# Loop over the columns - to prevent lots of repeated statements
+"""
+For i = 0, i // 2 is 0 and i % 2 is 0.
+For i = 1, i // 2 is 0 and i % 2 is 1.
+For i = 2, i // 2 is 1 and i % 2 is 0.
+For i = 3, i // 2 is 1 and i % 2 is 1.
+
+Kept it here because I thought it was a neat way of doing loops!
+"""
+for i in range(4):
+
+    # Linea Fit
+    p1, c1 = np.polyfit(np.log(nev[14:]), np.log(cud[14:, i]), 1, cov=True)
+
+    # Linear Fit
+    p[i//2, i % 2, :] = p1
+
+    # Print the results
+    print(labels[i], ":", round(p1[0], 3), "±", round(np.sqrt(c1[0, 0]), 3))
+
+#print(p)
 
 # Create a new figure with a 4x2 grid of subplots
 fig, axs = plt.subplots(2, 2, figsize=(10, 6.4))
@@ -73,21 +102,35 @@ columns = [['Matrix  Element', 'Parton  Shower'], ['Observables', 'Total']]
 # Add this line to adjust the space between subplots
 fig.subplots_adjust(wspace=1, hspace=1)
 
+# Add linspace for the linear fit
+x = np.linspace(40000, 1300000, 1000)
+
 # Loop over the columns and plot the data
 for i in range(2):
     for j in range(2):
         ax = axs[i, j]
-        ax.errorbar(nev, cpp[:, 2*i + j], yerr=cpp_iqr[:, 2*i + j], fmt='o', label='C++', color='C0')
-        ax.errorbar(nev, cud[:, 2*i + j], yerr=cud_iqr[:, 2*i + j], fmt='o', label='CUDA', color='C2')
-        ax.plot(nev, cpp[:, 2*i + j], color='C0', alpha=0.3)
-        ax.plot(nev, cud[:, 2*i + j], color='C2', alpha=0.3)
+        cpp_errorbar = ax.errorbar(
+            nev, cpp[:, 2*i + j], yerr=cpp_iqr[:, 2*i + j], fmt='o', color='C0')
+        cud_errorbar = ax.errorbar(
+            nev, cud[:, 2*i + j], yerr=cud_iqr[:, 2*i + j], fmt='o', color='C2')
+        cpp_plot = ax.plot(nev, cpp[:, 2*i + j], color='C0', alpha=0.3)
+        cud_plot = ax.plot(nev, cud[:, 2*i + j], color='C2', alpha=0.3)
+        fit_plot = ax.plot(x, np.exp(p[i, j, 1]) * x**p[i, j, 0], color='C1',
+                           linestyle='--')
+
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('Number of events')
         ax.set_ylabel('Execution time (s)')
         ax.set_title(columns[i][j])
-        ax.legend()
         ax.grid(True)
+
+        # Create a list of handles and labels manually
+        handles = [cpp_errorbar, cud_errorbar, fit_plot[0]]
+        labels = ['C++', 'CUDA', "Linear Fit, Gradient = " +
+                  str(round(p[i, j, 0], 2))]
+
+        ax.legend(handles, labels)
 
 fig.tight_layout()
 plt.savefig('executionTime.pdf')
