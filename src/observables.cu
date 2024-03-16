@@ -423,7 +423,7 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
     hist.ScaleW(1.0 / h_an->ntot);
   }
 
-  dalitz.ScaleW(1.0 / h_an->ntot);
+  h_an->dalitz.ScaleW(1.0 / h_an->ntot);
 
   // Remove existing file
   std::remove(filename.c_str());
