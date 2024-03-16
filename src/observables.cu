@@ -227,7 +227,7 @@ __global__ void calculateThr(Event* events, int N) {
 }
 
 // Jet Mass and Broadening
-__global__ void CalculateJetMBr(Event* events, int N) {
+__global__ void calculateJetMBr(Event* events, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -310,6 +310,37 @@ __global__ void CalculateJetMBr(Event* events, int N) {
 }
 
 // -----------------------------------------------------------------------------
+// Dalitz Plot
+
+__global__ void calculateDalitz(Event* events, int N) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (idx >= N) {
+    return;
+  }
+
+  Event& ev = events[idx];
+
+  if (!ev.GetValidity() || ev.GetPartonSize() != 3) {
+    return;
+  }
+
+  // Obtain Energy from incoming partons
+  double E = abs(ev.GetParton(0).GetMom()[0] + ev.GetParton(1).GetMom()[0]);
+
+  // By default, element 2 is quark and 3 is antiquark
+  // i.e. emission will be element 4
+  Vec4 p1 = ev.GetParton(2).GetMom();
+  Vec4 p2 = ev.GetParton(3).GetMom();
+
+  // Calculate x1 and x2
+  double x1 = 2 * p1.P() / E;
+  double x2 = 2 * p2.P() / E;
+
+  ev.SetDalitz(x1, x2);
+}
+
+// -----------------------------------------------------------------------------
 // Analysis
 
 // Fill theHistograms (Atomically!)
@@ -332,6 +363,8 @@ __global__ void fillHistos(Analysis* an, Event* events, int N) {
   an->hists[7].Fill(ev.GetLJM(), ev.GetDxs());
   an->hists[8].Fill(ev.GetWJB(), ev.GetDxs());
   an->hists[9].Fill(ev.GetNJB(), ev.GetDxs());
+
+  an->dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
 
   atomicAdd(&an->wtot, ev.GetDxs());
   atomicAdd(&an->ntot, 1.0);
@@ -372,8 +405,11 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   calculateThr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
   syncGPUAndCheck("calculateThr");
 
-  CalculateJetMBr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("CalculateJetMBr");
+  calculateJetMBr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
+  syncGPUAndCheck("calculateJetMBr");
+
+  calculateDalitz<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
+  syncGPUAndCheck("calculateDalitz");
 
   // Do the Analysis
   fillHistos<<<(N + 255) / 256, 256>>>(d_an, d_events_ptr, N);
@@ -386,6 +422,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   for (auto& hist : h_an->hists) {
     hist.ScaleW(1.0 / h_an->ntot);
   }
+
+  dalitz.ScaleW(1.0 / h_an->ntot);
 
   // Remove existing file
   std::remove(filename.c_str());
@@ -401,6 +439,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   Write(h_an->hists[7], "/gaps/ljm\n", filename);
   Write(h_an->hists[8], "/gaps/wjb\n", filename);
   Write(h_an->hists[9], "/gaps/njb\n", filename);
+
+  Write(h_an->dalitz, "/gaps/dalitz\n", filename);
 
   // Clean up
   delete h_an;

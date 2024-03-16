@@ -24,12 +24,16 @@ __global__ void doCluster(Event* events, int N);
 // Event Shapes
 __device__ void bubbleSort(Vec4* moms, int n);
 __global__ void calculateThr(Event* events, int N);
-__global__ void CalculateJetMBr(Event* events, int N);
+__global__ void calculateJetMBr(Event* events, int N);
+
+// Dalitz Plot
+__global__ void calculateDalitz(Event* events, int N);
 
 class Analysis {
  public:
   // Similar to Histo1D in C++/Rivet, just split into Host / Device Components
   Histo1D hists[10];
+  Histo2D dalitz;
 
   double wtot;  // Scale by Weight for 1/sigma d(sigma)/d Observable
   double ntot;  // Scale by Number for d(sigma)/d Observable
@@ -46,6 +50,8 @@ class Analysis {
     hists[7] = Histo1D(0.0, 0.5);    // "/gaps/ljm"
     hists[8] = Histo1D(0.0, 0.5);    // "/gaps/wjb"
     hists[9] = Histo1D(0.0, 0.2);    // "/gaps/njb"
+
+    dalitz = Histo2D(0.0, 1.0, 0.0, 1.0);
   }
 };
 

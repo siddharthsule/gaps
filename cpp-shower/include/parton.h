@@ -75,7 +75,7 @@ class Event {
   Vec4 t_axis = Vec4();
 
   // Dalitz Plot
-  double dalitz[2] = {0.0, 0.0};
+  double dalitz[2] = {-50.0, -50.0};
 
  public:
   // Constructor ---------------------------------------------------------------
