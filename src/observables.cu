@@ -404,7 +404,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   cudaFree(d_invalid);
 
   if (h_invalid > 0) {
-    std::cerr << "Invalid Events Found" << std::endl;
+    std::cout << "" << std::endl;
+    std::cout << "ERROR: Invalid Events Found" << std::endl;
     std::cout << "Number of Invalid Events: " << h_invalid << "\n";
   }
 

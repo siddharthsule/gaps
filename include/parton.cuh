@@ -223,14 +223,17 @@ class Event {
 
     bool pcheck = (psum[0] < 1e-12 && psum[1] < 1e-12 && psum[2] < 1e-12 &&
                    psum[3] < 1e-12);
+    
+    /* // No need to print for GPU, it counts number of invalid events
     if (!pcheck) {
       printf("%f %f %f %f\n", psum[0], psum[1], psum[2], psum[3]);
     }
+    */
 
     bool ccheck = true;
     for (int i = 0; i < maxPartons - 1; i++) {
       if (csum[i] != 0) {
-        printf("Colour %d is not conserved.\n", i);
+        //printf("Colour %d is not conserved.\n", i);
         ccheck = false;
         break;
       }
