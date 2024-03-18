@@ -38,7 +38,7 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
                             int N);
 
 // Veto Algorithm
-__global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N);
+__global__ void vetoAlg(Event *events, curandState *states, int N);
 
 // Kinematics
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
@@ -51,8 +51,7 @@ __device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
                             const int rand);
 
 // Perform the Splitting
-__global__ void doSplitting(Event *events, bool *veto, curandState *states,
-                            int N);
+__global__ void doSplitting(Event *events, curandState *states, int N);
 
 // All tasks wrapped into a function
 void runShower(thrust::device_vector<Event> &d_events);

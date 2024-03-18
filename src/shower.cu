@@ -238,7 +238,7 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
 
 // -----------------------------------------------------------------------------
 
-__global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N) {
+__global__ void vetoAlg(Event *events, curandState *states, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -252,9 +252,8 @@ __global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N) {
     return;
   }
 
-  // TRUE means that the event is vetoed
-  // FALSE means that the event is accepted
-  veto[idx] = true;
+  // Set to False, only set to True if accpeted
+  ev.SetAcceptEmission(false);
 
   curandState state = states[idx];
 
@@ -302,7 +301,7 @@ __global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N) {
     g = asmax * estimate;
 
     if (curand_uniform(&state) < f / g) {
-      veto[idx] = false;
+      ev.SetAcceptEmission(true);
       ev.SetShowerZ(z);
       ev.SetShowerY(y);
     }
@@ -403,8 +402,7 @@ __device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
 // -----------------------------------------------------------------------------
 
 // Do Splitting
-__global__ void doSplitting(Event *events, bool *veto, curandState *states,
-                            int N) {
+__global__ void doSplitting(Event *events, curandState *states, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -418,7 +416,7 @@ __global__ void doSplitting(Event *events, bool *veto, curandState *states,
     return;
   }
 
-  if (veto[idx]) {
+  if (!ev.GetAcceptEmission()) {
     return;
   }
 
@@ -504,7 +502,7 @@ __global__ void doSplitting(Event *events, bool *veto, curandState *states,
 // -----------------------------------------------------------------------------
 
 /*
-__global__ void countBools(Event *events, bool *veto, int *trueCount,
+__global__ void countBools(Event *events, int *trueCount,
                            int *falseCount, int N) {
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= N) {
@@ -517,7 +515,7 @@ __global__ void countBools(Event *events, bool *veto, int *trueCount,
     return;
   }
 
-  if (veto[idx]) {
+  if (!ev.GetAcceptEmission()){
     atomicAdd(trueCount, 1);
   } else {
     atomicAdd(falseCount, 1);
@@ -537,9 +535,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
   asSetupKernel<<<1, 1>>>(d_as, mz, asmz);
   syncGPUAndCheck("asSetupKernel");
 
-  // Allocate device memory for veto
-  bool *d_veto;
-  cudaMalloc(&d_veto, N * sizeof(bool));
+  // Allocate device memory for completed events counter
   int *d_completed;
   cudaMalloc(&d_completed, sizeof(int));
   cudaMemset(d_completed, 0, sizeof(int));
@@ -596,14 +592,14 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // Veto Algorithm
 
     DEBUG_MSG("Running @vetoAlg");
-    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_states, N);
+    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
     syncGPUAndCheck("vetoAlg");
 
     // -------------------------------------------------------------------------
     // Splitting Algorithm
 
     DEBUG_MSG("Running @doSplitting");
-    doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_states, N);
+    doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
     syncGPUAndCheck("doSplitting");
 
     // -------------------------------------------------------------------------
@@ -629,7 +625,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
     cudaMemset(d_falseCount, 0, sizeof(int));
 
     DEBUG_MSG("Running @countBools");
-    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_trueCount,
+    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_trueCount,
                                          d_falseCount, N);
     syncGPUAndCheck("countBools");
 
@@ -652,6 +648,5 @@ void runShower(thrust::device_vector<Event> &d_events) {
 
   // ---------------------------------------------------------------------------
   // Clean Up Device Memory
-  cudaFree(d_veto);
   cudaFree(d_completed);
 }
