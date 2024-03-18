@@ -54,7 +54,8 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   curandState state;
-  curand_init(clock64(), idx, 0, &state);
+  // Every events[idx] has a seed idx
+  curand_init(idx, 0, 0, &states[idx]);
 
   if (idx >= N) {
     return;

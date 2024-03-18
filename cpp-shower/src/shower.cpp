@@ -325,7 +325,7 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
   }
 }
 
-void Shower::Run(Event& ev) {
+void Shower::Run(Event& ev, int seed) {
 
   /**
    * Thread Local
@@ -335,8 +335,7 @@ void Shower::Run(Event& ev) {
    * code was re initialising the RNG. Using thread_local means that it is
    * initialised once and then reused, giving a massive speed-up!
    */
-  thread_local std::random_device rd;
-  thread_local std::mt19937 gen(rd());
+  thread_local std::mt19937 gen(seed);
 
   // Set the starting shower scale
   double t_max = (ev.GetParton(0).GetMom() + ev.GetParton(1).GetMom()).M2();

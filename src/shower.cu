@@ -10,7 +10,8 @@ __global__ void initCurandStates(curandState *states, int N) {
   if (idx >= N) {
     return;
   }
-  curand_init(clock64(), idx, 0, &states[idx]);
+  // Every events[idx] has a seed idx
+  curand_init(idx, 0, 0, &states[idx]);
 }
 
 // -----------------------------------------------------------------------------
