@@ -36,8 +36,10 @@
 const bool debug = false;
 
 // Max Number of Partons, set to save memory
-// 50 works for all, but observables calc is slow
-// 100 works for ME + PS, but not for Observables
+// at 10^6 Events:
+//  50 works for all, but observables calc is slow
+//  100 works for ME + PS, but not for Observables
+//  30 is more than enough to do e+e- at 91.2 GeV
 const int maxPartons = 30;
 
 // LEP 91.2 settings
