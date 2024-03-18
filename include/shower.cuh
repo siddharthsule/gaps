@@ -38,8 +38,7 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
                             int N);
 
 // Veto Algorithm
-__global__ void vetoAlg(Event *events, double *asval, bool *veto,
-                        curandState *states, int N);
+__global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N);
 
 // Kinematics
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,

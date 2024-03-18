@@ -596,8 +596,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // Veto Algorithm
 
     DEBUG_MSG("Running @vetoAlg");
-    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_asval, d_veto, d_states,
-                                      N);
+    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_veto, d_states, N);
     syncGPUAndCheck("vetoAlg");
 
     // -------------------------------------------------------------------------
@@ -653,7 +652,6 @@ void runShower(thrust::device_vector<Event> &d_events) {
 
   // ---------------------------------------------------------------------------
   // Clean Up Device Memory
-  cudaFree(d_asval);
   cudaFree(d_veto);
   cudaFree(d_completed);
 }
