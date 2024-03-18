@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 // Validate Events before binning
 
-__global__ void validateEvents(Event* events, int N) {
+__global__ void validateEvents(Event* events, int* invalid, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -16,13 +16,10 @@ __global__ void validateEvents(Event* events, int N) {
   ev.SetValidity(ev.Validate());
 
   if (!ev.GetValidity()) {
-    printf("Invalid Event\n");
+    //printf("Invalid Event\n");
+    atomicAdd(invalid, 1);
   }
 }
-
-// For now the event is validated before every observable, but this could be
-// optimized by validating once and then passing a flag to the observables
-// This is true for both C++ and CUDA, so our comparison is still valid
 
 // -----------------------------------------------------------------------------
 // Jet Rates
@@ -395,8 +392,21 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   Event* d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
   // Validate the Events
-  validateEvents<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
+  int *d_invalid;
+  cudaMalloc(&d_invalid, sizeof(int));
+  cudaMemset(d_invalid, 0, sizeof(int));
+
+  validateEvents<<<(N + 255) / 256, 256>>>(d_events_ptr, d_invalid, N);
   syncGPUAndCheck("validateEvents");
+
+  int h_invalid;
+  cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaFree(d_invalid);
+
+  if (h_invalid > 0) {
+    std::cerr << "Invalid Events Found" << std::endl;
+    std::cout << "Number of Invalid Events: " << h_invalid << "\n";
+  }
 
   // Calculare the Observables
   doCluster<<<(N + 255) / 256, 256>>>(d_events_ptr, N);

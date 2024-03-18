@@ -56,7 +56,7 @@ class Analysis {
 };
 
 // Validate Events - Colour and Momentum Conservation
-__global__ void validateEvents(Event* events, int N);
+__global__ void validateEvents(Event* events, int* invalid, int N);
 
 // Fill Histograms simultaneously
 __global__ void fillHistos(Analysis* an, Event* events, int N);
