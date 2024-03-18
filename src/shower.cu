@@ -232,14 +232,13 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
    */
   if (!(ev.GetShowerT() > cutoff)) {
     ev.SetEndShower(true);
-    atomicAdd(d_completed, 1); // Increment the number of completed events
+    atomicAdd(d_completed, 1);  // Increment the number of completed events
   }
 }
 
 // -----------------------------------------------------------------------------
 
-__global__ void vetoAlg(Event *events, double *asval, bool *veto,
-                        curandState *states, int N) {
+__global__ void vetoAlg(Event *events, bool *veto, curandState *states, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -299,7 +298,7 @@ __global__ void vetoAlg(Event *events, double *asval, bool *veto,
       estimate = kTR / 2.0;
     }
 
-    f = (1.0 - y) * asval[idx] * value;
+    f = (1.0 - y) * ev.GetAsVeto() * value;
     g = asmax * estimate;
 
     if (curand_uniform(&state) < f / g) {
@@ -538,9 +537,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
   asSetupKernel<<<1, 1>>>(d_as, mz, asmz);
   syncGPUAndCheck("asSetupKernel");
 
-  // Allocate device memory for asval and veto
-  double *d_asval;
-  cudaMalloc(&d_asval, N * sizeof(double));
+  // Allocate device memory for veto
   bool *d_veto;
   cudaMalloc(&d_veto, N * sizeof(bool));
   int *d_completed;
@@ -591,9 +588,9 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // -------------------------------------------------------------------------
     // Calculate AlphaS for Veto Algorithm
 
-    DEBUG_MSG("Running @asKernel");
-    asKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, d_asval, N);
-    syncGPUAndCheck("asKernel");
+    DEBUG_MSG("Running @asShowerKernel");
+    asShowerKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, N);
+    syncGPUAndCheck("asShowerKernel");
 
     // -------------------------------------------------------------------------
     // Veto Algorithm

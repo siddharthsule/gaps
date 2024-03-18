@@ -58,21 +58,26 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs; // Differential Cross Section
-  int nHard; // Number of Hard Partons
+  double dxs;  // Differential Cross Section
+  int nHard;   // Number of Hard Partons
 
   // Shower Params -------------------------------------------------------------
 
-  int nEmission; // Number of Emissions
-  double showerT, showerZ, showerY; // Evolution and Splitting Variables
-  int showerC; // Colour Counter
+  int nEmission;                     // Number of Emissions
+  double showerT, showerZ, showerY;  // Evolution and Splitting Variables
+  int showerC;                       // Colour Counter
 
   // Selecting Winner Emission - Defaults Values which represent no winner
   int winSF = 16;
   int winDipole[2] = {-1, -1};
   double winParams[2] = {0.0, 0.0};
 
-  bool endShower = false; // Shower End Flag - used if T < 1 GeV
+  // Veto Algorithm
+  double asVeto = 0.0;         // Veto Scale
+  bool acceptEmisson = false;  // Veto Flag
+
+  // End Shower Flag
+  bool endShower = false;  // Shower End Flag - used if T < 1 GeV
 
   // Analysis Variables --------------------------------------------------------
 
@@ -117,6 +122,9 @@ class Event {
   __device__ int GetWinDipole(int i) const { return winDipole[i]; }
   __device__ double GetWinParam(int i) const { return winParams[i]; }
 
+  __device__ double GetAsVeto() const { return asVeto; }
+  __device__ bool GetAcceptEmission() const { return acceptEmisson; }
+
   __device__ bool GetEndShower() const { return endShower; }
 
   // Analysis Getters
@@ -137,10 +145,10 @@ class Event {
   __device__ double GetDalitz(int i) const { return dalitz[i]; }
 
   // Setters -------------------------------------------------------------------
-  
+
   // Add / Replace Parton
   __device__ void SetParton(int i, Parton parton) { partons[i] = parton; }
-  
+
   // Set Parton Data
   __device__ void SetPartonPid(int i, int pid) { partons[i].SetPid(pid); }
   __device__ void SetPartonMom(int i, Vec4 mom) { partons[i].SetMom(mom); }
@@ -173,6 +181,11 @@ class Event {
     this->winParams[i] = winParam;
   }
 
+  __device__ void SetAsVeto(double asVeto) { this->asVeto = asVeto; }
+  __device__ void SetAcceptEmission(bool acceptEmission) {
+    this->acceptEmisson = acceptEmission;
+  }
+
   __device__ void SetEndShower(bool endShower) { this->endShower = endShower; }
 
   // Set Analysis Variables
@@ -190,7 +203,7 @@ class Event {
 
   __device__ void SetTAxis(Vec4 t_axis) { this->t_axis = t_axis; }
 
-  __device__  void SetDalitz(double x1, double x2) {
+  __device__ void SetDalitz(double x1, double x2) {
     dalitz[0] = x1;
     dalitz[1] = x2;
   }
@@ -223,7 +236,7 @@ class Event {
 
     bool pcheck = (psum[0] < 1e-12 && psum[1] < 1e-12 && psum[2] < 1e-12 &&
                    psum[3] < 1e-12);
-    
+
     /* // No need to print for GPU, it counts number of invalid events
     if (!pcheck) {
       printf("%f %f %f %f\n", psum[0], psum[1], psum[2], psum[3]);
@@ -233,7 +246,7 @@ class Event {
     bool ccheck = true;
     for (int i = 0; i < maxPartons - 1; i++) {
       if (csum[i] != 0) {
-        //printf("Colour %d is not conserved.\n", i);
+        // printf("Colour %d is not conserved.\n", i);
         ccheck = false;
         break;
       }

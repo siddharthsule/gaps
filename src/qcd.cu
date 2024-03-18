@@ -2,7 +2,7 @@
 
 // Constructor
 __device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
-                                   double mc)
+                          double mc)
     : order(order),
       mc2(mc * mc),
       mb2(mb * mb),
@@ -12,8 +12,8 @@ __device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
       asmc((*this)(mc2)) {}
 
 // Setup
-__device__ void AlphaS::setup(double mz, double asmz, int order,
-                                       double mb, double mc) {
+__device__ void AlphaS::setup(double mz, double asmz, int order, double mb,
+                              double mc) {
   this->order = order;
   this->mc2 = mc * mc;
   this->mb2 = mb * mb;
@@ -98,10 +98,12 @@ __global__ void asValue(AlphaS *as, double *asval, double t) {
 }
 
 // Calculate AlphaS on the Device for MANY inputs
-__global__ void asKernel(AlphaS *as, Event *events, double *asval, int N) {
+// Exclusively used for Parton Shower Veto Algorithm
+__global__ void asShowerKernel(AlphaS *as, Event *events, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) return;
   Event &ev = events[idx];
-  asval[idx] = (*as)(ev.GetShowerT());
+
+  ev.SetAsVeto((*as)(ev.GetShowerT()));
 }

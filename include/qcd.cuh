@@ -50,6 +50,6 @@ __global__ void asSetupKernel(AlphaS *as, double mz, double asmz, int order = 1,
 
 // Calculate the strong coupling constant
 __global__ void asValue(AlphaS *as, double *asval, double t);
-__global__ void asKernel(AlphaS *as, Event *events, double *asval, int N);
+__global__ void asShowerKernel(AlphaS *as, Event *events, int N);
 
 #endif  // QCD_CUH_
