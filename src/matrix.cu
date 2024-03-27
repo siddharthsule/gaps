@@ -78,6 +78,12 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   Vec4 p2(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);
 
   double lome = matrix->ME2(fl, (pa + pb).M2(), (pa - p1).M2());
+
+  // Calculate the differential cross section
+  // 5 = 5 flavours (?)
+  // 3.89379656e8 = Convert from GeV^-2 to pb
+  // 8 pi = Standard Phase Space Factor
+  // pow(matrix->GetECMS(), 2.) = center of mass energy squared, s
   double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) /
                (2. * pow(matrix->GetECMS(), 2.));
 
