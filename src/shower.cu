@@ -11,7 +11,10 @@ __global__ void initCurandStates(curandState *states, int N) {
     return;
   }
   // Every events[idx] has a seed idx
-  curand_init(idx, 0, 0, &states[idx]);
+  //curand_init(idx, 0, 0, &states[idx]);
+
+  // Every events[idx] has a seed idx and clok64() is used to get a seed
+  curand_init(clock64(), idx, 0, &states[idx]);
 }
 
 // -----------------------------------------------------------------------------
