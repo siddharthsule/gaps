@@ -392,8 +392,12 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
 
   int coli[2] = {0, 0};
   int colj[2] = {0, 0};
-  MakeColours(ev, coli, colj, flavs, colij, colk, curand_uniform(&state));
+
+  double rand = curand_uniform(&state);
   states[idx] = state;
+
+  MakeColours(ev, coli, colj, flavs, colij, colk, rand);
+
 
   // Modify Splitter
   ev.SetPartonPid(win_ij, flavs[1]);

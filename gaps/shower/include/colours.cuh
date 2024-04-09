@@ -6,6 +6,6 @@
 // Colours
 __device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
                             const int colij[2], const int colk[2],
-                            const int rand);
+                            const double rand);
 
 #endif // SHOWER_COLOURS_CUH_
