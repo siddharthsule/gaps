@@ -398,7 +398,6 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
 
   MakeColours(ev, coli, colj, flavs, colij, colk, rand);
 
-
   // Modify Splitter
   ev.SetPartonPid(win_ij, flavs[1]);
   ev.SetPartonMom(win_ij, moms[0]);
