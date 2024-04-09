@@ -53,7 +53,7 @@ compile() {
 }
 
 if [ "$runtype" = "gaps" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
-    compile "."
+    compile "gaps"
 fi
 
 if [ "$runtype" = "cpp" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
@@ -65,7 +65,7 @@ fi
 
 if [ "$runtype" = "gaps" ]; then
     echo "Running GAPS"
-    ./bin/gaps $events $energy
+    ./gaps/bin/gaps $events $energy
 fi
 
 # ------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ fi
 
 if [ "$runtype" = "compare" ]; then
     echo "Running GAPS"
-    ./bin/gaps $events $energy
+    ./gaps/bin/gaps $events $energy
     echo "Running C++ Shower"
     ./cpp-shower/bin/cpp-shower $events $energy
 fi
@@ -107,7 +107,7 @@ if [ "$runtype" = "full" ]; then
         for i in {1..100}
         do
             echo "Running GAPS with $n events"
-            ./bin/gaps $n $energy
+            ./gaps/bin/gaps $n $energy
             echo "Running C++ Shower with $n events"
             ./cpp-shower/bin/cpp-shower $n $energy
         done

@@ -1,8 +1,12 @@
+# Minimum required version of CMake
 cmake_minimum_required(VERSION 3.10)
-project(cpp-shower)
 
+# Project name and languages used
+project(cpp-shower LANGUAGES CXX)
+
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # List of subdirectories
 set(SUBDIRS base matrix shower observables)
