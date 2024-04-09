@@ -12,7 +12,7 @@ file(GLOB SOURCES "src/*.cu")
 # Set all source files to compile with CUDA
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CUDA)
 
-# Set CUDA architecture to 7.0 for Tesla V100
-set_property(TARGET observables PROPERTY CUDA_ARCHITECTURES 70)
-
 add_library(observables ${SOURCES})
+
+# Set CUDA architecture to 7.0 for Tesla V100
+set_property(TARGET observables PROPERTY CUDA_ARCHITECTURES 70)s
