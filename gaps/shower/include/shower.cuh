@@ -4,9 +4,6 @@
 // qcd includes all the necessary headers
 #include "qcd.cuh"
 
-// Shower Kinematics and Colour in separate files
-#include "shower_kinematics.cuh"
-
 /**
  * A Dipole Shower on GPU
  * ----------------------
