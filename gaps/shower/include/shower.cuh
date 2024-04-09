@@ -6,7 +6,7 @@
 
 // Shower Kinematics and Colour in separate files
 #include "shower_kinematics.cuh"
-#include "colours.cuh"
+//#include "colours.cuh"
 
 /**
  * A Dipole Shower on GPU
@@ -51,6 +51,11 @@ __global__ void doSplitting(Event *events, curandState *states, int N);
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
                                const double phi, const Vec4 pijt,
                                const Vec4 pkt);
+
+// Colours
+__device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
+                            const int colij[2], const int colk[2],
+                            const int rand);
 
 // All tasks wrapped into a function
 void runShower(thrust::device_vector<Event> &d_events);
