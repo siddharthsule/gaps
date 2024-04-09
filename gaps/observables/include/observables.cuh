@@ -5,6 +5,11 @@
 #include "histogram.cuh"
 #include "parton.cuh"
 
+// Add Analyses Here
+#include "dalitz.cuh"
+#include "eventshapes.cuh"
+#include "jetrates.cuh"
+
 /**
  * Observables and their Anaylsis
  * -------------------------------
@@ -16,18 +21,6 @@
  *
  * [1] Rivet: https://rivet.hepforge.org/
  */
-
-// Jet rates using Durham algorithm
-__device__ double Yij(const Vec4& p, const Vec4& q, double ecm2);
-__global__ void doCluster(Event* events, int N);
-
-// Event Shapes
-__device__ void bubbleSort(Vec4* moms, int n);
-__global__ void calculateThr(Event* events, int N);
-__global__ void calculateJetMBr(Event* events, int N);
-
-// Dalitz Plot
-__global__ void calculateDalitz(Event* events, int N);
 
 class Analysis {
  public:
