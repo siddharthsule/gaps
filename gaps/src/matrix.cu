@@ -59,7 +59,8 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   //curand_init(idx, 0, 0, &states[idx]);
 
   // Every events[idx] has a seed idx and clok64() is used to get a seed
-  curand_init(clock64(), idx, 0, &states[idx]);
+  curand_init(clock64(), idx, 0, &state);
+
 
   if (idx >= N) {
     return;
