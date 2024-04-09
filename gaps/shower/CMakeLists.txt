@@ -16,3 +16,6 @@ add_library(shower ${SOURCES})
 
 # Set CUDA architecture to 7.0 for Tesla V100
 set_property(TARGET shower PROPERTY CUDA_ARCHITECTURES 70)
+
+# Link to Base
+target_link_libraries(shower base)

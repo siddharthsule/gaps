@@ -16,3 +16,6 @@ add_library(matrix ${SOURCES})
 
 # Set CUDA architecture to 7.0 for Tesla V100
 set_property(TARGET matrix PROPERTY CUDA_ARCHITECTURES 70)
+
+# Link to Base
+target_link_libraries(matrix base)
