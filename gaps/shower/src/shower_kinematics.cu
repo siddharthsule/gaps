@@ -1,4 +1,4 @@
-#include "shower.cuh"
+#include "shower_kinematics.cuh"
 
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
                                const double phi, const Vec4 pijt,

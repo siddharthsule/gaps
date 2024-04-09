@@ -4,6 +4,10 @@
 // qcd includes all the necessary headers
 #include "qcd.cuh"
 
+// Shower Kinematics and Colour in separate files
+#include "shower_kinematics.cuh"
+#include "shower_colour.cuh"
+
 /**
  * A Dipole Shower on GPU
  * ----------------------
@@ -39,16 +43,6 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
 
 // Veto Algorithm
 __global__ void vetoAlg(Event *events, curandState *states, int N);
-
-// Kinematics
-__device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
-                               const double phi, const Vec4 pijt,
-                               const Vec4 pkt);
-
-// Colours
-__device__ void MakeColours(Event &ev, int *coli, int *colj, const int flavs[3],
-                            const int colij[2], const int colk[2],
-                            const int rand);
 
 // Perform the Splitting
 __global__ void doSplitting(Event *events, curandState *states, int N);
