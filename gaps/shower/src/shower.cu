@@ -1,5 +1,7 @@
 #include "shower.cuh"
 
+#include "colours.cuh"
+
 // -----------------------------------------------------------------------------
 // Random Number Generator
 
