@@ -15,4 +15,4 @@ set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CUDA)
 add_library(observables ${SOURCES})
 
 # Set CUDA architecture to 7.0 for Tesla V100
-set_property(TARGET observables PROPERTY CUDA_ARCHITECTURES 70)s
+set_property(TARGET observables PROPERTY CUDA_ARCHITECTURES 70)
