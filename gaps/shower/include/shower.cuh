@@ -47,6 +47,11 @@ __global__ void vetoAlg(Event *events, curandState *states, int N);
 // Perform the Splitting
 __global__ void doSplitting(Event *events, curandState *states, int N);
 
+// Kinematics
+__device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
+                               const double phi, const Vec4 pijt,
+                               const Vec4 pkt);
+
 // All tasks wrapped into a function
 void runShower(thrust::device_vector<Event> &d_events);
 
