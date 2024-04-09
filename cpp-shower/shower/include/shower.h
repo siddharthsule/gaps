@@ -1,7 +1,7 @@
 #ifndef SHOWER_H_
 #define SHOWER_H_
 
-#include "parton.h"
+#include "event.h"
 #include "qcd.h"
 
 // Shower Class - NOT IN GPU as kernels cannot be member functions

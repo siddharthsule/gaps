@@ -2,7 +2,7 @@
 #define MATRIX_H_
 
 // Parton includes Base, which has the CUDA libraries
-#include "parton.h"
+#include "event.h"
 
 // Matrix class
 class Matrix {

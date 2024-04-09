@@ -1,6 +1,7 @@
 #ifndef QCD_H_
 #define QCD_H_
 
+// Base Class, with all the important definitions
 #include "base.h"
 
 const double kNC = 3.0;

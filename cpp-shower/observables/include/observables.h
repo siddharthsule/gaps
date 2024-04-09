@@ -2,18 +2,11 @@
 #define DURHAM_H_
 
 #include "histogram.h"
-#include "parton.h"
+#include "event.h"
 
-// Jet Rates using the Durham Algorithm
-double Yij(const Vec4& p, const Vec4& q);
-void Cluster(Event& ev);
-
-// Event Shapes
-void bubbleSort(Vec4* moms, int n);
-void CalculateThrust(Event& ev);
-void CalculateJetMBr(Event& ev);
-
-void CalculateDalitz(Event& ev);
+#include "jetrates.h"
+#include "eventshapes.h"
+#include "dalitz.h"
 
 /**
  * Slight Difference between C++ and CUDA codes
