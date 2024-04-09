@@ -7,7 +7,7 @@ enable_language(CUDA)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include ../base/include)
-file(GLOB SOURCES "src/colours.cu src/shower.cu")
+file(GLOB SOURCES src/colours.cu src/shower.cu)
 
 # Set all source files to compile with CUDA
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CUDA)
