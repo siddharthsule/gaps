@@ -49,6 +49,8 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   std::cout << "Initialising..." << std::endl;
   std::vector<Event> events(N);
 
+  std::random_device rd;  // random device engine
+
   // ---------------------------------------------------------------------------
   // Matrix Element Generation
 
@@ -58,7 +60,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   Matrix xs(asmz, E);
 
   for (int i = 0; i < N; i++) {
-    xs.GenerateLOPoint(events[i], i); // Seed is i
+    xs.GenerateLOPoint(events[i], rd()); // Seed is random
   }
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -73,7 +75,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   Shower sh;
 
   for (int i = 0; i < N; i++) {
-    sh.Run(events[i], i); // Seed is i
+    sh.Run(events[i], rd()); // Seed is random
   }
 
   end = std::chrono::high_resolution_clock::now();
