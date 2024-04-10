@@ -1,7 +1,7 @@
 #ifndef EVENTSHAPES_CUH_
 #define EVENTSHAPES_CUH_
 
-#include "parton.cuh"
+#include "event.cuh"
 
 // Event Shapes
 __device__ void bubbleSort(Vec4* moms, int n);

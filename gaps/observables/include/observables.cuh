@@ -3,7 +3,7 @@
 
 // Histogram and Parton include relevant headers
 #include "histogram.cuh"
-#include "parton.cuh"
+#include "event.cuh"
 
 // Add Analyses Here
 #include "dalitz.cuh"

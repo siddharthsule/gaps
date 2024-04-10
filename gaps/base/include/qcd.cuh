@@ -2,7 +2,7 @@
 #define QCD_CUH_
 
 // Parton includes Base, which has the CUDA libraries
-#include "parton.cuh"
+#include "event.cuh"
 
 /**
  * The Strong Coupling Constant

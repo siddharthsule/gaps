@@ -2,7 +2,7 @@
 #define MATRIX_CUH
 
 // Parton includes Base, which has the CUDA libraries
-#include "parton.cuh"
+#include "event.cuh"
 
 /**
  * Matrix Element Generation
