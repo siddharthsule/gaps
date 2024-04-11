@@ -14,32 +14,32 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 
 ## Requirements
 
-You will need an NVIDIA GPU, desgined for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++ and the NVIDIA Development Toolkit, which contains the NVCC compiler.
+You will need an NVIDIA GPU, desgined for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++, Python and the NVIDIA Development Toolkit, which contains the NVCC compiler.
 
 ## Running the Code
 
-The executable ```gaps.sh``` is written to simplify the use of the code. One can simply execute the command:
+The executable ```rungaps``` is written to simplify the use of the code. One can simply execute the command:
 
 ```bash
-./gaps.sh
+./rungaps
 ```
 
-NB: If you get a permission denied error, please run ```chmod +x gaps.sh```.
+NB: If you get a permission denied error, please run ```chmod +x rungaps```.
 
 This should build the program and generate 10000 events on the GPU. More customisation options are available, and are listed below:
 
 ```bash
 # Simulate different number of events and build the code using multiple cpu cores
-./gaps.sh -n nevents -c ncores
+./rungaps -n nevents -c ncores
 
 # Run C++ Simulation
-./gaps.sh -n nevents -c ncores -r cpp
+./rungaps -n nevents -c ncores -r cpp
 
 # Run the same number of events on C++ and CUDA and compare times
-./gaps.sh -n nevents -c ncores -r compare
+./rungaps -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in paper
-./gaps.sh -c ncores -r full
+./rungaps -c ncores -r full
 ```
 
 The histograms are saved as yoda files [[arxiv:2312.15070](https://arxiv.org/abs/2312.15070)]. To generate the plots, use Rivet [[arxiv:1912.05451](https://arxiv.org/abs/1912.05451)] as follows:
