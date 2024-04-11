@@ -356,8 +356,7 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
   // ---------------------------------------------------------------------------
   /**
    * I think there is a more elegant way of handling this, like a __device__
-   * function, but I'll leave it like this for now (Feb 2024), until paper
-   * is done.
+   * function, but I'll leave it like this for now (Feb 2024).
    */
 
   // Get Flavs from Kernel Number
