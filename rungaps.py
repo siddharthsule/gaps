@@ -44,7 +44,7 @@ def compile(dir):
     os.makedirs('build', exist_ok=True)
     os.chdir('build')
     subprocess.run(['cmake', '..'])
-    subprocess.run(['make', '-j', str(args.c)])
+    subprocess.run(['make', '-j', str(args.cores)])
     os.chdir('../..')
 
 # ------------------------------------------------------------------------------
@@ -59,15 +59,15 @@ def run(runtype, events, energy):
 # ------------------------------------------------------------------------------
 # Compile and run based on runtype
 
-if args.r in ['gaps', 'compare']:
+if args.runtype in ['gaps', 'compare']:
     compile('gaps')
-    run('gaps', args.n, args.e)
+    run('gaps', args.nevents, args.energy)
 
-if args.r in ['cpp', 'compare']:
+if args.runtype in ['cpp', 'compare']:
     compile('cpp-shower')
-    run('cpp-shower', args.n, args.e)
+    run('cpp-shower', args.nevents, args.energy)
 
-if args.r == 'full':
+if args.runtype == 'full':
     # Remove previous results and make folder
     if os.path.exists('results'):
         shutil.rmtree('results')
@@ -86,10 +86,10 @@ if args.r == 'full':
         # Run and store the output in a log file
         for i in range(1, 101):
             print(f"Running GAPS with {n} events")
-            subprocess.run(['./gaps/bin/gaps', str(n), str(args.e)])
+            subprocess.run(['./gaps/bin/gaps', str(n), str(args.energy)])
             print(f"Running C++ Shower with {n} events")
             subprocess.run(
-                ['./cpp-shower/bin/cpp-shower', str(n), str(args.e)])
+                ['./cpp-shower/bin/cpp-shower', str(n), str(args.energy)])
 
     # Move the log files to the results directory
     shutil.move('cpp-time.dat', 'results/')
