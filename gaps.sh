@@ -99,7 +99,7 @@ if [ "$runtype" = "full" ]; then
     rm cpp-time.dat
     rm gaps-time.dat
 
-    # Run the comparison 10 times, for different number of events
+    # Run the comparison 100 times, for different number of events
     neventsarray=(1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000 200000 500000 1000000)
     for n in "${neventsarray[@]}"
     do
