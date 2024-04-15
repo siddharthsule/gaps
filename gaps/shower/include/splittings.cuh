@@ -191,10 +191,10 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sfCode) {
 
 __device__ bool validateSplitting(int ij, int sf) {
   // Obtain the splitting function code
-  int firstDigit = number / 1000;
-  int secondDigit = (number / 100) % 10;
-  int thirdDigit = (number / 10) % 10;
-  int fourthDigit = number % 10;
+  int firstDigit = sf / 1000;
+  int secondDigit = (sf / 100) % 10;
+  int thirdDigit = (sf / 10) % 10;
+  int fourthDigit = sf % 10;
 
   // Insert FF, FI, IF, II checks here
   // ---------------------------------

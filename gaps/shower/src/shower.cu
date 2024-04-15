@@ -114,7 +114,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
       for (int sf : sfCodes) {
 
         // Check if the Splitting Function is valid for the current partons
-        if (!validateSplitting) {
+        if (!validateSplitting(ev.GetParton(ij).GetPid(), sf)) {
           continue;
         }
 
