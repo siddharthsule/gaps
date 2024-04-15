@@ -78,7 +78,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
   // Default Values
   double win_tt = tC;  // Lowest possible value is Cutoff Scale (in base.cuh)
-  int win_sf = 16;     // 16 = No Splitting (0 -> 15 are Splitting Functions)
+  int win_sf = 0;     // 16 = No Splitting (0 -> 15 are Splitting Functions)
   int win_ij = 0;
   int win_k = 0;
   double win_zp = 0.0;
@@ -206,10 +206,6 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   double zp = ev.GetWinParam(0);
   double z = sfGenerateZ(1 - zp, zp, rand, sf);
 
-  if (idx == 0) {
-     printf("z: %f\n", z);
-  }
-
   double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1.0 - z);
 
   double f = 0.0;
@@ -271,39 +267,10 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
 
   // Adjust Colors
 
-  // ---------------------------------------------------------------------------
-  /**
-   * I think there is a more elegant way of handling this, like a __device__
-   * function, but I'll leave it like this for now (Feb 2024).
-   */
-
   // Get Flavs from Kernel Number
-  int kernel = ev.GetWinSF();
-
-  // flavour: -5 -4 -3 -2 -1  1  2  3  4  5
-  // index:    0  1  2  3  4  5  6  7  8  9
+  int sf = ev.GetWinSF();
   int flavs[3];
-  if (kernel < 10 && ev.GetParton(ev.GetWinDipole(0)).GetPid() != 21) {
-    if (kernel < 5) {
-      flavs[0] = kernel - 5;
-      flavs[1] = kernel - 5;
-      flavs[2] = 21;
-    } else if (kernel < 10) {
-      flavs[0] = kernel - 4;
-      flavs[1] = kernel - 4;
-      flavs[2] = 21;
-    }
-  } else if (kernel < 11) {
-    flavs[0] = 21;
-    flavs[1] = 21;
-    flavs[2] = 21;
-  } else if (kernel < 16) {
-    flavs[0] = 21;
-    flavs[1] = kernel - 10;
-    flavs[2] = -1 * (kernel - 10);
-  }
-
-  // ---------------------------------------------------------------------------
+  sfToFlavs(sf, flavs);
 
   int colij[2] = {ev.GetParton(win_ij).GetCol(),
                   ev.GetParton(win_ij).GetAntiCol()};

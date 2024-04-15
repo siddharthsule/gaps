@@ -49,141 +49,142 @@
  * estimate, integral and generateZ functions.
  */
 
-// Splitting Function Codes - Only FF for now
-__constant__ int sfCodes[] = {0001, 0002, 0003, 0004, 0005, 0011, 0012, 0013,
-                              0014, 0015, 0200, 0301, 0302, 0303, 0304, 0305};
+// Splitting Function Codes - Only FF for now (Removed Zeroes)
+// ------------------------------------------
+__constant__ int sfCodes[] = {1,  2,  3,   4,   5,   11,  12,  13,
+                              14, 15, 200, 301, 302, 303, 304, 305};
 
-__device__ double sfValue(double z, double y, int sfCode) {
-  switch (sfCode) {
+__device__ double sfValue(double z, double y, int sf) {
+  switch (sf) {
     // FF Splittings ---------------------------
 
     // FF q -> qg
-    case 0001:
-    case 0002:
-    case 0003:
-    case 0004:
-    case 0005:
-    case 0011:
-    case 0012:
-    case 0013:
-    case 0014:
-    case 0015:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
       return kCF * (2.0 / (1.0 - z * (1.0 - y)) - (1.0 + z));
       break;
 
     // FF g -> gg
-    case 0200:
+    case 200:
       return kCA / 2.0 * (2.0 / (1.0 - z * (1.0 - y)) - 2.0 + z * (1.0 - z));
       break;
 
     // FF g -> qqbar
-    case 0301:
-    case 0302:
-    case 0303:
-    case 0304:
-    case 0305:
+    case 301:
+    case 302:
+    case 303:
+    case 304:
+    case 305:
       return kTR / 2.0 * (1.0 - 2.0 * z * (1.0 - z));
       break;
   }
 }
 
-__device__ double sfEstimate(double z, int sfCode) {
-  switch (sfCode) {
+__device__ double sfEstimate(double z, int sf) {
+  switch (sf) {
     // FF Splittings ---------------------------
 
     // FF q -> qg
-    case 0001:
-    case 0002:
-    case 0003:
-    case 0004:
-    case 0005:
-    case 0011:
-    case 0012:
-    case 0013:
-    case 0014:
-    case 0015:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
       return kCF * 2.0 / (1.0 - z);
       break;
 
     // FF g -> gg
-    case 0200:
+    case 200:
       return kCA / (1.0 - z);
       break;
 
     // FF g -> qqbar
-    case 0301:
-    case 0302:
-    case 0303:
-    case 0304:
-    case 0305:
+    case 301:
+    case 302:
+    case 303:
+    case 304:
+    case 305:
       return kTR / 2.0;
       break;
   }
 }
 
-__device__ double sfIntegral(double zm, double zp, int sfCode) {
-  switch (sfCode) {
+__device__ double sfIntegral(double zm, double zp, int sf) {
+  switch (sf) {
     // FF Splittings ---------------------------
 
     // FF q -> qg
-    case 0001:
-    case 0002:
-    case 0003:
-    case 0004:
-    case 0005:
-    case 0011:
-    case 0012:
-    case 0013:
-    case 0014:
-    case 0015:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
       return kCF * 2.0 * log((1.0 - zm) / (1.0 - zp));
       break;
 
     // FF g -> gg
-    case 0200:
+    case 200:
       return kCA * log((1.0 - zm) / (1.0 - zp));
       break;
 
     // FF g -> qqbar
-    case 0301:
-    case 0302:
-    case 0303:
-    case 0304:
-    case 0305:
+    case 301:
+    case 302:
+    case 303:
+    case 304:
+    case 305:
       return kTR / 2.0 * (zp - zm);
       break;
   }
 }
 
-__device__ double sfGenerateZ(double zm, double zp, double rand, int sfCode) {
-  switch (sfCode) {
+__device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
+  switch (sf) {
     // FF Splittings ---------------------------
 
     // FF q -> qg
-    case 0001:
-    case 0002:
-    case 0003:
-    case 0004:
-    case 0005:
-    case 0011:
-    case 0012:
-    case 0013:
-    case 0014:
-    case 0015:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
       return 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
       break;
 
     // FF g -> gg
-    case 0200:
+    case 200:
       return 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
       break;
 
     // FF g -> qqbar
-    case 0301:
-    case 0302:
-    case 0303:
-    case 0304:
-    case 0305:
+    case 301:
+    case 302:
+    case 303:
+    case 304:
+    case 305:
       return zm + (zp - zm) * rand;
       break;
   }
@@ -191,7 +192,7 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sfCode) {
 
 __device__ bool validateSplitting(int ij, int sf) {
   // Obtain the splitting function code
-  //int firstDigit = sf / 1000;
+  // int firstDigit = sf / 1000;
   int secondDigit = (sf / 100) % 10;
   int thirdDigit = (sf / 10) % 10;
   int fourthDigit = sf % 10;
@@ -217,6 +218,30 @@ __device__ bool validateSplitting(int ij, int sf) {
   }
 
   return true;
+}
+
+__device__ void sfToFlavs(int sf, int* flavs) {
+
+  if (sf < 16) {
+    if (sf < 6) {
+      flavs[0] = sf;
+      flavs[1] = sf;
+      flavs[2] = 21;
+    } else {
+      flavs[0] = -1 * (sf - 10);
+      flavs[1] = -1 * (sf - 10);
+      flavs[2] = 21;
+    }
+  } else if (sf == 200) {
+    flavs[0] = 21;
+    flavs[1] = 21;
+    flavs[2] = 21;
+  } else if (sf < 306) {
+    flavs[0] = 21;
+    flavs[1] = sf - 300;
+    flavs[2] = -1 * (sf - 300);
+  }
+
 }
 
 #endif  // SPLITTINGS_CUH_
