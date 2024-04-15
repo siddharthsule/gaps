@@ -47,7 +47,9 @@ __device__ double Matrix::ME2(int fl, double s, double t) {
 }
 
 // Kernel to set up the Matrix object on the device
-__global__ void matrixSetupKernel(Matrix *matrix, double E) { matrix->setup(asmz, E); }
+__global__ void matrixSetupKernel(Matrix *matrix, double E) {
+  matrix->setup(asmz, E);
+}
 
 // Kernel to generate the Event
 __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
@@ -56,11 +58,10 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   curandState state;
 
   // Every events[idx] has a seed idx
-  //curand_init(idx, 0, 0, &states[idx]);
+  // curand_init(idx, 0, 0, &states[idx]);
 
   // Every events[idx] has a seed idx and clok64() is used to get a seed
   curand_init(clock64(), idx, 0, &state);
-
 
   if (idx >= N) {
     return;
@@ -88,8 +89,9 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) /
                (2. * pow(matrix->GetECMS(), 2.));
 
-  Parton p[4] = {Parton(-11, -pa, 0, 0), Parton(11, -pb, 0, 0),
-                 Parton(fl, p1, 1, 0), Parton(-fl, p2, 0, 1)};
+  Parton p[4] = {Parton(-11, -pa, 0, 0, true, false),
+                 Parton(11, -pb, 0, 0, true, false), Parton(fl, p1, 1, 0),
+                 Parton(-fl, p2, 0, 1)};
 
   Event &ev = events[idx];
 
@@ -101,6 +103,8 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   // Set the ME Params
   ev.SetDxs(dxs);
   ev.SetHard(4);
+  ev.SetInitial(2);
+  ev.SetNonParton(2);
 }
 
 // Function to generate the LO Matrix Elements + Momenta

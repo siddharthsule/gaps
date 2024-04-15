@@ -84,15 +84,15 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
   double win_zp = 0.0;
   double win_m2 = 0.0;
 
-  for (int ij = 2; ij < ev.GetSize(); ij++) {
-    for (int k = 2; k < ev.GetSize(); k++) {
+  for (int ij = 0; ij < ev.GetSize(); ij++) {
+    for (int k = 0; k < ev.GetSize(); k++) {
       // Sanity Check to ensure ij != k
       if (ij == k) {
         continue;
       }
 
-      // Need to check if ij and k are valid partons
-      if (ij >= ev.GetSize() || k >= ev.GetSize()) {
+      // Skip non-partons
+      if (!ev.GetParton(ij).IsParton() || !ev.GetParton(k).IsParton()) {
         continue;
       }
 

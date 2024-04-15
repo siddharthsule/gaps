@@ -6,13 +6,13 @@
 /**
  * The Event Class
  * ---------------
- * 
- * This is the backbone of the program. An event contains the differential cross 
- * section calculated from the ME, the hard partons and the showered partons. 
- * It also contains the shower parameters which are constantly updated during 
- * the showering process. The event also contains the analysis variables, which 
+ *
+ * This is the backbone of the program. An event contains the differential cross
+ * section calculated from the ME, the hard partons and the showered partons.
+ * It also contains the shower parameters which are constantly updated during
+ * the showering process. The event also contains the analysis variables, which
  * are calculated after the showering process is complete.
-*/
+ */
 
 class Event {
  private:
@@ -22,8 +22,10 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs;  // Differential Cross Section
-  int nHard;   // Number of Hard Partons
+  double dxs;      // Differential Cross Section
+  int nHard;       // Number of Hard Partons
+  int nInitial;    // Number of Initial Partons
+  int nNonParton;  // Number of Non-Parton Partons
 
   // Shower Params -------------------------------------------------------------
 
@@ -70,7 +72,13 @@ class Event {
   __device__ Parton GetParton(int i) const { return partons[i]; }
   __device__ int GetSize() const { return nHard + nEmission; }
   __device__ int GetHard() const { return nHard; }
+  __device__ int GetInitial() const { return nInitial; }
+  __device__ int GetNonParton() const { return nNonParton; }
   __device__ int GetEmissions() const { return nEmission; }
+  __device__ int GetPartonSize() const {
+    return (nHard + nEmission) - nNonParton;
+  }
+
   __device__ int GetPartonSize() const { return nHard + nEmission - 2; }
 
   // Get Differential Cross Section
@@ -124,6 +132,10 @@ class Event {
   // Set Differential Cross Section and nHard
   __device__ void SetDxs(double dxs) { this->dxs = dxs; }
   __device__ void SetHard(int nHard) { this->nHard = nHard; }
+  __device__ void SetInitial(int nInitial) { this->nInitial = nInitial; }
+  __device__ void SetNonParton(int nNonParton) {
+    this->nNonParton = nNonParton;
+  }
 
   // Adjust and Increment Number of Emissions
   __device__ void SetEmissions(int nEmission) { this->nEmission = nEmission; }
@@ -244,4 +256,4 @@ class Event {
   }
 };
 
-#endif // EVENT_CUH_
+#endif  // EVENT_CUH_
