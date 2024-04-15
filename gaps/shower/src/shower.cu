@@ -3,6 +3,7 @@
 // Need to be here to avoid multiple definitions
 #include "colours.cuh"
 #include "kinematics.cuh"
+#include "splittings.cuh"
 
 // -----------------------------------------------------------------------------
 // Random Number Generator
@@ -106,94 +107,34 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
         continue;
       }
 
+      // Phase Space Limits
       double zp = 0.5 * (1.0 + sqrt(1.0 - 4.0 * tC / m2));
 
-      /**
-       * SIMPLIFIED VERSION FROM S. HOCHE'S CODE
-       * ---------------------------------------
-       *
-       * CUDA doesn't directly support Polymorphism, so we can't use the
-       * SplittingFunction class and its subclasses here. We will have to
-       * implement the splitting functions directly here...
-       *
-       * There might be possible workarounds for this:
-       * - Use a template function
-       * - Use nvstd::function
-       *
-       * For now (Feb 2024), let's keep it simple and implement the splitting
-       * functions directly here. It is good that we are doing massless quarks.
-       *
-       * HOWEVER this change is present in both the C++ and CUDA showers, so
-       * the comparison is still valid.
-       *
-       * If ij = quark/antiq, only one of the first 10 kernels can be used
-       * If ij = gluon, we need to get one of six kernels
-       */
-
-      int sf = 16;  // Default or Null Splitting Function
+      // Loop over all the splitting functions
+      int sf = 0000;  // Default or Null Splitting Function
       double tt = 0.0;
 
-      // Quark/Anti-Quark
-      if (ev.GetParton(ij).GetPid() != 21) {
-        // Flavour:  -5 -4 -3 -2 -1  1  2  3  4  5
-        // Location:  0  1  2  3  4  5  6  7  8  9
-
-        // Get the right splitting function
-        sf = ev.GetParton(ij).GetPid() < 0 ? ev.GetParton(ij).GetPid() + 5
-                                           : ev.GetParton(ij).GetPid() + 4;
-
-        // Get t_temp
-        double integral = kCF * 2.0 * log((1.0 - (1.0 - zp)) / (1.0 - zp));
-        double g = asmax / (2.0 * M_PI) * integral;
-        tt = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
-        states[idx] = state;  // So that the next number is not the same!
-      } else if (ev.GetParton(ij).GetPid() == 21) {
-        /**
-         * We will need to give a chance to all six possible splittings
-         *
-         * 10: g -> gg
-         * 11 to 15: g -> qqbar
-         */
-
-        double gg_integral = kCA * log((1.0 - (1.0 - zp)) / (1.0 - zp));
-        double qq_integral = kTR / 2.0 * (zp - (1.0 - zp));
-
-        double gg_g = asmax / (2.0 * M_PI) * gg_integral;
-        double qq_g = asmax / (2.0 * M_PI) * qq_integral;
-
-        // Get tt for g -> gg
-        double gg_tt =
-            ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / gg_g);
-        states[idx] = state;
-
-        // Get tt for g -> qqbar
-        // Select the quark flavour with highest random number
-        double qq_tt = 0.0;
-        int qnum = 0;
-        for (int j = 1; j <= 5; j++) {
-          // Get tt for g -> qqbar for the selected quark flavour
-          double temp_tt =
-              ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / qq_g);
-          states[idx] = state;
-
-          if (temp_tt > qq_tt) {
-            qq_tt = temp_tt;
-            qnum = j;
-          }
+      // Codes instead of Object Oriented Approach!
+      for (auto &sf_temp : sfCodes) {
+        // Skip if ij is a quark and the sf is not a quark sf (2nd digit), or
+        // if ij is a gluon and the sf is not a gluon sf (2nd digit)
+        if ((ev.GetParton(ij).GetPid() != 21 && sf_temp > 200) ||
+            (ev.GetParton(ij).GetPid() == 21 && sf_temp < 200)) {
+          continue;
         }
 
-        // Compare tt for g -> gg and g -> qqbar
-        if (gg_tt > qq_tt) {
-          sf = 10;
-          tt = gg_tt;
-        } else {
-          sf = 10 + qnum;
-          tt = qq_tt;
+        double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf_temp);
+        double t_temp = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
+        states[idx] = state;  // So that the next number is not the same!
+
+        if (t_temp > tt) {
+          tt = t_temp;
+          sf = sf_temp;
         }
       }
 
       // Check if tt is greater than the current winner
-      if (sf < 16 && tt > win_tt) {
+      if (tt > win_tt) {
         win_tt = tt;
         win_sf = sf;
         win_ij = ij;
@@ -253,6 +194,7 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   }
 
   Event &ev = events[idx];
+  curandState state = states[idx];
 
   // Do not run if the shower has ended
   if (ev.GetEndShower()) {
@@ -262,26 +204,15 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   // Set to False, only set to True if accpeted
   ev.SetAcceptEmission(false);
 
-  curandState state = states[idx];
-
-  double z = 0.0;
-  double zp = ev.GetWinParam(0);
-  double zm = 1.0 - zp;
-
-  int kernel = ev.GetWinSF();
-  int ij_flav = ev.GetParton(ev.GetWinDipole(0)).GetPid();
+  // Get the Splitting Function
+  int sf = ev.GetWinSF();
 
   double rand = curand_uniform(&state);
   states[idx] = state;
 
   // Generate z
-  if (kernel < 10 && ij_flav != 21) {
-    z = 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
-  } else if (kernel < 11) {
-    z = 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
-  } else if (kernel < 16) {
-    z = zm + (zp - zm) * rand;
-  }
+  double zp = ev.GetWinParam(0);
+  double z = sfGenerateZ(1 - zp, zp, rand, sf);
 
   double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1.0 - z);
 
@@ -292,17 +223,9 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
 
   // CS Kernel: y can't be 1
   if (y < 1.0) {
-    // Value and Estimate
-    if (kernel < 10 && ij_flav != 21) {
-      value = kCF * (2.0 / (1.0 - z * (1.0 - y)) - (1.0 + z));
-      estimate = kCF * 2.0 / (1.0 - z);
-    } else if (kernel < 11) {
-      value = kCA / 2.0 * (2.0 / (1.0 - z * (1.0 - y)) - 2.0 + z * (1.0 - z));
-      estimate = kCA / (1.0 - z);
-    } else if (kernel < 16) {
-      value = kTR / 2.0 * (1.0 - 2.0 * z * (1.0 - z));
-      estimate = kTR / 2.0;
-    }
+
+    value = sfValue(z, y, sf);
+    estimate = sfEstimate(z, sf);
 
     f = (1.0 - y) * ev.GetAsVeto() * value;
     g = asmax * estimate;
