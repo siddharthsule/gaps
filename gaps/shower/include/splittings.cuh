@@ -189,4 +189,34 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sfCode) {
   }
 }
 
+__device__ bool validateSplitting(int ij, int sf) {
+  // Obtain the splitting function code
+  int firstDigit = number / 1000;
+  int secondDigit = (number / 100) % 10;
+  int thirdDigit = (number / 10) % 10;
+  int fourthDigit = number % 10;
+
+  // Insert FF, FI, IF, II checks here
+  // ---------------------------------
+
+  // Skip if ij is a quark and the sf is not a quark sf (2nd digit), or
+  // if ij is a gluon and the sf is not a gluon sf (2nd digit)
+  if ((ij != 21 && secondDigit >= 2) || (ij == 21 && secondDigit < 2)) {
+    return false;
+  }
+
+  // Skip if ij is a particle and sf is an antiparticle sf (3rd digit), or
+  // if ij is an antiparticle and sf is a particle sf (3rd digit)
+  if ((ij < 0 && thirdDigit == 0) || (ij > 0 && sf thirdDigit == 1)) {
+    return false;
+  }
+
+  // Skip if the flavor of ij is different from the flavor of the sf
+  if ((ij != 21 && abs(ij) != fourthDigit) || (ij == 21 && fourthDigit != 0)) {
+    return false;
+  }
+
+  return true;
+}
+
 #endif  // SPLITTINGS_CUH_

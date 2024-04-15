@@ -110,37 +110,29 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
       // Phase Space Limits
       double zp = 0.5 * (1.0 + sqrt(1.0 - 4.0 * tC / m2));
 
-      // Loop over all the splitting functions
-      int sf = 0000;  // Default or Null Splitting Function
-      double tt = 0.0;
-
       // Codes instead of Object Oriented Approach!
-      for (auto &sf_temp : sfCodes) {
-        // Skip if ij is a quark and the sf is not a quark sf (2nd digit), or
-        // if ij is a gluon and the sf is not a gluon sf (2nd digit)
-        if ((ev.GetParton(ij).GetPid() != 21 && sf_temp > 200) ||
-            (ev.GetParton(ij).GetPid() == 21 && sf_temp < 200)) {
+      for (int sf : sfCodes) {
+
+        // Check if the Splitting Function is valid for the current partons
+        if (!validateSplitting) {
           continue;
         }
 
+        // Calculate the Evolution Variable
         double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf_temp);
-        double t_temp = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
+        double tt = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
+
         states[idx] = state;  // So that the next number is not the same!
 
-        if (t_temp > tt) {
-          tt = t_temp;
-          sf = sf_temp;
+        // Check if tt is greater than the current winner
+        if (tt > win_tt) {
+          win_tt = tt;
+          win_sf = sf;
+          win_ij = ij;
+          win_k = k;
+          win_zp = zp;
+          win_m2 = m2;
         }
-      }
-
-      // Check if tt is greater than the current winner
-      if (tt > win_tt) {
-        win_tt = tt;
-        win_sf = sf;
-        win_ij = ij;
-        win_k = k;
-        win_zp = zp;
-        win_m2 = m2;
       }
     }
   }
@@ -223,7 +215,6 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
 
   // CS Kernel: y can't be 1
   if (y < 1.0) {
-
     value = sfValue(z, y, sf);
     estimate = sfEstimate(z, sf);
 
