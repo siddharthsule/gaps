@@ -119,7 +119,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
         }
 
         // Calculate the Evolution Variable
-        double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf_temp);
+        double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf);
         double tt = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
 
         states[idx] = state;  // So that the next number is not the same!

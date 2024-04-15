@@ -191,7 +191,7 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sfCode) {
 
 __device__ bool validateSplitting(int ij, int sf) {
   // Obtain the splitting function code
-  int firstDigit = sf / 1000;
+  //int firstDigit = sf / 1000;
   int secondDigit = (sf / 100) % 10;
   int thirdDigit = (sf / 10) % 10;
   int fourthDigit = sf % 10;
@@ -207,7 +207,7 @@ __device__ bool validateSplitting(int ij, int sf) {
 
   // Skip if ij is a particle and sf is an antiparticle sf (3rd digit), or
   // if ij is an antiparticle and sf is a particle sf (3rd digit)
-  if ((ij < 0 && thirdDigit == 0) || (ij > 0 && sf thirdDigit == 1)) {
+  if ((ij < 0 && thirdDigit == 0) || (ij > 0 && thirdDigit == 1)) {
     return false;
   }
 
