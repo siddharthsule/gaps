@@ -79,8 +79,6 @@ class Event {
     return (nHard + nEmission) - nNonParton;
   }
 
-  __device__ int GetPartonSize() const { return nHard + nEmission - 2; }
-
   // Get Differential Cross Section
   __device__ double GetDxs() const { return dxs; }
 
