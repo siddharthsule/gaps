@@ -49,6 +49,13 @@
  * estimate, integral and generateZ functions.
  */
 
+// Splitting Function Codes - Only FF for now (Removed Zeroes)
+// ------------------------------------------
+__constant__ int sfCodes[] = {1,  2,  3,   4,   5,   11,  12,  13,
+                              14, 15, 200, 301, 302, 303, 304, 305};
+
+// -----------------------------------------------------------------------------
+
 __device__ double sfValue(double z, double y, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
@@ -83,6 +90,8 @@ __device__ double sfValue(double z, double y, int sf) {
   }
   return 0.0;
 }
+
+// -----------------------------------------------------------------------------
 
 __device__ double sfEstimate(double z, int sf) {
   switch (sf) {
@@ -119,6 +128,8 @@ __device__ double sfEstimate(double z, int sf) {
   return 0.0;
 }
 
+// -----------------------------------------------------------------------------
+
 __device__ double sfIntegral(double zm, double zp, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
@@ -154,6 +165,8 @@ __device__ double sfIntegral(double zm, double zp, int sf) {
   return 0.0;
 }
 
+// -----------------------------------------------------------------------------
+
 __device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
@@ -188,6 +201,9 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
   }
   return 0.0;
 }
+
+// -----------------------------------------------------------------------------
+// Utility Functions
 
 __device__ bool validateSplitting(int ij, int sf) {
   // Obtain the splitting function code
