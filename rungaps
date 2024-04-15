@@ -59,12 +59,16 @@ def run(runtype, events, energy):
 # ------------------------------------------------------------------------------
 # Compile and run based on runtype
 
-if args.runtype in ['gaps', 'compare']:
+if args.runtype in ['gaps', 'compare', 'full']:
     compile('gaps')
+
+if args.runtype in ['cpp', 'compare', 'full']:
+    compile('cpp-shower')
+
+if args.runtype in ['gaps', 'compare']:
     run('gaps', args.nevents, args.energy)
 
 if args.runtype in ['cpp', 'compare']:
-    compile('cpp-shower')
     run('cpp-shower', args.nevents, args.energy)
 
 if args.runtype == 'full':
