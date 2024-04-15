@@ -136,12 +136,12 @@ __device__ double sfIntegral(double zm, double zp, int sfCode) {
     case 0013:
     case 0014:
     case 0015:
-      return kCF * 2.0 * log((1.0 - (1.0 - zp)) / (1.0 - zp));
+      return kCF * 2.0 * log((1.0 - zm) / (1.0 - zp));
       break;
 
     // FF g -> gg
     case 0200:
-      return kCA * log((1.0 - (1.0 - zp)) / (1.0 - zp));
+      return kCA * log((1.0 - zm) / (1.0 - zp));
       break;
 
     // FF g -> qqbar
@@ -150,7 +150,7 @@ __device__ double sfIntegral(double zm, double zp, int sfCode) {
     case 0303:
     case 0304:
     case 0305:
-      return kTR / 2.0 * (zp - (1.0 - zp));
+      return kTR / 2.0 * (zp - zm);
       break;
   }
 }

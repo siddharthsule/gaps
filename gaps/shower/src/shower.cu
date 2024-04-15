@@ -206,6 +206,10 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   double zp = ev.GetWinParam(0);
   double z = sfGenerateZ(1 - zp, zp, rand, sf);
 
+  if (idx == 0) {
+     printf("z: %f\n", z);
+  }
+
   double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1.0 - z);
 
   double f = 0.0;
