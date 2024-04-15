@@ -1,7 +1,4 @@
-#ifndef SPLITTINGS_CUH_
-#define SPLITTINGS_CUH_
-
-#include "qcd.cuh"
+#include "shower.h"
 
 /**
  * Splitting Functions as a function - safer but less sophisticated
@@ -49,7 +46,7 @@
  * estimate, integral and generateZ functions.
  */
 
-__device__ double sfValue(double z, double y, int sf) {
+double Shower::sfValue(double z, double y, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
 
@@ -84,7 +81,7 @@ __device__ double sfValue(double z, double y, int sf) {
   return 0.0;
 }
 
-__device__ double sfEstimate(double z, int sf) {
+double Shower::sfEstimate(double z, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
 
@@ -119,7 +116,7 @@ __device__ double sfEstimate(double z, int sf) {
   return 0.0;
 }
 
-__device__ double sfIntegral(double zm, double zp, int sf) {
+double Shower::sfIntegral(double zm, double zp, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
 
@@ -154,7 +151,7 @@ __device__ double sfIntegral(double zm, double zp, int sf) {
   return 0.0;
 }
 
-__device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
+double Shower::sfGenerateZ(double zm, double zp, double rand, int sf) {
   switch (sf) {
     // FF Splittings ---------------------------
 
@@ -189,7 +186,7 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
   return 0.0;
 }
 
-__device__ bool validateSplitting(int ij, int sf) {
+bool Shower::validateSplitting(int ij, int sf) {
   // Obtain the splitting function code
   // int firstDigit = sf / 1000;
   int secondDigit = (sf / 100) % 10;
@@ -219,7 +216,7 @@ __device__ bool validateSplitting(int ij, int sf) {
   return true;
 }
 
-__device__ void sfToFlavs(int sf, int* flavs) {
+void Shower::sfToFlavs(int sf, int* flavs) {
   if (sf < 16) {
     if (sf < 6) {
       flavs[0] = sf;
@@ -240,5 +237,3 @@ __device__ void sfToFlavs(int sf, int* flavs) {
     flavs[2] = -1 * (sf - 300);
   }
 }
-
-#endif  // SPLITTINGS_CUH_

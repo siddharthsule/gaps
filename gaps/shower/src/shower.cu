@@ -78,7 +78,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
   // Default Values
   double win_tt = tC;  // Lowest possible value is Cutoff Scale (in base.cuh)
-  int win_sf = 0;     // 16 = No Splitting (0 -> 15 are Splitting Functions)
+  int win_sf = 0;     // 0 = No Splitting
   int win_ij = 0;
   int win_k = 0;
   double win_zp = 0.0;

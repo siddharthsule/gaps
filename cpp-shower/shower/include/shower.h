@@ -4,6 +4,11 @@
 #include "event.h"
 #include "qcd.h"
 
+// Splitting Function Codes - Only FF for now (Removed Zeroes)
+// ------------------------------------------
+const int sfCodes[] = {1,  2,  3,   4,   5,   11,  12,  13,
+                       14, 15, 200, 301, 302, 303, 304, 305};
+
 // Shower Class - NOT IN GPU as kernels cannot be member functions
 class Shower {
  private:
@@ -14,6 +19,16 @@ class Shower {
 
   // In CUDA, we cannot point by reference, so we use
   // pointers (*) instead of references (&).
+
+  // Splitting Functions
+  double sfValue(double z, double y, int sf);
+  double sfEstimate(double z, int sf);
+  double sfIntegral(double zm, double zp, int sf);
+  double sfGenerateZ(double zm, double zp, double rand, int sf);
+
+  // Utilities
+  bool validateSplitting(int ij, const int sf);
+  void sfToFlavs(int sf, int* flavs);
 
   // Select the Winner Emission
   void SelectWinner(Event& ev, std::mt19937& gen);

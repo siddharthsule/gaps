@@ -11,7 +11,7 @@ void Shower::SelectWinner(Event& ev, std::mt19937& gen) {
 
   // Default Values
   double win_tt = tC;  // Lowest possible value is Cutoff Scale (in base.cuh)
-  int win_sf = 16;     // 16 = No Splitting (0 -> 15 are Splitting Functions)
+  int win_sf = 0;      // 0 = No Splitting
   int win_ij = 0;
   int win_k = 0;
   double win_zp = 0.0;
@@ -37,77 +37,26 @@ void Shower::SelectWinner(Event& ev, std::mt19937& gen) {
 
       double zp = 0.5 * (1.0 + sqrt(1.0 - 4.0 * tC / m2));
 
-      /**
-       * If ij = quark/antiq, only one of the first 10 kernels can be used
-       * If ij = gluon, we need to get one of six kernels
-       */
-      int sf = 16;  // Default or Null Splitting Function
-      double tt = 0.0;
-
-      // Different from S.H.'s Tutorial here, see shower.cu for more info.
-
-      // Quark/Anti-Quark
-      if (ev.GetParton(ij).GetPid() != 21) {
-        // Flavour:  -5 -4 -3 -2 -1  1  2  3  4  5
-        // Location:  0  1  2  3  4  5  6  7  8  9
-
-        // Get the right splitting function
-        sf = ev.GetParton(ij).GetPid() < 0 ? ev.GetParton(ij).GetPid() + 5
-                                           : ev.GetParton(ij).GetPid() + 4;
-
-        // Get t_temp
-        double integral = kCF * 2.0 * std::log((1.0 - (1.0 - zp)) / (1.0 - zp));
-        double g = asmax / (2.0 * M_PI) * integral;
-        tt = ev.GetShowerT() * pow(dis(gen), 1.0 / g);
-      } else if (ev.GetParton(ij).GetPid() == 21) {
-        /**
-         * We will need to give a chance to all six possible splittings
-         *
-         * 10: g -> gg
-         * 11 to 15: g -> qqbar
-         */
-
-        double gg_integral = kCA * log((1.0 - (1.0 - zp)) / (1.0 - zp));
-        double qq_integral = kTR / 2.0 * (zp - (1.0 - zp));
-
-        double gg_g = asmax / (2.0 * M_PI) * gg_integral;
-        double qq_g = asmax / (2.0 * M_PI) * qq_integral;
-
-        // Get tt for g -> gg
-        double gg_tt = ev.GetShowerT() * pow(dis(gen), 1.0 / gg_g);
-
-        // Get tt for g -> qqbar
-        // Select the quark flavour with highest random number
-        double qq_tt = 0.0;
-        int qnum = 0;
-        for (int j = 1; j <= 5; j++) {
-          // Get tt for g -> qqbar for the selected quark flavour
-          double temp_tt = ev.GetShowerT() * pow(dis(gen), 1.0 / qq_g);
-
-          if (temp_tt > qq_tt) {
-            qq_tt = temp_tt;
-            qnum = j;
-          }
+      // Codes instead of Object Oriented Approach!
+      for (int sf : sfCodes) {
+        // Check if the Splitting Function is valid for the current partons
+        if (!validateSplitting(ev.GetParton(ij).GetPid(), sf)) {
+          continue;
         }
 
-        // Compare tt for g -> gg and g -> qqbar
-        if (gg_tt > qq_tt) {
-          sf = 10;
-          tt = gg_tt;
-        } else {
-          sf = 10 + qnum;
-          tt = qq_tt;
-        }
-      }
+        // Calculate the Evolution Variable
+        double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf);
+        double tt = ev.GetShowerT() * pow(dis(gen), 1.0 / g);
 
-      // Check if tt is greater than the current winner
-      if (sf < 16 && tt > win_tt) {
-        win_tt = tt;
-        win_sf = sf;
-        win_ij = ij;
-        win_k = k;
-        win_zp = zp;
-        win_m2 = m2;
+        // Check if tt is greater than the current winner
+        if (tt > win_tt) {
+          win_tt = tt;
+          win_sf = sf;
+          win_ij = ij;
+          win_k = k;
+          win_zp = zp;
+          win_m2 = m2;
+        }
       }
     }
   }
@@ -131,21 +80,15 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
     SelectWinner(ev, gen);
 
     if (ev.GetShowerT() > tC) {
-      double z = 0.0;
-      double zp = ev.GetWinParam(0);
-      double zm = 1.0 - zp;
 
-      int kernel = ev.GetWinSF();
-      int ij_flav = ev.GetParton(ev.GetWinDipole(0)).GetPid();
+      // Get the Splitting Function
+      int sf = ev.GetWinSF();
 
       double rand = dis(gen);
-      if (kernel < 10 && ij_flav != 21) {
-        z = 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
-      } else if (kernel < 11) {
-        z = 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
-      } else if (kernel < 16) {
-        z = zm + (zp - zm) * rand;
-      }
+
+      // Generate z
+      double zp = ev.GetWinParam(0);
+      double z = sfGenerateZ(1 - zp, zp, rand, sf);
 
       double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1.0 - z);
 
@@ -156,17 +99,8 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
 
       // CS Kernel: y can't be 1
       if (y < 1.0) {
-        if (kernel < 10 && ij_flav != 21) {
-          value = kCF * (2.0 / (1.0 - z * (1.0 - y)) - (1.0 + z));
-          estimate = kCF * 2.0 / (1.0 - z);
-        } else if (kernel < 11) {
-          value =
-              kCA / 2.0 * (2.0 / (1.0 - z * (1.0 - y)) - 2.0 + z * (1.0 - z));
-          estimate = kCA / (1.0 - z);
-        } else if (kernel < 16) {
-          value = kTR / 2.0 * (1.0 - 2.0 * z * (1.0 - z));
-          estimate = kTR / 2.0;
-        }
+        value = sfValue(z, y, sf);
+        estimate = sfEstimate(z, sf);
 
         f = (1.0 - y) * as(ev.GetShowerT()) * value;
         g = asmax * estimate;
@@ -184,31 +118,9 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
           MakeKinematics(moms, z, y, phi, ev.GetParton(win_ij).GetMom(),
                          ev.GetParton(win_k).GetMom());
 
-          // Get Flavs from Kernel Number
-          int kernel = ev.GetWinSF();
-
-          // flavour: -5 -4 -3 -2 -1  1  2  3  4  5
-          // index:    0  1  2  3  4  5  6  7  8  9
           int flavs[3];
-          if (kernel < 10 && ev.GetParton(ev.GetWinDipole(0)).GetPid() != 21) {
-            if (kernel < 5) {
-              flavs[0] = kernel - 5;
-              flavs[1] = kernel - 5;
-              flavs[2] = 21;
-            } else if (kernel < 10) {
-              flavs[0] = kernel - 4;
-              flavs[1] = kernel - 4;
-              flavs[2] = 21;
-            }
-          } else if (kernel < 11) {
-            flavs[0] = 21;
-            flavs[1] = 21;
-            flavs[2] = 21;
-          } else if (kernel < 16) {
-            flavs[0] = 21;
-            flavs[1] = kernel - 10;
-            flavs[2] = -1 * (kernel - 10);
-          }
+          sfToFlavs(sf, flavs);
+
           int colij[2] = {ev.GetParton(win_ij).GetCol(),
                           ev.GetParton(win_ij).GetAntiCol()};
 
@@ -243,7 +155,6 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
 }
 
 void Shower::Run(Event& ev, int seed) {
-
   /**
    * Thread Local
    * ------------
