@@ -17,10 +17,15 @@ void Shower::SelectWinner(Event& ev, std::mt19937& gen) {
   double win_zp = 0.0;
   double win_m2 = 0.0;
 
-  for (int ij = 2; ij < ev.GetSize(); ij++) {
-    for (int k = 2; k < ev.GetSize(); k++) {
+  for (int ij = 0; ij < ev.GetSize(); ij++) {
+    for (int k = 0; k < ev.GetSize(); k++) {
       // Sanity Check to ensure ij != k
       if (ij == k) {
+        continue;
+      }
+
+      // Skip non-partons
+      if (!ev.GetParton(ij).IsParton() || !ev.GetParton(k).IsParton()) {
         continue;
       }
 
