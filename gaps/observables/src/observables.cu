@@ -48,7 +48,7 @@ __global__ void fillHistos(Analysis* an, Event* events, int N) {
   an->dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
 
   atomicAdd(&an->wtot, ev.GetDxs());
-  atomicAdd(&an->ntot, 1.0);
+  atomicAdd(&an->ntot, 1.);
 }
 
 // Run the above kernels
@@ -115,10 +115,10 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
 
   // Normalize the histograms
   for (auto& hist : h_an->hists) {
-    hist.ScaleW(1.0 / h_an->ntot);
+    hist.ScaleW(1. / h_an->ntot);
   }
 
-  h_an->dalitz.ScaleW(1.0 / h_an->ntot);
+  h_an->dalitz.ScaleW(1. / h_an->ntot);
 
   // Remove existing file
   std::remove(filename.c_str());

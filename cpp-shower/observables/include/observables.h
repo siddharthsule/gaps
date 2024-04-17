@@ -25,19 +25,19 @@ class Analysis {
   double ntot;  // Scale by Number for d(sigma)/d Observable
 
  public:
-  Analysis() : wtot(0.0), ntot(0.0) {
+  Analysis() : wtot(0.), ntot(0.) {
     hists[0] = Histo1D(-4.3, -0.3, "/gaps/log10y23\n");
     hists[1] = Histo1D(-4.3, -0.3, "/gaps/log10y34\n");
     hists[2] = Histo1D(-4.3, -0.3, "/gaps/log10y45\n");
     hists[3] = Histo1D(-4.3, -0.3, "/gaps/log10y56\n");
-    hists[4] = Histo1D(0.0, 0.5, "/gaps/tvalue\n");
-    hists[5] = Histo1D(0.0, 0.5, "/gaps/tzoomd\n");
-    hists[6] = Histo1D(0.0, 1.0, "/gaps/hjm\n");
-    hists[7] = Histo1D(0.0, 0.5, "/gaps/ljm\n");
-    hists[8] = Histo1D(0.0, 0.5, "/gaps/wjb\n");
-    hists[9] = Histo1D(0.0, 0.2, "/gaps/njb\n");
+    hists[4] = Histo1D(0., 0.5, "/gaps/tvalue\n");
+    hists[5] = Histo1D(0., 0.5, "/gaps/tzoomd\n");
+    hists[6] = Histo1D(0., 1., "/gaps/hjm\n");
+    hists[7] = Histo1D(0., 0.5, "/gaps/ljm\n");
+    hists[8] = Histo1D(0., 0.5, "/gaps/wjb\n");
+    hists[9] = Histo1D(0., 0.2, "/gaps/njb\n");
 
-    dalitz = Histo2D(0.0, 1.0, 0.0, 1.0, "/gaps/dalitz\n");
+    dalitz = Histo2D(0., 1., 0., 1., "/gaps/dalitz\n");
   }
 
   // Member Functions Here, but not in CUDA

@@ -15,10 +15,10 @@
  */
 
 // QCD Constants, maybe you can use for SU(Not 3) ?
-const double kNC = 3.0;
+const double kNC = 3.;
 const double kTR = 0.5;
 const double kCA = kNC;
-const double kCF = (kNC * kNC - 1.0) / (2.0 * kNC);
+const double kCF = (kNC * kNC - 1.) / (2. * kNC);
 
 // A lot of the member functions can be defined here, but we need a .cu file to
 // define the kernels, so might as well define everything in the .cu file!

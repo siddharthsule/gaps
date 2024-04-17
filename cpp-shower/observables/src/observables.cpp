@@ -39,14 +39,14 @@ void Analysis::Analyze(Event& ev) {
 
   // Weighted Total
   wtot += ev.GetDxs();
-  ntot += 1.0;
+  ntot += 1.;
 }
 
 void Analysis::Finalize(const std::string& filename) {
   for (auto& hist : hists) {
-    hist.ScaleW(1.0 / ntot);
+    hist.ScaleW(1. / ntot);
     hist.Write(filename);
   }
-  dalitz.ScaleW(1.0 / ntot);
+  dalitz.ScaleW(1. / ntot);
   dalitz.Write(filename);
 }

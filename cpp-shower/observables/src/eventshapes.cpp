@@ -26,12 +26,12 @@ void CalculateThrust(Event& ev) {
 
   bubbleSort(moms, maxPartons);
 
-  double momsum = 0.0;
+  double momsum = 0.;
   for (int i = 0; i < ev.GetPartonSize(); ++i) {
     momsum += moms[i].P();
   }
 
-  double thr = 0.0;
+  double thr = 0.;
   Vec4 t_axis = Vec4();
 
   for (int k = 1; k < ev.GetPartonSize(); ++k) {
@@ -66,15 +66,15 @@ void CalculateThrust(Event& ev) {
   }
 
   thr /= momsum;
-  thr = 1.0 - thr;
+  thr = 1. - thr;
 
   t_axis = t_axis / (t_axis).P();
   if (t_axis[3] < 0) {
-    t_axis = t_axis * -1.0;
+    t_axis = t_axis * -1.;
   }
 
   if (thr < 1e-12) {
-    thr = -5.0;
+    thr = -5.;
   }
 
   ev.SetThr(thr);
@@ -91,15 +91,15 @@ void CalculateJetMBr(Event& ev) {
     moms[i - 2] = ev.GetParton(i).GetMom();
   }
 
-  double momsum = 0.0;
+  double momsum = 0.;
   for (int i = 0; i < ev.GetSize(); ++i) {
     momsum += moms[i].P();
   }
 
   Vec4 p_with, p_against;
   int n_with = 0, n_against = 0;
-  double e_vis = 0.0, broad_with = 0.0, broad_against = 0.0,
-         broad_denominator = 0.0;
+  double e_vis = 0., broad_with = 0., broad_against = 0.,
+         broad_denominator = 0.;
 
   for (int i = 0; i < ev.GetPartonSize(); ++i) {
     double mo_para = moms[i].Dot(ev.GetTAxis());
@@ -107,13 +107,13 @@ void CalculateJetMBr(Event& ev) {
     double enrg = moms[i].P();
 
     e_vis += enrg;
-    broad_denominator += 2.0 * enrg;
+    broad_denominator += 2. * enrg;
 
-    if (mo_para > 0.0) {
+    if (mo_para > 0.) {
       p_with = p_with + moms[i];
       broad_with += mo_perp;
       n_with++;
-    } else if (mo_para < 0.0) {
+    } else if (mo_para < 0.) {
       p_against = p_against + moms[i];
       broad_against += mo_perp;
       n_against++;

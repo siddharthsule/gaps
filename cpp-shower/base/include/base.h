@@ -21,7 +21,7 @@ const double mz = 91.1876;
 const double asmz = 0.118;
 
 // Cutoff and its value of alpha_s (pre-calculated)
-const double tC = 1.0;
+const double tC = 1.;
 const double asmax = 0.440886;
 
 // Number of Histogram Bins: Common for all Plots (for now...)

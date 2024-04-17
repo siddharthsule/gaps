@@ -61,12 +61,12 @@ double Shower::sfValue(double z, double y, int sf) {
     case 13:
     case 14:
     case 15:
-      return kCF * (2.0 / (1.0 - z * (1.0 - y)) - (1.0 + z));
+      return kCF * (2. / (1. - z * (1. - y)) - (1. + z));
       break;
 
     // FF g -> gg
     case 200:
-      return kCA / 2.0 * (2.0 / (1.0 - z * (1.0 - y)) - 2.0 + z * (1.0 - z));
+      return kCA / 2. * (2. / (1. - z * (1. - y)) - 2. + z * (1. - z));
       break;
 
     // FF g -> qqbar
@@ -75,10 +75,10 @@ double Shower::sfValue(double z, double y, int sf) {
     case 303:
     case 304:
     case 305:
-      return kTR / 2.0 * (1.0 - 2.0 * z * (1.0 - z));
+      return kTR / 2. * (1. - 2. * z * (1. - z));
       break;
   }
-  return 0.0;
+  return 0.;
 }
 
 double Shower::sfEstimate(double z, int sf) {
@@ -96,12 +96,12 @@ double Shower::sfEstimate(double z, int sf) {
     case 13:
     case 14:
     case 15:
-      return kCF * 2.0 / (1.0 - z);
+      return kCF * 2. / (1. - z);
       break;
 
     // FF g -> gg
     case 200:
-      return kCA / (1.0 - z);
+      return kCA / (1. - z);
       break;
 
     // FF g -> qqbar
@@ -110,10 +110,10 @@ double Shower::sfEstimate(double z, int sf) {
     case 303:
     case 304:
     case 305:
-      return kTR / 2.0;
+      return kTR / 2.;
       break;
   }
-  return 0.0;
+  return 0.;
 }
 
 double Shower::sfIntegral(double zm, double zp, int sf) {
@@ -131,12 +131,12 @@ double Shower::sfIntegral(double zm, double zp, int sf) {
     case 13:
     case 14:
     case 15:
-      return kCF * 2.0 * log((1.0 - zm) / (1.0 - zp));
+      return kCF * 2. * log((1. - zm) / (1. - zp));
       break;
 
     // FF g -> gg
     case 200:
-      return kCA * log((1.0 - zm) / (1.0 - zp));
+      return kCA * log((1. - zm) / (1. - zp));
       break;
 
     // FF g -> qqbar
@@ -145,10 +145,10 @@ double Shower::sfIntegral(double zm, double zp, int sf) {
     case 303:
     case 304:
     case 305:
-      return kTR / 2.0 * (zp - zm);
+      return kTR / 2. * (zp - zm);
       break;
   }
-  return 0.0;
+  return 0.;
 }
 
 double Shower::sfGenerateZ(double zm, double zp, double rand, int sf) {
@@ -166,12 +166,12 @@ double Shower::sfGenerateZ(double zm, double zp, double rand, int sf) {
     case 13:
     case 14:
     case 15:
-      return 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
+      return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
       break;
 
     // FF g -> gg
     case 200:
-      return 1.0 + (zp - 1.0) * pow((1.0 - zm) / (1.0 - zp), rand);
+      return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
       break;
 
     // FF g -> qqbar
@@ -183,7 +183,7 @@ double Shower::sfGenerateZ(double zm, double zp, double rand, int sf) {
       return zm + (zp - zm) * rand;
       break;
   }
-  return 0.0;
+  return 0.;
 }
 
 bool Shower::validateSplitting(int ij, int sf) {

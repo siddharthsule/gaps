@@ -4,10 +4,10 @@
 // Base Class, with all the important definitions
 #include "base.h"
 
-const double kNC = 3.0;
+const double kNC = 3.;
 const double kTR = 0.5;
 const double kCA = kNC;
-const double kCF = (kNC * kNC - 1.0) / (2.0 * kNC);
+const double kCF = (kNC * kNC - 1.) / (2. * kNC);
 
 class AlphaS {
  private:

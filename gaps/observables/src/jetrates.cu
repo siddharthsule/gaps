@@ -6,8 +6,8 @@
 __device__ double Yij(const Vec4& p, const Vec4& q, double ecm2) {
   double pq = p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
   double min_pq = min(p[0], q[0]);
-  double max_pq = max(pq / sqrt(p.P2() * q.P2()), -1.0);
-  return 2.0 * pow(min_pq, 2) * (1.0 - min(max_pq, 1.0)) / ecm2;
+  double max_pq = max(pq / sqrt(p.P2() * q.P2()), -1.);
+  return 2. * pow(min_pq, 2) * (1. - min(max_pq, 1.)) / ecm2;
 }
 
 // Durham Clustering Algorithm
@@ -46,7 +46,7 @@ __global__ void doCluster(Event* events, int N) {
 
   // kt2 will store the kt2 values for each clustering step
   // If not changed, set to -1 so we can ignore when histogramming
-  double kt2[maxPartons] = {-1.0};
+  double kt2[maxPartons] = {-1.};
   int counter = 0;
 
   // Number of partons (which will change when clustered), lower case to avoid N
@@ -59,8 +59,8 @@ __global__ void doCluster(Event* events, int N) {
   }
 
   // kt2ij will store the kt2 values for each pair of partons
-  double kt2ij[maxPartons][maxPartons] = {0.0};
-  double dmin = 1.0;
+  double kt2ij[maxPartons][maxPartons] = {0.};
+  double dmin = 1.;
   int ii = 0, jj = 0;
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < i; ++j) {
@@ -89,7 +89,7 @@ __global__ void doCluster(Event* events, int N) {
     for (int i = jj + 1; i < n; ++i) {
       kt2ij[imap[i]][jjx] = Yij(p[jjx], p[imap[i]], ecm2);
     }
-    dmin = 1.0;
+    dmin = 1.;
     for (int i = 0; i < n; ++i) {
       for (int j = 0; j < i; ++j) {
         double dij = kt2ij[imap[i]][imap[j]];
@@ -103,8 +103,8 @@ __global__ void doCluster(Event* events, int N) {
   }
 
   // Store the kt2 values in the output arrays
-  ev.SetY23(counter > 0 ? log10(kt2[counter - 1 - 0]) : -50.0);
-  ev.SetY34(counter > 1 ? log10(kt2[counter - 1 - 1]) : -50.0);
-  ev.SetY45(counter > 2 ? log10(kt2[counter - 1 - 2]) : -50.0);
-  ev.SetY56(counter > 3 ? log10(kt2[counter - 1 - 3]) : -50.0);
+  ev.SetY23(counter > 0 ? log10(kt2[counter - 1 - 0]) : -50.);
+  ev.SetY34(counter > 1 ? log10(kt2[counter - 1 - 1]) : -50.);
+  ev.SetY45(counter > 2 ? log10(kt2[counter - 1 - 2]) : -50.);
+  ev.SetY56(counter > 3 ? log10(kt2[counter - 1 - 3]) : -50.);
 }

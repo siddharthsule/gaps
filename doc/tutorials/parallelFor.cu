@@ -60,8 +60,8 @@ int main() {
 
   // Fill A and B
   for (int i = 0; i < N; i++) {
-    h_a[i] = 1.0;
-    h_b[i] = 2.0;
+    h_a[i] = 1.;
+    h_b[i] = 2.;
   }
 
   // Copy data from host to device

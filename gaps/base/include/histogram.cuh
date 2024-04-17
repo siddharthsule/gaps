@@ -18,7 +18,7 @@ class Bin1D {
   double xmin, xmax, w, w2, wx, wx2, n;
 
   __host__ __device__ Bin1D(double xmin = 0., double xmax = 0.)
-      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), n(0.0) {}
+      : xmin(xmin), xmax(xmax), w(0.), w2(0.), wx(0.), wx2(0.), n(0.) {}
 
   __host__ __device__ double Width() const { return xmax - xmin; }
 
@@ -27,7 +27,7 @@ class Bin1D {
     atomicAdd(&w2, weight * weight);
     atomicAdd(&wx, weight * x);
     atomicAdd(&wx2, weight * weight * x);
-    atomicAdd(&n, 1.0);
+    atomicAdd(&n, 1.);
   }
 
   __host__ __device__ void ScaleW(double scale) {
@@ -49,14 +49,14 @@ class Bin2D {
         xmax(xmax),
         ymin(ymin),
         ymax(ymax),
-        w(0.0),
-        w2(0.0),
-        wx(0.0),
-        wx2(0.0),
-        wy(0.0),
-        wy2(0.0),
-        wxy(0.0),
-        n(0.0) {}
+        w(0.),
+        w2(0.),
+        wx(0.),
+        wx2(0.),
+        wy(0.),
+        wy2(0.),
+        wxy(0.),
+        n(0.) {}
 
   __host__ __device__ double WidthX() const { return xmax - xmin; }
   __host__ __device__ double WidthY() const { return ymax - ymin; }
@@ -69,7 +69,7 @@ class Bin2D {
     atomicAdd(&wy, weight * y);
     atomicAdd(&wy2, weight * weight * y);
     atomicAdd(&wxy, weight * x * y);
-    atomicAdd(&n, 1.0);
+    atomicAdd(&n, 1.);
   }
 
   __host__ __device__ void ScaleW(double scale) {
@@ -102,7 +102,7 @@ class Histo1D {
   // static constexpr int nbin = nBins;  // SET IN BASE.CUH
 
  public:
-  __host__ __device__ Histo1D(double xmin = 0.0, double xmax = 1.0)
+  __host__ __device__ Histo1D(double xmin = 0., double xmax = 1.)
       : uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
         total(xmin - 100., xmax + 100.),
@@ -167,8 +167,8 @@ class Histo2D {
   double scale;
 
  public:
-  __host__ __device__ Histo2D(double xmin = 0.0, double xmax = 1.0,
-                              double ymin = 0.0, double ymax = 1.0)
+  __host__ __device__ Histo2D(double xmin = 0., double xmax = 1.,
+                              double ymin = 0., double ymax = 1.)
       : uflow(xmin - 100., xmin, ymin - 100., ymin),
         oflow(xmax, xmax + 100., ymax, ymax + 100.),
         total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.), scale(1.) {

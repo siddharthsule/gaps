@@ -36,10 +36,10 @@ class Event {
   // Selecting Winner Emission - Defaults Values which represent no winner
   int winSF = 16;
   int winDipole[2] = {-1, -1};
-  double winParams[2] = {0.0, 0.0};
+  double winParams[2] = {0., 0.};
 
   // Veto Algorithm
-  double asVeto = 0.0;         // Veto Scale
+  double asVeto = 0.;         // Veto Scale
   bool acceptEmisson = false;  // Veto Flag
 
   // End Shower Flag
@@ -51,14 +51,14 @@ class Event {
   bool validity = true;
 
   // Jet Rates using the Durham Algorithm
-  double y23 = -50.0, y34 = -50.0, y45 = -50.0, y56 = -50.0;
+  double y23 = -50., y34 = -50., y45 = -50., y56 = -50.;
 
   // Event Shape Variables - Thrust, Jet Masses and Broadenings
-  double thr = -50.0, hjm = -50.0, ljm = -50.0, wjb = -50.0, njb = -50.0;
+  double thr = -50., hjm = -50., ljm = -50., wjb = -50., njb = -50.;
   Vec4 t_axis = Vec4();
 
   // Dalitz Plot
-  double dalitz[2] = {-50.0, -50.0};
+  double dalitz[2] = {-50., -50.};
 
  public:
   // Constructor ---------------------------------------------------------------

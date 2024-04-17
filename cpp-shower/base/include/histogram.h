@@ -15,7 +15,7 @@ class Bin1D {
 
  public:
   Bin1D(double xmin, double xmax)
-      : xmin(xmin), xmax(xmax), w(0.0), w2(0.0), wx(0.0), wx2(0.0), n(0.0) {}
+      : xmin(xmin), xmax(xmax), w(0.), w2(0.), wx(0.), wx2(0.), n(0.) {}
 
   std::string Format(const std::string& tag) const {
     std::stringstream ss;
@@ -40,7 +40,7 @@ class Bin1D {
     w2 += weight * weight;
     wx += weight * x;
     wx2 += weight * weight * x;
-    n += 1.0;
+    n += 1.;
   }
 
   void ScaleW(double scale) {
@@ -61,14 +61,14 @@ class Bin2D {
         xmax(xmax),
         ymin(ymin),
         ymax(ymax),
-        w(0.0),
-        w2(0.0),
-        wx(0.0),
-        wx2(0.0),
-        wy(0.0),
-        wy2(0.0),
-        wxy(0.0),
-        n(0.0) {}
+        w(0.),
+        w2(0.),
+        wx(0.),
+        wx2(0.),
+        wy(0.),
+        wy2(0.),
+        wxy(0.),
+        n(0.) {}
 
   std::string Format(const std::string& tag) const {
     std::stringstream ss;
@@ -98,7 +98,7 @@ class Bin2D {
     wy += weight * y;
     wy2 += weight * weight * y;
     wxy += weight * x * y;
-    n += 1.0;
+    n += 1.;
   }
 
   void ScaleW(double scale) {
@@ -124,7 +124,7 @@ class Histo1D {
 
  public:
   // Constructor for Histo1D
-  Histo1D(double xmin = 0.0, double xmax = 1.0, const std::string& name = "hst")
+  Histo1D(double xmin = 0., double xmax = 1., const std::string& name = "hst")
       : name(name),
         uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
@@ -217,7 +217,7 @@ public:
 
 public:
   // Constructor for Histo2D
-  Histo2D(double xmin = 0.0, double xmax = 1.0, double ymin = 0.0, double ymax = 1.0, const std::string& name = "hst")
+  Histo2D(double xmin = 0., double xmax = 1., double ymin = 0., double ymax = 1., const std::string& name = "hst")
     : name(name),
       uflow(xmin - 100., xmin, ymin - 100., ymin),
       oflow(xmax, xmax + 100., ymax, ymax + 100.),

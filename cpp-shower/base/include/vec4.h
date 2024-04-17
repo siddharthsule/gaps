@@ -88,7 +88,7 @@ class Vec4 {
 
   double Phi() const {
     if (px == 0 && py == 0) {
-      return 0.0;
+      return 0.;
     } else {
       return atan2(py, px);
     }
@@ -108,7 +108,7 @@ class Vec4 {
   double Dot(const Vec4& v) const { return px * v.px + py * v.py + pz * v.pz; }
 
   Vec4 Cross(const Vec4& v) const {
-    return Vec4(0.0, py * v.pz - pz * v.py, pz * v.px - px * v.pz,
+    return Vec4(0., py * v.pz - pz * v.py, pz * v.px - px * v.pz,
                 px * v.py - py * v.px);
   }
 

@@ -81,8 +81,8 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
   int win_sf = 0;     // 0 = No Splitting
   int win_ij = 0;
   int win_k = 0;
-  double win_zp = 0.0;
-  double win_m2 = 0.0;
+  double win_zp = 0.;
+  double win_m2 = 0.;
 
   for (int ij = 0; ij < ev.GetSize(); ij++) {
     for (int k = 0; k < ev.GetSize(); k++) {
@@ -103,12 +103,12 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
       // Params Identical to all splitting functions
       double m2 = (ev.GetParton(ij).GetMom() + ev.GetParton(k).GetMom()).M2();
-      if (m2 < 4.0 * tC) {
+      if (m2 < 4. * tC) {
         continue;
       }
 
       // Phase Space Limits
-      double zp = 0.5 * (1.0 + sqrt(1.0 - 4.0 * tC / m2));
+      double zp = 0.5 * (1. + sqrt(1. - 4. * tC / m2));
 
       // Codes instead of Object Oriented Approach!
       for (int sf : sfCodes) {
@@ -119,8 +119,8 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
         }
 
         // Calculate the Evolution Variable
-        double g = asmax / (2.0 * M_PI) * sfIntegral(1 - zp, zp, sf);
-        double tt = ev.GetShowerT() * pow(curand_uniform(&state), 1.0 / g);
+        double g = asmax / (2. * M_PI) * sfIntegral(1 - zp, zp, sf);
+        double tt = ev.GetShowerT() * pow(curand_uniform(&state), 1. / g);
 
         states[idx] = state;  // So that the next number is not the same!
 
@@ -206,19 +206,19 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   double zp = ev.GetWinParam(0);
   double z = sfGenerateZ(1 - zp, zp, rand, sf);
 
-  double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1.0 - z);
+  double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1. - z);
 
-  double f = 0.0;
-  double g = 0.0;
-  double value = 0.0;
-  double estimate = 0.0;
+  double f = 0.;
+  double g = 0.;
+  double value = 0.;
+  double estimate = 0.;
 
   // CS Kernel: y can't be 1
-  if (y < 1.0) {
+  if (y < 1.) {
     value = sfValue(z, y, sf);
     estimate = sfEstimate(z, sf);
 
-    f = (1.0 - y) * ev.GetAsVeto() * value;
+    f = (1. - y) * ev.GetAsVeto() * value;
     g = asmax * estimate;
 
     if (curand_uniform(&state) < f / g) {
@@ -253,7 +253,7 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
 
   curandState state = states[idx];
 
-  double phi = 2.0 * M_PI * curand_uniform(&state);
+  double phi = 2. * M_PI * curand_uniform(&state);
   states[idx] = state;
 
   int win_ij = ev.GetWinDipole(0);
