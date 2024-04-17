@@ -184,11 +184,13 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
     case 13:
     case 14:
     case 15:
+      // int = - 2CF * log(1 - z); inv = 1 - exp(-x/2CF)
       return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
       break;
 
     // FF g -> gg
     case 200:
+      // int = - CA * log(1 - z); inv = 1 - exp(-x/CA)
       return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
       break;
 
@@ -198,6 +200,7 @@ __device__ double sfGenerateZ(double zm, double zp, double rand, int sf) {
     case 303:
     case 304:
     case 305:
+      // int =  TR/2 * z; inv = x / (TR/2)
       return zm + (zp - zm) * rand;
       break;
   }
