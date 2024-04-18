@@ -1,4 +1,5 @@
-// From https://developer.nvidia.com/blog/easy-introduction-cuda-c-and-c/
+// Adapted From
+// https://developer.nvidia.com/blog/easy-introduction-cuda-c-and-c/
 #include <stdio.h>
 
 // Large array, 2^20
@@ -35,11 +36,6 @@ int main(void) {
 
   // Copy data from device to host
   cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost);
-
-  // Check for errors (all values should be 4.0f)
-  float maxError = 0.0f;
-  for (int i = 0; i < N; i++) maxError = max(maxError, abs(y[i] - 4.0f));
-  printf("Max error: %f\n", maxError);
 
   // Cleanup
   cudaFree(d_x);
