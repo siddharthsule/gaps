@@ -1,4 +1,4 @@
-// From https://github.com/olcf-tutorials/vector_addition_cuda
+// Adapted from https://github.com/olcf-tutorials/vector_addition_cuda
 #include <stdio.h>
 
 // Large array, 2^20
