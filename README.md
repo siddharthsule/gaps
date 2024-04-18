@@ -48,9 +48,11 @@ The histograms are saved as yoda files [[arxiv:2312.15070](https://arxiv.org/abs
 rivet-mkhtml my-output.yoda:"Results" -s --mc-errs -c plots.conf
 ```
 
-## Modifying Parameters
+## Modifying Parameters and Going Further
 
-To focus on the computational aspects and make it simple to replicate the results in the paper, we don't allow direct access to the physics parameters (yet!). For now, please use the ```base.cuh``` file to adjust parameters like $\alpha_s(m_Z)$, $t_{C}$ and $n_{Bins}$.
+To focus on the computational aspects and make it simple to replicate the results in the paper, we don't allow direct access to the physics parameters (yet!). For now, please use the ```base.cuh``` file to adjust parameters like $\sqrt{s}$, $\alpha_s(m_Z)$, $t_{C}$ and $n_{Bins}$.
+
+To learn more about the code and how it all works, see the [documentation](doc/README.md).
 
 ***
 
