@@ -84,7 +84,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Analysis
 
-  std::cout << "Analyzing Events (C++)..." << std::endl;
+  std::cout << "Analysing Events (C++)..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
   // Remove existing file
