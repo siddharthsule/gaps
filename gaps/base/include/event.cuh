@@ -39,7 +39,7 @@ class Event {
   double winParams[2] = {0., 0.};
 
   // Veto Algorithm
-  double asVeto = 0.;         // Veto Scale
+  double asVeto = 0.;          // Veto Scale
   bool acceptEmisson = false;  // Veto Flag
 
   // End Shower Flag
