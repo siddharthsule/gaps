@@ -8,7 +8,7 @@ We'll divide the documentation into a few sections:
 - [Code Structure](sections/code-structure.md): This contains details of where all params and settings are defined
 - [Matrix](sections/matrix-element.md), [Shower](sections/parton-shower.md) and [Observables](sections/observables.md): This contains the descriptions of the different GPU components
 
-Additionally, the 'tutorials' folder contains introductory CUDA codes available online, which we have added further comments to. (Link to Original codes are also provided!)
+Additionally, the 'tutorials' folder contains introductory CUDA codes available online, which we have commented on. (Links to the Original codes are also provided!)
 
 For more information/help, feel free to contact [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)
 

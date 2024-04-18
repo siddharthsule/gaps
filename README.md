@@ -29,7 +29,7 @@ NB: If you get a permission denied error, please run ```chmod +x gaps.sh```.
 This should build the program and generate 10000 events on the GPU. More customisation options are available, and are listed below:
 
 ```bash
-# Simulate different number of events and build the code using multiple cpu cores
+# Simulate different numbers of events and build the code using multiple CPU cores
 ./gaps.sh -n nevents -c ncores
 
 # Run C++ Simulation
@@ -38,7 +38,7 @@ This should build the program and generate 10000 events on the GPU. More customi
 # Run the same number of events on C++ and CUDA and compare times
 ./gaps.sh -n nevents -c ncores -r compare
 
-# Run a multitude of number of events 100 times, as seen in paper
+# Run a multitude of number of events 100 times, as seen in the paper
 ./gaps.sh -c ncores -r full
 ```
 

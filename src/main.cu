@@ -71,7 +71,7 @@ void runGenerator(const int N, const std::string filename) {
   // ---------------------------------------------------------------------------
   // Analyze Events
 
-  std::cout << "Analyzing Events..." << std::endl;
+  std::cout << "Analysing Events..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
   // Analysis
