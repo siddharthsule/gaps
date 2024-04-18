@@ -231,7 +231,7 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
    */
   if (!(ev.GetShowerT() > cutoff)) {
     ev.SetEndShower(true);
-    atomicAdd(d_completed, 1); // Increment the number of completed events
+    atomicAdd(d_completed, 1);  // Increment the number of completed events
   }
 }
 

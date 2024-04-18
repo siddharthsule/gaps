@@ -41,11 +41,11 @@ class Bin1D {
 /**
  * Name component of Histo1D
  * -------------------------
- * 
+ *
  * Unfortunately, std::string is not a feature in CUDA, so we have to provide
  * the name additinally whern writing to file. This is the only difference
  * between the CUDA and C++ versions of the code.
-*/
+ */
 // Histo1D class
 class Histo1D {
  public:

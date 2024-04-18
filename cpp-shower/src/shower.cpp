@@ -326,7 +326,6 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
 }
 
 void Shower::Run(Event& ev) {
-
   /**
    * Thread Local
    * ------------

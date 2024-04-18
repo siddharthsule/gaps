@@ -17,7 +17,7 @@
 class Matrix {
  private:
   double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
-  
+
  public:
   // Constructor
   Matrix(double alphas = asmz, double ecms = 91.2);

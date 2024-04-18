@@ -2,7 +2,7 @@
 
 // Constructor
 __device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
-                                   double mc)
+                          double mc)
     : order(order),
       mc2(mc * mc),
       mb2(mb * mb),
@@ -12,8 +12,8 @@ __device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
       asmc((*this)(mc2)) {}
 
 // Setup
-__device__ void AlphaS::setup(double mz, double asmz, int order,
-                                       double mb, double mc) {
+__device__ void AlphaS::setup(double mz, double asmz, int order, double mb,
+                              double mc) {
   this->order = order;
   this->mc2 = mc * mc;
   this->mb2 = mb * mb;

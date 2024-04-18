@@ -92,7 +92,6 @@ class Event {
   // Get Differential Cross Section
   double GetDxs() const { return dxs; }
 
-
   // Get Shower Params
   double GetShowerT() const { return showerT; }
   double GetShowerY() const { return showerY; }

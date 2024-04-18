@@ -4,30 +4,30 @@
 /**
  * The Base Class
  * --------------
- * 
- * This file contains the neccessary includes and definitions that are used 
+ *
+ * This file contains the neccessary includes and definitions that are used
  * throughout the program. This includes CUDA Libraries, Thrust Libraries,
  * C++ Libraries, and some global variables. Make changes here if you want to
  * change the global settings of the program!
- * 
+ *
  * (but also be careful with what you change, as it may break the program...)
-*/
+ */
 
 // -----------------------------------------------------------------------------
 // Import Libraries
 
 // CUDA Libraries
-#include <cuda_runtime.h> // CUDA Runtime
-#include <curand_kernel.h> // CURAND Library
+#include <cuda_runtime.h>   // CUDA Runtime
+#include <curand_kernel.h>  // CURAND Library
 
 // Thrust Libraries
-#include <thrust/device_vector.h> // ALL EVENTS ON DEVICE
+#include <thrust/device_vector.h>  // ALL EVENTS ON DEVICE
 
 // C++ Libraries (Genreally Used)
-#include <cstdlib> // SYS EXIT Command
-#include <cmath> // Math Functions
-#include <fstream> // File I/O
-#include <iostream> // Standard I/O
+#include <cmath>     // Math Functions
+#include <cstdlib>   // SYS EXIT Command
+#include <fstream>   // File I/O
+#include <iostream>  // Standard I/O
 
 // -----------------------------------------------------------------------------
 // Program Settings - CAREFUL WITH CHANGES
@@ -61,4 +61,4 @@ void syncGPUAndCheck(const char *operation);
 __host__ __device__ void DEBUG_MSG(const char *msg);
 
 // -----------------------------------------------------------------------------
-#endif // BASE_CUH_
+#endif  // BASE_CUH_

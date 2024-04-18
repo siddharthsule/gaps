@@ -1,5 +1,5 @@
 int main(void) {
-  // DOES NOT RUN
+  // DOES NOT RUN - JUST TO SHOW THE STRUCTURE OF A BASIC CUDA PROGRAM
 
   // Declare Variables
   // h_ = on host, d_ = on device
@@ -7,7 +7,7 @@ int main(void) {
 
   // Allocate memory on the device
   // cudaMalloc( Location of the Memory, Size of the Memory )
-  cudaMalloc((void**)&d_c, sizeof(int));
+  cudaMalloc((void **)&d_c, sizeof(int));
 
   // If h_c initialised, copy info from h_c to d_c
   // cudaMemcpy( destination, host, numBytes, Direction )

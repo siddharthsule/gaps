@@ -58,21 +58,21 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs; // Differential Cross Section
-  int nHard; // Number of Hard Partons
+  double dxs;  // Differential Cross Section
+  int nHard;   // Number of Hard Partons
 
   // Shower Params -------------------------------------------------------------
 
-  int nEmission; // Number of Emissions
-  double showerT, showerZ, showerY; // Evolution and Splitting Variables
-  int showerC; // Colour Counter
+  int nEmission;                     // Number of Emissions
+  double showerT, showerZ, showerY;  // Evolution and Splitting Variables
+  int showerC;                       // Colour Counter
 
   // Selecting Winner Emission - Defaults Values which represent no winner
   int winSF = 16;
   int winDipole[2] = {-1, -1};
   double winParams[2] = {0.0, 0.0};
 
-  bool endShower = false; // Shower End Flag - used if T < 1 GeV
+  bool endShower = false;  // Shower End Flag - used if T < 1 GeV
 
   // Analysis Variables --------------------------------------------------------
 
@@ -132,10 +132,10 @@ class Event {
   __device__ Vec4 GetTAxis() const { return t_axis; }
 
   // Setters -------------------------------------------------------------------
-  
+
   // Add / Replace Parton
   __device__ void SetParton(int i, Parton parton) { partons[i] = parton; }
-  
+
   // Set Parton Data
   __device__ void SetPartonPid(int i, int pid) { partons[i].SetPid(pid); }
   __device__ void SetPartonMom(int i, Vec4 mom) { partons[i].SetMom(mom); }

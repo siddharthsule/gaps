@@ -89,7 +89,7 @@ void runGenerator(const int& N, const std::string& filename) {
 
   // Analyze events (Including Validation of Colour and Momentum Conservation)
   for (int i = 0; i < N; i++) {
-      an.Analyze(events[i]);
+    an.Analyze(events[i]);
   }
 
   // Storage
