@@ -78,7 +78,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
   // Default Values
   double win_tt = tC;  // Lowest possible value is Cutoff Scale (in base.cuh)
-  int win_sf = 0;     // 0 = No Splitting
+  int win_sf = 0;      // 0 = No Splitting
   int win_ij = 0;
   int win_k = 0;
   double win_zp = 0.;
@@ -112,7 +112,6 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
 
       // Codes instead of Object Oriented Approach!
       for (int sf : sfCodes) {
-
         // Check if the Splitting Function is valid for the current partons
         if (!validateSplitting(ev.GetParton(ij).GetPid(), sf)) {
           continue;

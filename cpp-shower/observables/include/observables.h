@@ -1,12 +1,11 @@
 #ifndef DURHAM_H_
 #define DURHAM_H_
 
-#include "histogram.h"
-#include "event.h"
-
-#include "jetrates.h"
-#include "eventshapes.h"
 #include "dalitz.h"
+#include "event.h"
+#include "eventshapes.h"
+#include "histogram.h"
+#include "jetrates.h"
 
 /**
  * Slight Difference between C++ and CUDA codes

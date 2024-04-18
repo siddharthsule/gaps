@@ -16,7 +16,7 @@ __global__ void validateEvents(Event* events, int* invalid, int N) {
   ev.SetValidity(ev.Validate());
 
   if (!ev.GetValidity()) {
-    //printf("Invalid Event\n");
+    // printf("Invalid Event\n");
     atomicAdd(invalid, 1);
   }
 }
@@ -76,7 +76,7 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   Event* d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
   // Validate the Events
-  int *d_invalid;
+  int* d_invalid;
   cudaMalloc(&d_invalid, sizeof(int));
   cudaMemset(d_invalid, 0, sizeof(int));
 

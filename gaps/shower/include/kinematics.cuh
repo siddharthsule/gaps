@@ -5,7 +5,7 @@
 
 /**
  * Why is this function in a header file? See Vec4.cuh
-*/
+ */
 
 __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
                                const double phi, const Vec4 pijt,
@@ -39,4 +39,4 @@ __device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
   kinematics[2] = pk;
 }
 
-#endif // SHOWER_KINEMATICS_CUH_
+#endif  // SHOWER_KINEMATICS_CUH_

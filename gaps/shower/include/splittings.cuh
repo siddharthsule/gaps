@@ -71,13 +71,13 @@ __device__ double sfValue(double z, double y, int sf) {
     case 13:
     case 14:
     case 15:
-      return kCF * (2./(1. - z*(1. - y)) - (1. + z));
+      return kCF * (2. / (1. - z * (1. - y)) - (1. + z));
       break;
 
     // FF g -> gg
     case 200:
       // Asymmetric Splitting Function: Fixed Emitter and Emission in our code
-      return kCA/2. * (2./(1. - z*(1. - y)) - 2. + z*(1. - z));
+      return kCA / 2. * (2. / (1. - z * (1. - y)) - 2. + z * (1. - z));
       break;
 
     // FF g -> qqbar
@@ -87,7 +87,7 @@ __device__ double sfValue(double z, double y, int sf) {
     case 304:
     case 305:
       // Divide by 2 to avoid double counting of the same splitting
-      return kTR/2. * (1. - 2.*z*(1. - z));
+      return kTR / 2. * (1. - 2. * z * (1. - z));
       break;
   }
   return 0.;

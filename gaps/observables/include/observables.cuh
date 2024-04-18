@@ -2,8 +2,8 @@
 #define DURHAM_CUH_
 
 // Histogram and Parton include relevant headers
-#include "histogram.cuh"
 #include "event.cuh"
+#include "histogram.cuh"
 
 // Add Analyses Here
 #include "dalitz.cuh"
@@ -37,12 +37,12 @@ class Analysis {
     hists[1] = Histo1D(-4.3, -0.3);  // /gaps/log10y34
     hists[2] = Histo1D(-4.3, -0.3);  // /gaps/log10y45
     hists[3] = Histo1D(-4.3, -0.3);  // /gaps/log10y56
-    hists[4] = Histo1D(0., 0.5);    // "/gaps/tvalue"
-    hists[5] = Histo1D(0., 0.5);    // "/gaps/tzoomd"
-    hists[6] = Histo1D(0., 1.);    // "/gaps/hjm"
-    hists[7] = Histo1D(0., 0.5);    // "/gaps/ljm"
-    hists[8] = Histo1D(0., 0.5);    // "/gaps/wjb"
-    hists[9] = Histo1D(0., 0.2);    // "/gaps/njb"
+    hists[4] = Histo1D(0., 0.5);     // "/gaps/tvalue"
+    hists[5] = Histo1D(0., 0.5);     // "/gaps/tzoomd"
+    hists[6] = Histo1D(0., 1.);      // "/gaps/hjm"
+    hists[7] = Histo1D(0., 0.5);     // "/gaps/ljm"
+    hists[8] = Histo1D(0., 0.5);     // "/gaps/wjb"
+    hists[9] = Histo1D(0., 0.2);     // "/gaps/njb"
 
     dalitz = Histo2D(0., 1., 0., 1.);
   }

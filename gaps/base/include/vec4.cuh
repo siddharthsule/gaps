@@ -16,12 +16,12 @@
  *
  * Why is this Header Only?
  * ------------------------
- * 
- * When you declare a __device__ function in a .cuh (header) file and define it 
- * in a .cu file, that function's definition is only available to the .cu file 
- * in which it is defined. This is because __device__ functions are compiled by 
- * nvcc into the device code, and unlike host functions, they do not have 
- * external linkage that allows them to be seen or linked across different .cu 
+ *
+ * When you declare a __device__ function in a .cuh (header) file and define it
+ * in a .cu file, that function's definition is only available to the .cu file
+ * in which it is defined. This is because __device__ functions are compiled by
+ * nvcc into the device code, and unlike host functions, they do not have
+ * external linkage that allows them to be seen or linked across different .cu
  * files after individual compilation.
  */
 

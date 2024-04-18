@@ -85,7 +85,6 @@ void Shower::GenerateSplitting(Event& ev, std::mt19937& gen) {
     SelectWinner(ev, gen);
 
     if (ev.GetShowerT() > tC) {
-
       // Get the Splitting Function
       int sf = ev.GetWinSF();
 

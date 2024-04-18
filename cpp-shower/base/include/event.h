@@ -15,9 +15,9 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs;  // Differential Cross Section
-  int nHard;   // Number of Hard Partons
-  int nInitial;  // Number of Initial Partons
+  double dxs;      // Differential Cross Section
+  int nHard;       // Number of Hard Partons
+  int nInitial;    // Number of Initial Partons
   int nNonParton;  // Number of Non-Parton Partons
 
   // Shower Params -------------------------------------------------------------

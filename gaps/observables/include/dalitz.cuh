@@ -6,4 +6,4 @@
 // Dalitz Plot
 __global__ void calculateDalitz(Event* events, int N);
 
-#endif // DALITZ_CUH_
+#endif  // DALITZ_CUH_

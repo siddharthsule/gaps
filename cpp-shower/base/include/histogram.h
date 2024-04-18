@@ -207,7 +207,7 @@ class Histo1D {
 
 // Histo2D class
 class Histo2D {
-public:
+ public:
   std::string name;
   std::vector<std::vector<Bin2D>> bins;
   Bin2D uflow;
@@ -215,14 +215,15 @@ public:
   Bin2D total;
   double scale;
 
-public:
+ public:
   // Constructor for Histo2D
-  Histo2D(double xmin = 0., double xmax = 1., double ymin = 0., double ymax = 1., const std::string& name = "hst")
-    : name(name),
-      uflow(xmin - 100., xmin, ymin - 100., ymin),
-      oflow(xmax, xmax + 100., ymax, ymax + 100.),
-      total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
-      scale(1.) {
+  Histo2D(double xmin = 0., double xmax = 1., double ymin = 0.,
+          double ymax = 1., const std::string& name = "hst")
+      : name(name),
+        uflow(xmin - 100., xmin, ymin - 100., ymin),
+        oflow(xmax, xmax + 100., ymax, ymax + 100.),
+        total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
+        scale(1.) {
     double xwidth = (xmax - xmin) / nBins;
     double ywidth = (ymax - ymin) / nBins;
     for (int i = 0; i < nBins; ++i) {
@@ -246,9 +247,11 @@ public:
     ss << "Title=\nType=Histo2D\n";
     ss << "# ID\tID\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2\tnumEntries\n";
     ss << total.Format("Total") << "\n";
-    //ss << uflow.Format("Underflow") << "\n";
-    //ss << oflow.Format("Overflow") << "\n";
-    ss << "# xlow\txhigh\tylow\tyhigh\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2\tnumEntries\n";
+    // ss << uflow.Format("Underflow") << "\n";
+    // ss << oflow.Format("Overflow") << "\n";
+    ss << "# "
+          "xlow\txhigh\tylow\tyhigh\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2"
+          "\tnumEntries\n";
     for (const auto& binRow : bins) {
       for (const auto& bin : binRow) {
         ss << bin.ToString() << "\n";

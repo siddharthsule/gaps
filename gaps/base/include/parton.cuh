@@ -7,7 +7,7 @@
 /**
  * The Parton Class
  * ----------------
- 
+
  * This file contains the Parton Object, which has attributes ID, momentum and
  * colour. For now we use it for Electrons too.
  */
@@ -17,7 +17,11 @@ class Parton {
   // Constructor
   __device__ Parton(int pid = 0, Vec4 momentum = Vec4(), int col = 0,
                     int anticol = 0, bool initial = false, bool parton = true)
-      : pid(pid), mom(momentum), col(col), anticol(anticol), initial(initial),
+      : pid(pid),
+        mom(momentum),
+        col(col),
+        anticol(anticol),
+        initial(initial),
         parton(parton) {}
 
   // Getters and Setters

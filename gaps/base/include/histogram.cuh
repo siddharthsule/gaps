@@ -171,7 +171,8 @@ class Histo2D {
                               double ymin = 0., double ymax = 1.)
       : uflow(xmin - 100., xmin, ymin - 100., ymin),
         oflow(xmax, xmax + 100., ymax, ymax + 100.),
-        total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.), scale(1.) {
+        total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
+        scale(1.) {
     double widthX = (xmax - xmin) / nBins;
     double widthY = (ymax - ymin) / nBins;
     for (int i = 0; i < nBins; ++i) {
