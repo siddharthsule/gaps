@@ -73,7 +73,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   Shower sh;
 
   for (int i = 0; i < N; i++) {
-    sh.Run(events[i], rd());  // Seed is random
+    sh.Run(events[i], -1);  // Seed is random
   }
 
   end = std::chrono::high_resolution_clock::now();
