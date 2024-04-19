@@ -17,7 +17,7 @@ class Matrix {
   double ME2(int fl, double s, double t);
 
   // Generate a leading order point
-  void GenerateLOPoint(Event &ev, int seed = std::rand());
+  void GenerateLOPoint(Event &ev, int seed);
 };
 
 #endif  // MATRIX_H_

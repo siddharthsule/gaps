@@ -34,8 +34,7 @@ double Matrix::ME2(int fl, double s, double t) {
 
 // Generate a point
 void Matrix::GenerateLOPoint(Event &ev, int seed) {
-  thread_local std::random_device rd;
-  thread_local std::mt19937 gen(rd());
+  thread_local std::mt19937 gen(seed);
   std::uniform_real_distribution<> dis(0., 1.);  // Uniform distribution
   std::uniform_int_distribution<> dis_int(1, 5);
 

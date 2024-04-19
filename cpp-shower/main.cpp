@@ -49,7 +49,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   std::cout << "Initialising..." << std::endl;
   std::vector<Event> events(N);
 
-  std::random_device rd;  // random device engine
+  thread_local std::random_device rd;  // random device engine
 
   // ---------------------------------------------------------------------------
   // Matrix Element Generation
