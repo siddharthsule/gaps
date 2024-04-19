@@ -36,12 +36,13 @@ double Matrix::ME2(int fl, double s, double t) {
 void Matrix::GenerateLOPoint(Event &ev, int seed) {
   thread_local std::mt19937 gen(seed);
   std::uniform_real_distribution<> dis(0., 1.);  // Uniform distribution
+  std::uniform_int_distribution<> dis_int(1, 5);
 
   double ct = 2. * dis(gen) - 1.;
   double st = std::sqrt(1. - ct * ct);
   double phi = 2. * M_PI * dis(gen);
 
-  int fl = std::rand() % 5 + 1;
+  int fl = dis_int(gen);
 
   Vec4 p1(1, st * std::cos(phi), st * std::sin(phi), ct);
   p1 = p1 * ecms / 2.;
