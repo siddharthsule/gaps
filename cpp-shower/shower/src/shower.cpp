@@ -168,7 +168,12 @@ void Shower::Run(Event& ev, int seed) {
    * initialised once and then reused, giving a massive speed-up!
    */
   thread_local std::random_device rd;
-  thread_local std::mt19937 gen(seed = -1 ? rd() : seed);
+  thread_local std::mt19937 gen(rd());
+
+  // Same seed option. Turn off by commenting when not in use!
+  // Having an if statement if no seed is given would not be a fair comparison
+  // to the GPU, so commented out is better for now. Maybe in the future.
+  // thread_local std::mt19937 gen(seed);
 
   // Set the starting shower scale
   double t_max = (ev.GetParton(0).GetMom() + ev.GetParton(1).GetMom()).M2();

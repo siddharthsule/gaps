@@ -35,7 +35,13 @@ double Matrix::ME2(int fl, double s, double t) {
 // Generate a point
 void Matrix::GenerateLOPoint(Event &ev, int seed) {
   thread_local std::random_device rd;
-  thread_local std::mt19937 gen(seed = -1 ? rd() : seed);
+  thread_local std::mt19937 gen(rd());
+
+  // Same seed option. Turn off by commenting when not in use!
+  // Having an if statement if no seed is given would not be a fair comparison
+  // to the GPU, so commented out is better for now. Maybe in the future.
+  // thread_local std::mt19937 gen(seed);
+
   std::uniform_real_distribution<> dis(0., 1.);  // Uniform distribution
   std::uniform_int_distribution<> dis_int(1, 5);
 
