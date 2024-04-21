@@ -160,7 +160,7 @@ class Histo1D {
 
 class Histo2D {
  public:
-  Bin2D bins[nBins][nBins];
+  Bin2D bins[nBins2D][nBins2D];
   Bin2D uflow;
   Bin2D oflow;
   Bin2D total;
@@ -173,10 +173,10 @@ class Histo2D {
         oflow(xmax, xmax + 100., ymax, ymax + 100.),
         total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
         scale(1.) {
-    double widthX = (xmax - xmin) / nBins;
-    double widthY = (ymax - ymin) / nBins;
-    for (int i = 0; i < nBins; ++i) {
-      for (int j = 0; j < nBins; ++j) {
+    double widthX = (xmax - xmin) / nBins2D;
+    double widthY = (ymax - ymin) / nBins2D;
+    for (int i = 0; i < nBins2D; ++i) {
+      for (int j = 0; j < nBins2D; ++j) {
         double xlow = xmin + i * widthX;
         double xhigh = xlow + widthX;
         double ylow = ymin + j * widthY;
@@ -189,7 +189,7 @@ class Histo2D {
   __device__ void Fill(double x, double y, double w) {
     // Find the bin for the x-coordinate
     int lx = 0;
-    int rx = nBins - 1;
+    int rx = nBins2D - 1;
     int cx = (lx + rx) / 2;
     double ax = bins[cx][0].xmin;
 
@@ -205,7 +205,7 @@ class Histo2D {
 
     // Find the bin for the y-coordinate
     int ly = 0;
-    int ry = nBins - 1;
+    int ry = nBins2D - 1;
     int cy = (ly + ry) / 2;
     double ay = bins[0][cy].ymin;
 

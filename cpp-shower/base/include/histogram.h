@@ -224,13 +224,13 @@ class Histo2D {
         oflow(xmax, xmax + 100., ymax, ymax + 100.),
         total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
         scale(1.) {
-    double xwidth = (xmax - xmin) / nBins;
-    double ywidth = (ymax - ymin) / nBins;
-    for (int i = 0; i < nBins; ++i) {
+    double xwidth = (xmax - xmin) / nBins2D;
+    double ywidth = (ymax - ymin) / nBins2D;
+    for (int i = 0; i < nBins2D; ++i) {
       double xlow = xmin + i * xwidth;
       double xhigh = xlow + xwidth;
       std::vector<Bin2D> binRow;
-      for (int j = 0; j < nBins; ++j) {
+      for (int j = 0; j < nBins2D; ++j) {
         double ylow = ymin + j * ywidth;
         double yhigh = ylow + ywidth;
         binRow.push_back(Bin2D(xlow, xhigh, ylow, yhigh));
