@@ -26,7 +26,7 @@ const double asmax = 0.440886;
 
 // Number of Histogram Bins: Common for all Plots (for now...)
 const int nBins = 100;
-const int nBins2D = 10;  // 10x10 Grid
+const int nBins2D = 100;  // 10x10 Grid
 
 // Maximum Number of Events, beyond which program will be done in batches
 const int maxEvents = 1000000;
