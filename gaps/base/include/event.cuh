@@ -38,10 +38,6 @@ class Event {
   int winDipole[2] = {-1, -1};
   double winParams[2] = {0., 0.};
 
-  // Veto Algorithm
-  double asVeto = 0.;          // Veto Scale
-  bool acceptEmisson = false;  // Veto Flag
-
   // End Shower Flag
   bool endShower = false;  // Shower End Flag - used if T < 1 GeV
 
@@ -91,9 +87,6 @@ class Event {
   __device__ int GetWinSF() const { return winSF; }
   __device__ int GetWinDipole(int i) const { return winDipole[i]; }
   __device__ double GetWinParam(int i) const { return winParams[i]; }
-
-  __device__ double GetAsVeto() const { return asVeto; }
-  __device__ bool GetAcceptEmission() const { return acceptEmisson; }
 
   __device__ bool GetEndShower() const { return endShower; }
 
@@ -153,11 +146,6 @@ class Event {
   }
   __device__ void SetWinParam(int i, double winParam) {
     this->winParams[i] = winParam;
-  }
-
-  __device__ void SetAsVeto(double asVeto) { this->asVeto = asVeto; }
-  __device__ void SetAcceptEmission(bool acceptEmission) {
-    this->acceptEmisson = acceptEmission;
   }
 
   __device__ void SetEndShower(bool endShower) { this->endShower = endShower; }
