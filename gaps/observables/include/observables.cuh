@@ -44,7 +44,7 @@ class Analysis {
     hists[8] = Histo1D(0., 0.5);     // "/gaps/wjb"
     hists[9] = Histo1D(0., 0.2);     // "/gaps/njb"
 
-    dalitz = Histo2D(0., 1., 0., 1.);
+    dalitz = Histo2D(0., 1., 0., 1.);  // '/gaps/dalitz"
   }
 };
 

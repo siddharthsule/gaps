@@ -39,7 +39,7 @@ class Shower {
 
   // Colours
   void MakeColours(Event& ev, int* coli, int* colj, const int flavs[3],
-                   const int colij[2], const int colk[2], const int r);
+                   const int colij[2], const int colk[2], const double r);
 
   // Veto Algorithm + Perform the Splitting
   void GenerateSplitting(Event& ev, std::mt19937& gen);

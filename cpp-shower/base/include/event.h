@@ -8,9 +8,8 @@
 // In future, can use to store thrust, log10y23 to parallelise those
 class Event {
  private:
-  // Temporary Solution - Allows 30 Partons
-  // Mainly done to avoid using std::vector for GPU Showering
-  // But of course, this is not a good solution
+  // Temporary Solution - Allows a limited number of partons
+  // Better Solution would be to use a dynamic array, but not GPU friendly
   Parton partons[maxPartons];
 
   // ME Params -----------------------------------------------------------------

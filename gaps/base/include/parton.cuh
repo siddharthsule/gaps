@@ -29,6 +29,7 @@ class Parton {
   __device__ Vec4 GetMom() const { return mom; }
   __device__ int GetCol() const { return col; }
   __device__ int GetAntiCol() const { return anticol; }
+  // Prep for Initial State (v2...)
   __device__ bool IsInitial() const { return initial; }
   __device__ bool IsParton() const { return parton; }
 

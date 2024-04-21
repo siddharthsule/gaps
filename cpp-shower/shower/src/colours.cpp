@@ -1,7 +1,8 @@
 #include "shower.h"
 
 void Shower::MakeColours(Event& ev, int* coli, int* colj, const int flavs[3],
-                         const int colij[2], const int colk[2], const int r) {
+                         const int colij[2], const int colk[2],
+                         const double r) {
   // Increase variable ev.GetShowerC() by 1
   ev.IncrementShowerC();
 

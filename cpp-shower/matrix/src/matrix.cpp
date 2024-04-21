@@ -50,14 +50,20 @@ void Matrix::GenerateLOPoint(Event &ev, int seed) {
   double phi = 2. * M_PI * dis(gen);
 
   int fl = dis_int(gen);
+  double p0 = 0.5 * ecms;
 
-  Vec4 p1(1, st * std::cos(phi), st * std::sin(phi), ct);
-  p1 = p1 * ecms / 2.;
-  Vec4 p2(p1[0], -p1[1], -p1[2], -p1[3]);
-  Vec4 pa(ecms / 2., 0., 0., ecms / 2.);
-  Vec4 pb(ecms / 2., 0., 0., -ecms / 2.);
+  Vec4 pa(p0, 0., 0., p0);
+  Vec4 pb(p0, 0., 0., -p0);
+  Vec4 p1(p0, p0 * st * cos(phi), p0 * st * sin(phi), p0 * ct);
+  Vec4 p2(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);
 
   double lome = ME2(fl, (pa + pb).M2(), (pa - p1).M2());
+
+  // Calculate the differential cross section
+  // 5 = 5 flavours (?)
+  // 3.89379656e8 = Convert from GeV^-2 to pb
+  // 8 pi = Standard Phase Space Factor
+  // pow(matrix->GetECMS(), 2.) = center of mass energy squared, s
   double dxs =
       5. * lome * 3.89379656e8 / (8. * M_PI) / (2. * std::pow(ecms, 2.));
 

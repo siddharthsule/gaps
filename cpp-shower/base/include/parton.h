@@ -22,7 +22,7 @@ class Parton {
   Vec4 GetMom() const { return mom; }
   int GetCol() const { return col; }
   int GetAntiCol() const { return anticol; }
-  bool IsInitial() const { return initial; }
+  bool IsInitial() const { return initial; }  // Prep for Initial State (v2...)
   bool IsParton() const { return parton; }
 
   void SetPid(int pid) { this->pid = pid; }
