@@ -60,8 +60,8 @@ std::string ToString(Histo2D h, std::string name) {
   ss << "# "
         "xlow\txhigh\tylow\tyhigh\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2\ts"
         "umwxy\tnumEntries\n";
-  for (size_t i = 0; i < nBins; ++i) {
-    for (size_t j = 0; j < nBins; ++j) {
+  for (size_t i = 0; i < nBins2D; ++i) {
+    for (size_t j = 0; j < nBins2D; ++j) {
       ss << std::scientific << std::setprecision(6);
       ss << h.bins[i][j].xmin << "\t" << h.bins[i][j].xmax << "\t"
          << h.bins[i][j].ymin << "\t" << h.bins[i][j].ymax << "\t"
