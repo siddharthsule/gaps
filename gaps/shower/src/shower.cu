@@ -84,6 +84,7 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
   double win_zp = 0.;
   double win_m2 = 0.;
 
+  // We start at 2 because elements 0 and 1 are electrons - To change with ISR
   for (int ij = 0; ij < ev.GetSize(); ij++) {
     for (int k = 0; k < ev.GetSize(); k++) {
       // Sanity Check to ensure ij != k
@@ -91,10 +92,12 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
         continue;
       }
 
-      // Skip non-partons
+      /*
+      // Skip non-partons - enable if leptons in the final state
       if (!ev.GetParton(ij).IsParton() || !ev.GetParton(k).IsParton()) {
         continue;
       }
+      */
 
       // Need to check if ij and k are colour connected
       if (!ev.GetParton(ij).IsColorConnected(ev.GetParton(k))) {
