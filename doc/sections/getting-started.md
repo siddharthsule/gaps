@@ -49,7 +49,7 @@ Timing data written to gaps-time.dat
 Then you have free reign over what you need. Like [README.md](../../README.md), here are all the possible ways you can run gaps:
 
 ```bash
-# Simulate different numbers of events and build the code using multiple cpu cores
+# Simulate different numbers of events and build the code using multiple CPU cores
 ./rungaps -n nevents -c ncores
 
 # Run C++ Simulation

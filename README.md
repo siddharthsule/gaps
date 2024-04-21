@@ -29,7 +29,7 @@ NB: If you get a permission denied error, please run ```chmod +x rungaps```.
 This should build the program and generate 10000 events on the GPU. More customisation options are available, and are listed below:
 
 ```bash
-# Simulate different numbers of events and build the code using multiple cpu cores
+# Simulate different numbers of events and build the code using multiple CPU cores
 ./rungaps -n nevents -c ncores
 
 # Run C++ Simulation

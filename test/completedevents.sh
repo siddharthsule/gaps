@@ -1,5 +1,5 @@
 # Algorithm to get all the completed events data
-# Not really worth putting in gaps.sh, so in Test
+# Not really worth putting in rungaps, so in Test
 
 # Move to the root directory
 cd ..
