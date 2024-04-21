@@ -6,7 +6,7 @@ The observables that are currently available are:
 
 - Durham Jet Rates: These are the 2->3, 3->4, 4->5 and 5->6 Jet rates on a log scale. These tell us how many jets a particular event possibly has, along with intricate details like the transverse momentum spectra [Phys. Lett. B 269 (1991)](https://inspirehep.net/literature/317695)
 
-- Thrust: This tells us how pencil-like or spherical a final state is [Phys. Rev. Lett. 39 (1977)](https://link.aps.org/doi/10.1103/PhysRevLett.39.1587)
+- Thrust: This tells us how pencil-like or spherical a final state is [Phys. Rev. Lett. 39 (1977)](https://link.aps.org/doi/10.1103/PhysRevLett.39.1587). There are two possible algorithms for calculating thrust: one that is more time-consuming but consistent for all event shapes and a simplified, faster algorithm that incorrectly calculates thrust for highly spherical events [(Reported in Pythia)](https://pythia.org/latest-manual/EventAnalysis.html). We used the more time-consuming algorithm, first seen in [Z. Physik C 1, 61 (1979)](https://link.springer.com/article/10.1007/BF01450381)
 
 - Jet Masses and Broadenings: These split the momenta of the partons with and against the thrust direction and yield properties of each hemisphere. [Phys. Lett. B 272 (1991)](https://www.sciencedirect.com/science/article/pii/037026939191845M) [Phys. Lett. B. 295 (1992](https://www.sciencedirect.com/science/article/pii/037026939291565Q)
 
