@@ -45,7 +45,7 @@ class Shower {
   void GenerateSplitting(Event& ev, std::mt19937& gen);
 
   // Run the Shower
-  void Run(Event& ev, int seed = std::rand());
+  void Run(Event& ev);
 };
 
 #endif  // SHOWER_H_

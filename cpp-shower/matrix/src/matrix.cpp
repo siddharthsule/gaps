@@ -33,7 +33,7 @@ double Matrix::ME2(int fl, double s, double t) {
 }
 
 // Generate a point
-void Matrix::GenerateLOPoint(Event &ev, int seed) {
+void Matrix::GenerateLOPoint(Event &ev) {
   thread_local std::random_device rd;
   thread_local std::mt19937 gen(rd());
 

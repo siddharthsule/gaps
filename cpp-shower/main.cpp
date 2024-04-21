@@ -58,7 +58,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   Matrix xs(asmz, E);
 
   for (int i = 0; i < N; i++) {
-    xs.GenerateLOPoint(events[i], -1);  // Random Seed
+    xs.GenerateLOPoint(events[i]);  // Random Seed
     // (same seed option is off in matrix.cpp - check this before setting!)
   }
 
@@ -74,7 +74,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   Shower sh;
 
   for (int i = 0; i < N; i++) {
-    sh.Run(events[i], -1);  // Random Seed
+    sh.Run(events[i]);  // Random Seed
     // (same seed option is off in shower.cpp - check this before setting!)
   }
 
