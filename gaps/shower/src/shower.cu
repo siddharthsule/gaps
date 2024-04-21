@@ -85,8 +85,8 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
   double win_m2 = 0.;
 
   // We start at 2 because elements 0 and 1 are electrons - To change with ISR
-  for (int ij = 0; ij < ev.GetSize(); ij++) {
-    for (int k = 0; k < ev.GetSize(); k++) {
+  for (int ij = 2; ij < ev.GetSize(); ij++) {
+    for (int k = 2; k < ev.GetSize(); k++) {
       // Sanity Check to ensure ij != k
       if (ij == k) {
         continue;
