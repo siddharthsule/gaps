@@ -43,13 +43,12 @@ void Matrix::GenerateLOPoint(Event &ev) {
   // thread_local std::mt19937 gen(seed);
 
   std::uniform_real_distribution<> dis(0., 1.);  // Uniform distribution
-  std::uniform_int_distribution<> dis_int(1, 5);
 
   double ct = 2. * dis(gen) - 1.;
   double st = std::sqrt(1. - ct * ct);
   double phi = 2. * M_PI * dis(gen);
 
-  int fl = dis_int(gen);
+  int fl = std::rand() % 5 + 1;  // Faster than using dis(gen) for 5 options
   double p0 = 0.5 * ecms;
 
   Vec4 pa(p0, 0., 0., p0);
