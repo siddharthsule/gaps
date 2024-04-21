@@ -99,11 +99,12 @@ __global__ void asValue(AlphaS *as, double *asval, double t) {
 
 // Calculate AlphaS on the Device for MANY inputs
 // Exclusively used for Parton Shower Veto Algorithm
-__global__ void asShowerKernel(AlphaS *as, Event *events, int N) {
+__global__ void asShowerKernel(AlphaS *as, Event *events, double *asval,
+                               int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) return;
   Event &ev = events[idx];
 
-  ev.SetAsVeto((*as)(ev.GetShowerT()));
+  asval[idx] = (*as)(ev.GetShowerT());
 }

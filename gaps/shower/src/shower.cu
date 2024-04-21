@@ -180,7 +180,8 @@ __global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
 
 // -----------------------------------------------------------------------------
 
-__global__ void vetoAlg(Event *events, curandState *states, int N) {
+__global__ void vetoAlg(Event *events, double *asval, bool *acceptEmission,
+                        curandState *states, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -196,7 +197,7 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
   }
 
   // Set to False, only set to True if accpeted
-  ev.SetAcceptEmission(false);
+  acceptEmission[idx] = false;
 
   // Get the Splitting Function
   int sf = ev.GetWinSF();
@@ -220,11 +221,11 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
     value = sfValue(z, y, sf);
     estimate = sfEstimate(z, sf);
 
-    f = (1. - y) * ev.GetAsVeto() * value;
+    f = (1. - y) * asval[idx] * value;
     g = asmax * estimate;
 
     if (curand_uniform(&state) < f / g) {
-      ev.SetAcceptEmission(true);
+      acceptEmission[idx] = true;
       ev.SetShowerZ(z);
       ev.SetShowerY(y);
     }
@@ -235,7 +236,8 @@ __global__ void vetoAlg(Event *events, curandState *states, int N) {
 // -----------------------------------------------------------------------------
 
 // Do Splitting
-__global__ void doSplitting(Event *events, curandState *states, int N) {
+__global__ void doSplitting(Event *events, bool *acceptEmission,
+                            curandState *states, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= N) {
@@ -249,7 +251,7 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
     return;
   }
 
-  if (!ev.GetAcceptEmission()) {
+  if (!acceptEmission[idx]) {
     return;
   }
 
@@ -308,7 +310,7 @@ __global__ void doSplitting(Event *events, curandState *states, int N) {
 // -----------------------------------------------------------------------------
 
 /*
-__global__ void countBools(Event *events, int *trueCount,
+__global__ void countBools(Event *events, int *trueCount, bool *acceptEmission,
                            int *falseCount, int N) {
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= N) {
@@ -321,7 +323,7 @@ __global__ void countBools(Event *events, int *trueCount,
     return;
   }
 
-  if (!ev.GetAcceptEmission()){
+  if (!acceptEmission[idx]){
     atomicAdd(trueCount, 1);
   } else {
     atomicAdd(falseCount, 1);
@@ -345,6 +347,12 @@ void runShower(thrust::device_vector<Event> &d_events) {
   int *d_completed;
   cudaMalloc(&d_completed, sizeof(int));
   cudaMemset(d_completed, 0, sizeof(int));
+
+  // as(t) and veto
+  double *d_asval;
+  cudaMalloc(&d_asval, N * sizeof(double));
+  bool *d_acceptEmission;
+  cudaMalloc(&d_acceptEmission, N * sizeof(bool));
 
   // Allocate space for curand states
   curandState *d_states;
@@ -391,21 +399,23 @@ void runShower(thrust::device_vector<Event> &d_events) {
     // Calculate AlphaS for Veto Algorithm
 
     DEBUG_MSG("Running @asShowerKernel");
-    asShowerKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, N);
+    asShowerKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, d_asval, N);
     syncGPUAndCheck("asShowerKernel");
 
     // -------------------------------------------------------------------------
     // Veto Algorithm
 
     DEBUG_MSG("Running @vetoAlg");
-    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
+    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_asval, d_acceptEmission,
+                                      d_states, N);
     syncGPUAndCheck("vetoAlg");
 
     // -------------------------------------------------------------------------
     // Splitting Algorithm
 
     DEBUG_MSG("Running @doSplitting");
-    doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
+    doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_acceptEmission,
+                                          d_states, N);
     syncGPUAndCheck("doSplitting");
 
     // -------------------------------------------------------------------------
@@ -431,9 +441,8 @@ void runShower(thrust::device_vector<Event> &d_events) {
     cudaMemset(d_falseCount, 0, sizeof(int));
 
     DEBUG_MSG("Running @countBools");
-    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_trueCount,
-                                         d_falseCount, N);
-    syncGPUAndCheck("countBools");
+    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_acceptEmission,
+    d_trueCount, d_falseCount, N); syncGPUAndCheck("countBools");
 
     int h_trueCount(0), h_falseCount(0);  // Number of vetoed events
     cudaMemcpy(&h_trueCount, d_trueCount, sizeof(int), cudaMemcpyDeviceToHost);
@@ -454,5 +463,7 @@ void runShower(thrust::device_vector<Event> &d_events) {
 
   // ---------------------------------------------------------------------------
   // Clean Up Device Memory
+  cudaFree(d_asval);
+  cudaFree(d_acceptEmission);
   cudaFree(d_completed);
 }
