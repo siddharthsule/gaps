@@ -2,7 +2,7 @@
 
 The code simulates just one experiment, so this should take a little time.
 
-The file `gaps.sh` can be used to build and operate both the C++ and CUDA generators. It has been coded with all the routines (including the one for paper results).
+The file `rungaps` can be used to build and operate both the C++ and CUDA generators. It has been coded with all the routines (including the one for paper results).
 
 To run GAPS, you will need the following:
 
@@ -14,10 +14,10 @@ To run GAPS, you will need the following:
 Simply execute the command:
 
 ```bash
-./gaps.sh
+./rungaps
 ```
 
-NB: If you get a permission denied error, please run ```chmod +x gaps.sh```.
+NB: If you get a permission denied error, please run ```chmod +x rungaps```.
 
 This should build the program and generate 10000 events on the GPU. The output should look something like this:
 
@@ -50,16 +50,16 @@ Then you have free reign over what you need. Like [README.md](../../README.md), 
 
 ```bash
 # Simulate different numbers of events and build the code using multiple CPU cores
-./gaps.sh -n nevents -c ncores
+./rungaps -n nevents -c ncores
 
 # Run C++ Simulation
-./gaps.sh -n nevents -c ncores -r cpp
+./rungaps -n nevents -c ncores -r cpp
 
 # Run the same number of events on C++ and CUDA and compare times
-./gaps.sh -n nevents -c ncores -r compare
+./rungaps -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in the paper
-./gaps.sh -c ncores -r full
+./rungaps -c ncores -r full
 ```
 
 And that's all there is to it! In upcoming versions, we'll add features like increasing the number of events, different centres of mass energies, new analyses, and potentially some matching!
