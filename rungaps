@@ -45,10 +45,7 @@ def compile(dir):
     os.chdir('build')
     subprocess.run(['cmake', '..'])
     subprocess.run(['make', '-j', str(args.cores)])
-    if dir == '.':
-        os.chdir('..')
-    else:
-        os.chdir('../..')
+    os.chdir('../..')
 
 # ------------------------------------------------------------------------------
 # Run GAPS or C++ Shower
@@ -56,24 +53,20 @@ def compile(dir):
 
 def run(runtype, events, energy):
     print(f'Running {runtype}')
-    if runtype == 'cpp-shower':
-        subprocess.run([f'./{runtype}/bin/{runtype}',
-                       str(events), str(energy)])
-    else:
-        subprocess.run([f'./bin/gaps', str(events), str(energy)])
+    subprocess.run([f'./{runtype}/bin/{runtype}', str(events), str(energy)])
 
 
 # ------------------------------------------------------------------------------
 # Compile and run based on runtype
 
 if args.runtype in ['gaps', 'compare', 'full']:
-    compile('.')
+    compile('gaps')
 
 if args.runtype in ['cpp', 'compare', 'full']:
     compile('cpp-shower')
 
 if args.runtype in ['gaps', 'compare']:
-    run('.', args.nevents, args.energy)
+    run('gaps', args.nevents, args.energy)
 
 if args.runtype in ['cpp', 'compare']:
     run('cpp-shower', args.nevents, args.energy)

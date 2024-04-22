@@ -35,10 +35,10 @@ for n in nev:
         max = len(temp)
 
     comp = comp[:max]
-    comp = np.append(comp, 0.0)
+    comp = np.append(comp, 0.)
 
     diff = diff[:max]
-    diff = np.append(diff, 0.0)
+    diff = np.append(diff, 0.)
 
     cycles = np.arange(1, len(comp) + 1)
 

@@ -1,0 +1,34 @@
+#ifndef BASE_H_
+#define BASE_H_
+
+// -----------------------------------------------------------------------------
+// Import Libraries
+
+#include <cmath>     // Math Functions
+#include <fstream>   // File I/O
+#include <iostream>  // Standard I/O
+#include <random>    // Random Number Generation
+#include <vector>    // Vector
+
+// -----------------------------------------------------------------------------
+// Program Settings - CAREFUL WITH CHANGES
+
+// Max Number of Partons, set to save memory
+const int maxPartons = 30;
+
+// LEP 91.2 settings
+const double mz = 91.1876;
+const double asmz = 0.118;
+
+// Cutoff and its value of alpha_s (pre-calculated)
+const double tC = 1.;
+const double asmax = 0.440886;
+
+// Number of Histogram Bins: Common for all Plots (for now...)
+const int nBins = 100;
+const int nBins2D = 100;  // 10x10 Grid
+
+// Maximum Number of Events, beyond which program will be done in batches
+const int maxEvents = 1000000;
+
+#endif  // BASE_H_
