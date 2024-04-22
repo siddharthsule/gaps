@@ -22,16 +22,18 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs;      // Differential Cross Section
-  int nHard;       // Number of Hard Partons
-  int nInitial;    // Number of Initial Partons
-  int nNonParton;  // Number of Non-Parton Partons
+  double dxs = 0.;     // Differential Cross Section
+  int nHard = 0;       // Number of Hard Partons
+  int nInitial = 0;    // Number of Initial Partons
+  int nNonParton = 0;  // Number of Non-Parton Partons
 
   // Shower Params -------------------------------------------------------------
 
-  int nEmission;                     // Number of Emissions
-  double showerT, showerZ, showerY;  // Evolution and Splitting Variables
-  int showerC;                       // Colour Counter
+  int nEmission = 0;    // Number of Emissions
+  double showerT = 0.;  // Evolution and Splitting Variables
+  double showerZ = 0.;
+  double showerY = 0.;
+  int showerC = 0;  // Colour Counter
 
   // Selecting Winner Emission - Defaults Values which represent no winner
   int winSF = 16;
