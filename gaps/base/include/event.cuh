@@ -22,10 +22,10 @@ class Event {
 
   // ME Params -----------------------------------------------------------------
 
-  double dxs = 0.;     // Differential Cross Section
-  int nHard = 0;       // Number of Hard Partons
-  int nInitial = 0;    // Number of Initial Partons
-  int nNonParton = 0;  // Number of Non-Parton Partons
+  double dxs = 0.;  // Differential Cross Section
+  int nHard = 0;    // Number of Hard Partons
+  // int nInitial = 0;    // Number of Initial Partons (Prep for ISR)
+  // int nNonParton = 0;  // Number of Non-Parton Partons (Prep for ISR)
 
   // Shower Params -------------------------------------------------------------
 
@@ -70,11 +70,10 @@ class Event {
   __device__ Parton GetParton(int i) const { return partons[i]; }
   __device__ int GetSize() const { return nHard + nEmission; }
   __device__ int GetHard() const { return nHard; }
-  __device__ int GetInitial() const { return nInitial; }
-  __device__ int GetNonParton() const { return nNonParton; }
   __device__ int GetEmissions() const { return nEmission; }
   __device__ int GetPartonSize() const {
-    return (nHard + nEmission) - nNonParton;
+    // -2: e+, e-
+    return (nHard + nEmission) - 2;
   }
 
   // Get Differential Cross Section
@@ -125,10 +124,6 @@ class Event {
   // Set Differential Cross Section and nHard
   __device__ void SetDxs(double dxs) { this->dxs = dxs; }
   __device__ void SetHard(int nHard) { this->nHard = nHard; }
-  __device__ void SetInitial(int nInitial) { this->nInitial = nInitial; }
-  __device__ void SetNonParton(int nNonParton) {
-    this->nNonParton = nNonParton;
-  }
 
   // Adjust and Increment Number of Emissions
   __device__ void SetEmissions(int nEmission) { this->nEmission = nEmission; }

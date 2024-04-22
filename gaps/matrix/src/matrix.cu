@@ -103,8 +103,6 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   // Set the ME Params
   ev.SetDxs(dxs);
   ev.SetHard(4);
-  ev.SetInitial(2);
-  ev.SetNonParton(2);
 }
 
 // Function to generate the LO Matrix Elements + Momenta
