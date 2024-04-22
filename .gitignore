@@ -9,9 +9,6 @@ rivet-plots/
 # Shower Time Measuremnts
 *.dat
 
-# IDE files
-.vscode/
-
 # Any Temporary Results
 results-*/
 
