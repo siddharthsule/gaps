@@ -91,9 +91,8 @@ __global__ void loPointKernel(Matrix *matrix, Event *events, int N) {
   double dxs = 5. * lome * 3.89379656e8 / (8. * M_PI) /
                (2. * pow(matrix->GetECMS(), 2.));
 
-  Parton p[4] = {Parton(-11, -pa, 0, 0, true, false),
-                 Parton(11, -pb, 0, 0, true, false), Parton(fl, p1, 1, 0),
-                 Parton(-fl, p2, 0, 1)};
+  Parton p[4] = {Parton(-11, -pa, 0, 0), Parton(11, -pb, 0, 0),
+                 Parton(fl, p1, 1, 0), Parton(-fl, p2, 0, 1)};
 
   // Set the Partons
   for (int i = 0; i < 4; i++) {
