@@ -10,6 +10,6 @@ The observables that are currently available are:
 
 - Jet Masses and Broadenings: These split the momenta of the partons with and against the thrust direction and yield properties of each hemisphere. [Phys. Lett. B 272 (1991)](https://www.sciencedirect.com/science/article/pii/037026939191845M) [Phys. Lett. B. 295 (1992](https://www.sciencedirect.com/science/article/pii/037026939291565Q)
 
-- **New** Dalitz Plot: This studies the emitter and spectator momentum in a single emission event [Phil. Mag. 44 (1953)](https://www.tandfonline.com/doi/abs/10.1080/14786441008520365)
+- **New** Dalitz Plot: This studies the emitter and spectator momentum in a single emission event [Phil. Mag. 44 (1953)](https://www.tandfonline.com/doi/abs/10.1080/14786441008520365) (OFF by default though, as the writing time dominates the GPU analysis time!)
 
 One exciting thing that happens during the stage is binning. CUDA has a feature called atomic operations, where a variable can be operated on simultaneously. In our case, this means that once an observable is calculated for all events, every value of that observable is binned at once! (Pretty cool, right?)
