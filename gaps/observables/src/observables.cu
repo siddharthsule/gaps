@@ -45,7 +45,8 @@ __global__ void fillHistos(Analysis* an, Event* events, int N) {
   an->hists[8].Fill(ev.GetWJB(), ev.GetDxs());
   an->hists[9].Fill(ev.GetNJB(), ev.GetDxs());
 
-  an->dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
+  // Dalitz Plot is OFF
+  // an->dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
 
   atomicAdd(&an->wtot, ev.GetDxs());
   atomicAdd(&an->ntot, 1.);
@@ -103,8 +104,21 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   calculateJetMBr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
   syncGPUAndCheck("calculateJetMBr");
 
-  calculateDalitz<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("calculateDalitz");
+  /**
+   * Why is the Dalitz Plot off?
+   * ---------------------------
+   *
+   * While the Dalitz analysis also benefits from the GPU parallelisation, the
+   * writing of the data to file severely limits the performance, as instead of
+   * the usual 100 bins, we have 100^2 = 1000 bins. This takes around 0.04s,
+   * which is minute in the C++ case, but is in fact 40% of the total analysis
+   * time! So for our tests, we keep this off
+   *
+   * If you want to turn it on, uncomment the lines in this file, and it's
+   * equivalent in the 'observables.cpp' file.
+   */
+  // calculateDalitz<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
+  // syncGPUAndCheck("calculateDalitz");
 
   // Do the Analysis
   fillHistos<<<(N + 255) / 256, 256>>>(d_an, d_events_ptr, N);
@@ -118,7 +132,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
     hist.ScaleW(1. / h_an->ntot);
   }
 
-  h_an->dalitz.ScaleW(1. / h_an->ntot);
+  // Dalitz Plot is OFF
+  // h_an->dalitz.ScaleW(1. / h_an->ntot);
 
   // Remove existing file
   std::remove(filename.c_str());
@@ -135,7 +150,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
   Write(h_an->hists[8], "/gaps/wjb\n", filename);
   Write(h_an->hists[9], "/gaps/njb\n", filename);
 
-  Write(h_an->dalitz, "/gaps/dalitz\n", filename);
+  // Dalitz Plot is OFF
+  // Write(h_an->dalitz, "/gaps/dalitz\n", filename);
 
   // Clean up
   delete h_an;

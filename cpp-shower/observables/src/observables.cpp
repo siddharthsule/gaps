@@ -20,8 +20,21 @@ void Analysis::Analyze(Event& ev) {
   // Calculate JetMBr
   CalculateJetMBr(ev);
 
+  /**
+   * Why is the Dalitz Plot off?
+   * ---------------------------
+   *
+   * While the Dalitz analysis also benefits from the GPU parallelisation, the
+   * writing of the data to file severely limits the performance, as instead of
+   * the usual 100 bins, we have 100^2 = 1000 bins. This takes around 0.04s,
+   * which is minute in the C++ case, but is in fact 40% of the total analysis
+   * time! So for our tests, we keep this off
+   *
+   * If you want to turn it on, uncomment the lines in this file, and it's
+   * equivalent in the 'observables.cpp' file.
+   */
   // Calculate Dalitz
-  CalculateDalitz(ev);
+  // CalculateDalitz(ev);
 
   // Fill Histograms
   hists[0].Fill(ev.GetY23(), ev.GetDxs());
@@ -35,7 +48,8 @@ void Analysis::Analyze(Event& ev) {
   hists[8].Fill(ev.GetWJB(), ev.GetDxs());
   hists[9].Fill(ev.GetNJB(), ev.GetDxs());
 
-  dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
+  // Dalitz Plot is OFF
+  // dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
 
   // Weighted Total
   wtot += ev.GetDxs();
@@ -47,6 +61,8 @@ void Analysis::Finalize(const std::string& filename) {
     hist.ScaleW(1. / ntot);
     hist.Write(filename);
   }
-  dalitz.ScaleW(1. / ntot);
-  dalitz.Write(filename);
+
+  // Dalitz Plot is OFF
+  // dalitz.ScaleW(1. / ntot);
+  // dalitz.Write(filename);
 }
