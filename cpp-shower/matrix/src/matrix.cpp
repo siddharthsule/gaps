@@ -66,9 +66,8 @@ void Matrix::GenerateLOPoint(Event &ev) {
   double dxs =
       5. * lome * 3.89379656e8 / (8. * M_PI) / (2. * std::pow(ecms, 2.));
 
-  Parton p[4] = {Parton(-11, -pa, 0, 0, true, false),
-                 Parton(11, -pb, 0, 0, true, false), Parton(fl, p1, 1, 0),
-                 Parton(-fl, p2, 0, 1)};
+  Parton p[4] = {Parton(-11, -pa, 0, 0), Parton(11, -pb, 0, 0),
+                 Parton(fl, p1, 1, 0), Parton(-fl, p2, 0, 1)};
 
   // Set the Partons
   for (int i = 0; i < 4; i++) {
@@ -78,6 +77,4 @@ void Matrix::GenerateLOPoint(Event &ev) {
   // Set the ME Params
   ev.SetDxs(dxs);
   ev.SetHard(4);
-  ev.SetInitial(2);
-  ev.SetNonParton(2);
 }

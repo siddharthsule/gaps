@@ -25,13 +25,6 @@ void Shower::SelectWinner(Event& ev, std::mt19937& gen) {
         continue;
       }
 
-      /*
-      // Skip non-partons - enable if leptons in the final state
-      if (!ev.GetParton(ij).IsParton() || !ev.GetParton(k).IsParton()) {
-        continue;
-      }
-      */
-
       // Need to check if ij and k are colour connected
       if (!ev.GetParton(ij).IsColorConnected(ev.GetParton(k))) {
         continue;
