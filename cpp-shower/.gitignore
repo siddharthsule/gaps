@@ -1,9 +1,0 @@
-# Folders Created after Building
-bin/
-build/
-
-# Rivet and Yoda files
-rivet-plots/
-*.yoda
-
-.vscode/

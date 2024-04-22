@@ -17,6 +17,7 @@
 # Default Parameters
 
 events=10000
+energy=91.2
 ncores=1
 
 # Defaults to just the CUDA simulation
@@ -25,13 +26,15 @@ runtype="gaps"
 # ------------------------------------------------------------------------------
 # Use optargs to adjust default values and define run
 
-while getopts "n:c:r:h" opt; do
+while getopts "n:e:c:r:h" opt; do
     case $opt in
         n) events=$OPTARG ;;
+        e) energy=$OPTARG ;;
         c) ncores=$OPTARG ;;
         r) runtype=$OPTARG ;;
-        h) echo "Usage: $0 [-n nevents] [-c cores] [-r runtype] [-h help]"
+        h) echo "Usage: $0 [-n nevents] [-e energy] [-c cores] [-r runtype] [-h help]"
         echo "  -n: set the number of events (default: 10000)"
+        echo "  -e: set the CoM energy of the system (default: 91.2)"
         echo "  -c: set the number of cores (default: 1)"
         echo "  -r: set the run type (default: gaps, options: gaps, cpp, compare, full)"
         echo "  -h: display this help message"
@@ -50,7 +53,7 @@ compile() {
 }
 
 if [ "$runtype" = "gaps" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
-    compile "."
+    compile "gaps"
 fi
 
 if [ "$runtype" = "cpp" ] || [ "$runtype" = "compare" ] || [ "$runtype" = "full" ]; then
@@ -62,7 +65,7 @@ fi
 
 if [ "$runtype" = "gaps" ]; then
     echo "Running GAPS"
-    ./bin/gaps $events
+    ./gaps/bin/gaps $events $energy
 fi
 
 # ------------------------------------------------------------------------------
@@ -70,7 +73,7 @@ fi
 
 if [ "$runtype" = "cpp" ]; then
     echo "Running C++ Shower"
-    ./cpp-shower/bin/cpp-shower $events
+    ./cpp-shower/bin/cpp-shower $events $energy
 fi
 
 # ------------------------------------------------------------------------------
@@ -78,9 +81,9 @@ fi
 
 if [ "$runtype" = "compare" ]; then
     echo "Running GAPS"
-    ./bin/gaps $events
+    ./gaps/bin/gaps $events $energy
     echo "Running C++ Shower"
-    ./cpp-shower/bin/cpp-shower $events
+    ./cpp-shower/bin/cpp-shower $events $energy
 fi
 
 # ------------------------------------------------------------------------------
@@ -96,7 +99,7 @@ if [ "$runtype" = "full" ]; then
     rm cpp-time.dat
     rm gaps-time.dat
 
-    # Run the comparison 10 times, for different number of events
+    # Run the comparison 100 times, for different number of events
     neventsarray=(1 2 5 10 20 50 100 200 500 1000 2000 5000 10000 20000 50000 100000 200000 500000 1000000)
     for n in "${neventsarray[@]}"
     do
@@ -104,9 +107,9 @@ if [ "$runtype" = "full" ]; then
         for i in {1..100}
         do
             echo "Running GAPS with $n events"
-            ./bin/gaps $n
+            ./gaps/bin/gaps $n $energy
             echo "Running C++ Shower with $n events"
-            ./cpp-shower/bin/cpp-shower $n
+            ./cpp-shower/bin/cpp-shower $n $energy
         done
     done
 
