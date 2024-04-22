@@ -247,8 +247,6 @@ class Histo2D {
     ss << "Title=\nType=Histo2D\n";
     ss << "# ID\tID\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2\tnumEntries\n";
     ss << total.Format("Total") << "\n";
-    // ss << uflow.Format("Underflow") << "\n";
-    // ss << oflow.Format("Overflow") << "\n";
     ss << "# "
           "xlow\txhigh\tylow\tyhigh\tsumw\tsumw2\tsumwx\tsumwx2\tsumwy\tsumwy2"
           "\tnumEntries\n";

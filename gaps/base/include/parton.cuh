@@ -40,8 +40,6 @@ class Parton {
   Vec4 mom;
   int col;
   int anticol;
-  // bool initial; // Useful for Initial State Partons (Prep for ISR)
-  // bool parton; // Used to identify Non-Parton Particles (Prep for ISR)
 };
 
 #endif  // PARTON_CUH_

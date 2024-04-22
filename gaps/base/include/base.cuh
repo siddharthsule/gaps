@@ -66,5 +66,4 @@ void syncGPUAndCheck(const char *operation);
 // Debugging Function - Available in Kernels too!
 __host__ __device__ void DEBUG_MSG(const char *msg);
 
-// -----------------------------------------------------------------------------
 #endif  // BASE_CUH_

@@ -59,7 +59,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
 
   for (int i = 0; i < N; i++) {
     xs.GenerateLOPoint(events[i]);  // Random Seed
-    // (same seed option is off in matrix.cpp - check this before setting!)
+    // (same seed option is off in matrix.cpp!)
   }
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -75,7 +75,7 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
 
   for (int i = 0; i < N; i++) {
     sh.Run(events[i]);  // Random Seed
-    // (same seed option is off in shower.cpp - check this before setting!)
+    // (same seed option is off in shower.cpp!)
   }
 
   end = std::chrono::high_resolution_clock::now();
