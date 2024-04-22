@@ -112,7 +112,8 @@ void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
    * writing of the data to file severely limits the performance, as instead of
    * the usual 100 bins, we have 100^2 = 1000 bins. This takes around 0.04s,
    * which is minute in the C++ case, but is in fact 40% of the total analysis
-   * time! So for our tests, we keep this off
+   * time! So for our tests, we keep this off, to keep our comparisons fair,
+   * and relvant to the actual GPU effect.
    *
    * If you want to turn it on, uncomment the lines in this file, and it's
    * equivalent in the 'observables.cpp' file.
