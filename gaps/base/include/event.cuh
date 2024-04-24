@@ -173,7 +173,8 @@ class Event {
   __device__ bool Validate() {
     Vec4 psum = Vec4();
 
-    int csum[100] = {0};
+    // N Colours = N Partons - 1
+    int csum[maxPartons - 1] = {0};
 
     for (int i = 0; i < GetSize(); i++) {
       Parton p = GetParton(i);
@@ -193,8 +194,8 @@ class Event {
       }
     }
 
-    bool pcheck = (psum[0] < 1e-12 && psum[1] < 1e-12 && psum[2] < 1e-12 &&
-                   psum[3] < 1e-12);
+    bool pcheck = (abs(psum[0]) < 1e-12 && abs(psum[1]) < 1e-12 &&
+                   abs(psum[2]) < 1e-12 && abs(psum[3]) < 1e-12);
 
     /* // No need to print for GPU, it counts number of invalid events
     if (!pcheck) {

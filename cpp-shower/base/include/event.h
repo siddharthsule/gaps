@@ -153,7 +153,8 @@ class Event {
   bool Validate() {
     Vec4 psum = Vec4();
 
-    std::vector<int> csum(100, 0);
+    // N Colours = N Partons - 1
+    int csum[maxPartons - 1] = {0};
 
     for (int i = 0; i < GetSize(); i++) {
       Parton p = GetParton(i);
@@ -173,14 +174,14 @@ class Event {
       }
     }
 
-    bool pcheck = (psum[0] < 1e-12 && psum[1] < 1e-12 && psum[2] < 1e-12 &&
-                   psum[3] < 1e-12);
+    bool pcheck = (std::abs(psum[0]) < 1e-12 && std::abs(psum[1]) < 1e-12 &&
+                   std::abs(psum[2]) < 1e-12 && std::abs(psum[3]) < 1e-12);
     if (!pcheck) {
       std::cout << psum << std::endl;
     }
 
     bool ccheck = true;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < maxPartons - 1; i++) {
       if (csum[i] != 0) {
         std::cout << "Colour " << i << " is not conserved." << std::endl;
         ccheck = false;
