@@ -18,6 +18,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import glob
 
 # ------------------------------------------------------------------------------
 
@@ -102,3 +103,33 @@ if args.runtype == 'full':
     shutil.move('gaps.yoda', 'results/')
 
 # ------------------------------------------------------------------------------
+# Clean up of Repository
+
+if args.runtype == 'cleanup':
+
+    extensions = [".yoda", ".pdf", ".png", ".dat", 
+                  ".log", ".nsys-rep", ".sqlite"]
+
+    exceptions = ["test/SH-Tutorial.yoda", 
+                  "doc/sections/veto.png",
+                  "doc/sections/paraveto.png",
+                  "doc/sections/structure.png"]
+    
+
+    # Remove all files with the given extensions
+    for ext in extensions:
+        for file in glob.glob(f"**/*{ext}", recursive=True):
+            if any(exception in file for exception in exceptions):
+                continue
+            print(f"Removing {file}")
+            os.remove(file)
+
+    # Remove all rivet-plots directories
+    for dirpath, dirnames, filenames in os.walk('.'):
+        if 'rivet-plots' in dirnames:
+            if any(exception in dirpath for exception in exceptions):
+                continue
+            print(f"Removing {os.path.join(dirpath, 'rivet-plots')}")
+            shutil.rmtree(os.path.join(dirpath, 'rivet-plots'))
+
+    # Note: Not removing bin and build directories!
