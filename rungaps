@@ -133,3 +133,21 @@ if args.runtype == 'cleanup':
             shutil.rmtree(os.path.join(dirpath, 'rivet-plots'))
 
     # Note: Not removing bin and build directories!
+
+# ------------------------------------------------------------------------------
+# Check for updates on GitLab and Notify User
+
+# IF YOU DON'T WANT UPDATES: SET TO FALSE
+check_for_updates = True
+
+if check_for_updates:
+
+    # Fetch updates from the remote repository
+    subprocess.run(['git', 'fetch'])
+
+    # Check the status of the current branch
+    status = subprocess.run(['git', 'status'], capture_output=True)
+
+    # Print the status message if the branch is behind the remote repository
+    if "Your branch is behind" in status.stdout.decode('utf-8'):
+        print("NOTE: Updates are available on the remote repository!")
