@@ -18,9 +18,9 @@ results-*/
 # Plots
 test/*.pdf
 test/*.png
-doc/extra.*.pdf
-doc/extra.*.png
-doc/extra.*-time.dat
+doc/extra/*.pdf
+doc/extra/*.png
+doc/extra/*-time.dat
 
 # Any Profiling Results
 *.nsys-rep
