@@ -107,14 +107,13 @@ if args.runtype == 'full':
 
 if args.runtype == 'cleanup':
 
-    extensions = [".yoda", ".pdf", ".png", ".dat", 
+    extensions = [".yoda", ".pdf", ".png", ".dat",
                   ".log", ".nsys-rep", ".sqlite"]
 
-    exceptions = ["test/SH-Tutorial.yoda", 
+    exceptions = ["test/SH-Tutorial.yoda",
                   "doc/sections/veto.png",
                   "doc/sections/paraveto.png",
                   "doc/sections/structure.png"]
-    
 
     # Remove all files with the given extensions
     for ext in extensions:
@@ -124,13 +123,16 @@ if args.runtype == 'cleanup':
             print(f"Removing {file}")
             os.remove(file)
 
-    # Remove all rivet-plots directories
-    for dirpath, dirnames, filenames in os.walk('.'):
-        if 'rivet-plots' in dirnames:
-            if any(exception in dirpath for exception in exceptions):
-                continue
-            print(f"Removing {os.path.join(dirpath, 'rivet-plots')}")
-            shutil.rmtree(os.path.join(dirpath, 'rivet-plots'))
+    folders = ["rivet-plots", "results-times", "results-events"]
+
+    # Remove all directories
+    for folder in folders:
+        for dirpath, dirnames, filenames in os.walk('.'):
+            if folder in dirnames:
+                if any(exception in dirpath for exception in exceptions):
+                    continue
+                print(f"Removing {os.path.join(dirpath, folder)}")
+                shutil.rmtree(os.path.join(dirpath, folder))
 
     # Note: Not removing bin and build directories!
 
@@ -142,12 +144,17 @@ check_for_updates = True
 
 if check_for_updates:
 
-    # Fetch updates from the remote repository
-    subprocess.run(['git', 'fetch'])
+    try:
 
-    # Check the status of the current branch
-    status = subprocess.run(['git', 'status'], capture_output=True)
+        # Fetch updates from the remote repository
+        subprocess.run(['git', 'fetch'])
 
-    # Print the status message if the branch is behind the remote repository
-    if "Your branch is behind" in status.stdout.decode('utf-8'):
-        print("NOTE: Updates are available on the remote repository!")
+        # Check the status of the current branch
+        status = subprocess.run(['git', 'status'], capture_output=True)
+
+        # Print the status message if the branch is behind the remote repository
+        if "Your branch is behind" in status.stdout.decode('utf-8'):
+            print("NOTE: Updates are available on the remote repository!")
+
+    except Exception as e:
+        print("Error: Could not fetch updates from the remote repository. Please check your internet connection.")
