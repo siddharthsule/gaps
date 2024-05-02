@@ -43,7 +43,7 @@ void write(histo1d h, std::string name, const std::string& filename) {
   file.close();
 }
 
-std::string to_string(Histo2d h, std::string name) {
+std::string to_string(histo2d h, std::string name) {
   std::stringstream ss;
   ss << "BEGIN YODA_HISTO2D " << name << "\n\n";
   ss << "Path=" << name << "\n\n";
