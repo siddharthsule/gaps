@@ -12,7 +12,7 @@ __device__ double yij(const vec4& p, const vec4& q, double ecm2) {
 
 // durham clustering algorithm
 __global__ void do_cluster(event* events, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;

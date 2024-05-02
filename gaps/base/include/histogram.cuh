@@ -23,11 +23,11 @@ class bin1d {
   __host__ __device__ double width() const { return xmax - xmin; }
 
   __device__ void atomic_fill(double x, double weight) {
-    atomic_add(&w, weight);
-    atomic_add(&w2, weight * weight);
-    atomic_add(&wx, weight * x);
-    atomic_add(&wx2, weight * weight * x);
-    atomic_add(&n, 1.);
+    atomicAdd(&w, weight);
+    atomicAdd(&w2, weight * weight);
+    atomicAdd(&wx, weight * x);
+    atomicAdd(&wx2, weight * weight * x);
+    atomicAdd(&n, 1.);
   }
 
   __host__ __device__ void scale_w(double scale) {
@@ -62,14 +62,14 @@ class bin2d {
   __host__ __device__ double width_y() const { return ymax - ymin; }
 
   __device__ void atomic_fill(double x, double y, double weight) {
-    atomic_add(&w, weight);
-    atomic_add(&w2, weight * weight);
-    atomic_add(&wx, weight * x);
-    atomic_add(&wx2, weight * weight * x);
-    atomic_add(&wy, weight * y);
-    atomic_add(&wy2, weight * weight * y);
-    atomic_add(&wxy, weight * x * y);
-    atomic_add(&n, 1.);
+    atomicAdd(&w, weight);
+    atomicAdd(&w2, weight * weight);
+    atomicAdd(&wx, weight * x);
+    atomicAdd(&wx2, weight * weight * x);
+    atomicAdd(&wy, weight * y);
+    atomicAdd(&wy2, weight * weight * y);
+    atomicAdd(&wxy, weight * x * y);
+    atomicAdd(&n, 1.);
   }
 
   __host__ __device__ void scale_w(double scale) {

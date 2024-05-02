@@ -11,7 +11,7 @@
 // no need during matrix as initialised once and used once only
 // but for shower used 80 to 100 times
 __global__ void init_curand_states(curand_state *states, int n) {
-  int idx = thread_idx.x + block_idx.x * block_dim.x;
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) {
     return;
   }
@@ -26,7 +26,7 @@ __global__ void init_curand_states(curand_state *states, int n) {
 // preparing the shower
 
 __global__ void prep_shower(event *events, int n) {
-  int idx = thread_idx.x + block_idx.x * block_dim.x;
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
   if (idx >= n) {
     return;
@@ -61,7 +61,7 @@ __global__ void prep_shower(event *events, int n) {
 
 __global__ void select_winner_split_func(event *events, curand_state *states,
                                          int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -146,7 +146,7 @@ __global__ void select_winner_split_func(event *events, curand_state *states,
 
 __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
                              int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -168,7 +168,7 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
    */
   if (!(ev.get_shower_t() > cutoff)) {
     ev.set_end_shower(true);
-    atomic_add(d_completed, 1);  // increment the number of completed events
+    atomicAdd(d_completed, 1);  // increment the number of completed events
   }
 }
 
@@ -176,7 +176,7 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
 
 __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
                          curand_state *states, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -232,7 +232,7 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
 // do splitting
 __global__ void do_splitting(event *events, bool *accept_emission,
                              curand_state *states, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -306,8 +306,8 @@ __global__ void do_splitting(event *events, bool *accept_emission,
 
 /*
 __global__ void count_bools(event *events, int *true_count, bool
-*accept_emission, int *false_count, int n) { int idx = thread_idx.x +
-block_idx.x * block_dim.x; if (idx >= n) { return;
+*accept_emission, int *false_count, int n) { int idx = threadIdx.x +
+blockIdx.x * blockDim.x; if (idx >= n) { return;
   }
 
   event &ev = events[idx];
@@ -317,9 +317,9 @@ block_idx.x * block_dim.x; if (idx >= n) { return;
   }
 
   if (!accept_emission[idx]){
-    atomic_add(true_count, 1);
+    atomicAdd(true_count, 1);
   } else {
-    atomic_add(false_count, 1);
+    atomicAdd(false_count, 1);
   }
 }
 */

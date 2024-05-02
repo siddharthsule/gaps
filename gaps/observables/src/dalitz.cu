@@ -3,7 +3,7 @@
 // dalitz plot
 
 __global__ void calculate_dalitz(event* events, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;

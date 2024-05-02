@@ -6,7 +6,7 @@
 // validate events before binning
 
 __global__ void validate_events(event* events, int* invalid, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -17,7 +17,7 @@ __global__ void validate_events(event* events, int* invalid, int n) {
 
   if (!ev.get_validity()) {
     // printf("invalid event\n");
-    atomic_add(invalid, 1);
+    atomicAdd(invalid, 1);
   }
 }
 
@@ -26,7 +26,7 @@ __global__ void validate_events(event* events, int* invalid, int n) {
 
 // fill the_histograms (atomically!)
 __global__ void fill_histos(analysis* an, event* events, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -48,8 +48,8 @@ __global__ void fill_histos(analysis* an, event* events, int n) {
   // dalitz plot is off
   // an->dalitz.fill(ev.get_dalitz(0), ev.get_dalitz(1), ev.get_dxs());
 
-  atomic_add(&an->wtot, ev.get_dxs());
-  atomic_add(&an->ntot, 1.);
+  atomicAdd(&an->wtot, ev.get_dxs());
+  atomicAdd(&an->ntot, 1.);
 }
 
 // run the above kernels

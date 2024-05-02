@@ -3,17 +3,17 @@
 // sync device and check for errors
 void sync_gpu_and_check(const char *operation) {
   // synchronize with the device
-  cuda_device_synchronize();
+  cudaDeviceSynchronize();
 
   // check for an error
-  cuda_error_t error = cuda_get_last_error();
-  if (error != cuda_success) {
+  cudaError_t error = cudaGetLastError();
+  if (error != cudaSuccess) {
     // print the cuda error message
-    std::cerr << "cuda error @" << operation << ": "
-              << cuda_get_error_string(error) << std::endl;
+    std::cerr << "CUDA error @" << operation << ": "
+              << cudaGetErrorString(error) << std::endl;
 
     // abort the program
-    std::exit(exit_failure);
+    std::exit(EXIT_FAILURE);
   }
 }
 

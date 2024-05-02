@@ -89,7 +89,7 @@ __global__ void as_setup_kernel(alpha_s *as, double mz, double asmz, int order,
 
 // calculate alpha_s on the device for one input
 __global__ void as_value(alpha_s *as, double *asval, double t) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= 1) return;
 
@@ -101,7 +101,7 @@ __global__ void as_value(alpha_s *as, double *asval, double t) {
 // exclusively used for parton shower veto algorithm
 __global__ void as_shower_kernel(alpha_s *as, event *events, double *asval,
                                  int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) return;
   event &ev = events[idx];

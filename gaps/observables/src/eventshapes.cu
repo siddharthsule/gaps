@@ -17,7 +17,7 @@ __device__ void bubble_sort(vec4* moms, int n) {
 
 // thrust calculation from tasso
 __global__ void calculate_thr(event* events, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
@@ -93,7 +93,7 @@ __global__ void calculate_thr(event* events, int n) {
 
 // jet mass and broadening
 __global__ void calculate_jet_m_br(event* events, int n) {
-  int idx = block_idx.x * block_dim.x + thread_idx.x;
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
