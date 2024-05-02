@@ -339,7 +339,7 @@ void run_shower(thrust::device_vector<event> &d_events) {
   // allocate device memory for completed events counter
   int *d_completed;
   cuda_malloc(&d_completed, sizeof(int));
-  cuda_memset(d_completed, 0, sizeof(int));
+  cudaMemset(d_completed, 0, sizeof(int));
 
   // as(t) and veto
   double *d_asval;
@@ -415,8 +415,7 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // -------------------------------------------------------------------------
     // import the number of completed events
 
-    cuda_memcpy(&completed, d_completed, sizeof(int),
-                cuda_memcpy_device_to_host);
+    cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
     cycle++;
 
     // until paper is published, we will use this
@@ -432,17 +431,17 @@ void run_shower(thrust::device_vector<event> &d_events) {
     int *d_true_count, *d_false_count;
     cuda_malloc(&d_true_count, sizeof(int));
     cuda_malloc(&d_false_count, sizeof(int));
-    cuda_memset(d_true_count, 0, sizeof(int));
-    cuda_memset(d_false_count, 0, sizeof(int));
+    cudaMemset(d_true_count, 0, sizeof(int));
+    cudaMemset(d_false_count, 0, sizeof(int));
 
     debug_msg("running @count_bools");
     count_bools<<<(n + 255) / 256, 256>>>(d_events_ptr, d_accept_emission,
     d_true_count, d_false_count, n); sync_gpu_and_check("count_bools");
 
     int h_true_count(0), h_false_count(0);  // number of vetoed events
-    cuda_memcpy(&h_true_count, d_true_count, sizeof(int),
-    cuda_memcpy_device_to_host); cuda_memcpy(&h_false_count, d_false_count,
-    sizeof(int), cuda_memcpy_device_to_host);
+    cudaMemcpy(&h_true_count, d_true_count, sizeof(int),
+    cudaMemcpyDeviceToHost); cudaMemcpy(&h_false_count, d_false_count,
+    sizeof(int), cudaMemcpyDeviceToHost);
 
     std::cout << cycle << ", " << n - completed << ", " << h_true_count << ", "
               << h_false_count << std::endl;

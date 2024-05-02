@@ -70,7 +70,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   // allocate memory for the device analysis object
   h_an = new analysis();
   cuda_malloc(&d_an, sizeof(analysis));
-  cuda_memcpy(d_an, h_an, sizeof(analysis), cuda_memcpy_host_to_device);
+  cudaMemcpy(d_an, h_an, sizeof(analysis), cuda_memcpy_host_to_device);
 
   // get event data
   int n = d_events.size();
@@ -79,13 +79,13 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   // validate the events
   int* d_invalid;
   cuda_malloc(&d_invalid, sizeof(int));
-  cuda_memset(d_invalid, 0, sizeof(int));
+  cudaMemset(d_invalid, 0, sizeof(int));
 
   validate_events<<<(n + 255) / 256, 256>>>(d_events_ptr, d_invalid, n);
   sync_gpu_and_check("validate_events");
 
   int h_invalid;
-  cuda_memcpy(&h_invalid, d_invalid, sizeof(int), cuda_memcpy_device_to_host);
+  cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
   cuda_free(d_invalid);
 
   if (h_invalid > 0) {
@@ -126,7 +126,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   sync_gpu_and_check("fill_histos");
 
   // copy the results back to the host
-  cuda_memcpy(h_an, d_an, sizeof(analysis), cuda_memcpy_device_to_host);
+  cudaMemcpy(h_an, d_an, sizeof(analysis), cudaMemcpyDeviceToHost);
 
   // normalize the histograms
   for (auto& hist : h_an->hists) {
