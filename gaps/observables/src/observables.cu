@@ -69,7 +69,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
 
   // allocate memory for the device analysis object
   h_an = new analysis();
-  cuda_malloc(&d_an, sizeof(analysis));
+  cudaMalloc(&d_an, sizeof(analysis));
   cudaMemcpy(d_an, h_an, sizeof(analysis), cuda_memcpy_host_to_device);
 
   // get event data
@@ -78,7 +78,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
 
   // validate the events
   int* d_invalid;
-  cuda_malloc(&d_invalid, sizeof(int));
+  cudaMalloc(&d_invalid, sizeof(int));
   cudaMemset(d_invalid, 0, sizeof(int));
 
   validate_events<<<(n + 255) / 256, 256>>>(d_events_ptr, d_invalid, n);
@@ -86,7 +86,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
 
   int h_invalid;
   cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
-  cuda_free(d_invalid);
+  cudaFree(d_invalid);
 
   if (h_invalid > 0) {
     std::cout << "" << std::endl;
@@ -156,5 +156,5 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
 
   // clean up
   delete h_an;
-  cuda_free(d_an);
+  cudaFree(d_an);
 }

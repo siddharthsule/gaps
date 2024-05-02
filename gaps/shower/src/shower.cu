@@ -332,24 +332,24 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
   // set up the device alpha_s
   alpha_s *d_as;
-  cuda_malloc(&d_as, sizeof(alpha_s));
+  cudaMalloc(&d_as, sizeof(alpha_s));
   as_setup_kernel<<<1, 1>>>(d_as, mz, asmz);
   sync_gpu_and_check("as_setup_kernel");
 
   // allocate device memory for completed events counter
   int *d_completed;
-  cuda_malloc(&d_completed, sizeof(int));
+  cudaMalloc(&d_completed, sizeof(int));
   cudaMemset(d_completed, 0, sizeof(int));
 
   // as(t) and veto
   double *d_asval;
-  cuda_malloc(&d_asval, n * sizeof(double));
+  cudaMalloc(&d_asval, n * sizeof(double));
   bool *d_accept_emission;
-  cuda_malloc(&d_accept_emission, n * sizeof(bool));
+  cudaMalloc(&d_accept_emission, n * sizeof(bool));
 
   // allocate space for curand states
   curand_state *d_states;
-  cuda_malloc(&d_states, n * sizeof(curand_state));
+  cudaMalloc(&d_states, n * sizeof(curand_state));
 
   // initialize the states
   init_curand_states<<<(n + 255) / 256, 256>>>(d_states, n);
@@ -429,8 +429,8 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // false means that the event is accepted
 
     int *d_true_count, *d_false_count;
-    cuda_malloc(&d_true_count, sizeof(int));
-    cuda_malloc(&d_false_count, sizeof(int));
+    cudaMalloc(&d_true_count, sizeof(int));
+    cudaMalloc(&d_false_count, sizeof(int));
     cudaMemset(d_true_count, 0, sizeof(int));
     cudaMemset(d_false_count, 0, sizeof(int));
 
@@ -457,7 +457,7 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
   // ---------------------------------------------------------------------------
   // clean up device memory
-  cuda_free(d_asval);
-  cuda_free(d_accept_emission);
-  cuda_free(d_completed);
+  cudaFree(d_asval);
+  cudaFree(d_accept_emission);
+  cudaFree(d_completed);
 }

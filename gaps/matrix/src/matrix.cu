@@ -111,7 +111,7 @@ void calc_lome(thrust::device_vector<event> &d_events, double e) {
 
   // allocate memory for a matrix object on the device
   matrix *d_matrix;
-  cuda_malloc(&d_matrix, sizeof(matrix));
+  cudaMalloc(&d_matrix, sizeof(matrix));
 
   // set up the device matrix object
   debug_msg("running @matrix_setup_kernel");
@@ -125,7 +125,7 @@ void calc_lome(thrust::device_vector<event> &d_events, double e) {
   sync_gpu_and_check("lo_point_kernel");
 
   // free memory
-  cuda_free(d_matrix);
+  cudaFree(d_matrix);
 
   return;
 }
