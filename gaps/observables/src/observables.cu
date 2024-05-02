@@ -70,7 +70,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   // allocate memory for the device analysis object
   h_an = new analysis();
   cudaMalloc(&d_an, sizeof(analysis));
-  cudaMemcpy(d_an, h_an, sizeof(analysis), cuda_memcpy_host_to_device);
+  cudaMemcpy(d_an, h_an, sizeof(analysis), cudaMemcpyHostToDevice);
 
   // get event data
   int n = d_events.size();
