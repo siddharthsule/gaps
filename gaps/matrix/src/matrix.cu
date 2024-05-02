@@ -55,7 +55,7 @@ __global__ void matrix_setup_kernel(matrix *matrix, double e) {
 __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  curand_state state;
+  curandState state;
 
   // every events[idx] has a seed idx
   // curand_init(idx, 0, 0, &states[idx]);

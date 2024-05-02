@@ -10,7 +10,7 @@
 
 // no need during matrix as initialised once and used once only
 // but for shower used 80 to 100 times
-__global__ void init_curand_states(curand_state *states, int n) {
+__global__ void init_curandStates(curandState *states, int n) {
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) {
     return;
@@ -59,7 +59,7 @@ __global__ void prep_shower(event *events, int n) {
  * parallelizing the process.
  */
 
-__global__ void select_winner_split_func(event *events, curand_state *states,
+__global__ void select_winner_split_func(event *events, curandState *states,
                                          int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -67,7 +67,7 @@ __global__ void select_winner_split_func(event *events, curand_state *states,
     return;
   }
 
-  curand_state state = states[idx];
+  curandState state = states[idx];
 
   event &ev = events[idx];
 
@@ -175,7 +175,7 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
 // -----------------------------------------------------------------------------
 
 __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
-                         curand_state *states, int n) {
+                         curandState *states, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
@@ -183,7 +183,7 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   }
 
   event &ev = events[idx];
-  curand_state state = states[idx];
+  curandState state = states[idx];
 
   // do not run if the shower has ended
   if (ev.get_end_shower()) {
@@ -231,7 +231,7 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
 
 // do splitting
 __global__ void do_splitting(event *events, bool *accept_emission,
-                             curand_state *states, int n) {
+                             curandState *states, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
@@ -249,7 +249,7 @@ __global__ void do_splitting(event *events, bool *accept_emission,
     return;
   }
 
-  curand_state state = states[idx];
+  curandState state = states[idx];
 
   double phi = 2. * M_PI * curand_uniform(&state);
   states[idx] = state;
@@ -348,11 +348,11 @@ void run_shower(thrust::device_vector<event> &d_events) {
   cudaMalloc(&d_accept_emission, n * sizeof(bool));
 
   // allocate space for curand states
-  curand_state *d_states;
-  cudaMalloc(&d_states, n * sizeof(curand_state));
+  curandState *d_states;
+  cudaMalloc(&d_states, n * sizeof(curandState));
 
   // initialize the states
-  init_curand_states<<<(n + 255) / 256, 256>>>(d_states, n);
+  init_curandStates<<<(n + 255) / 256, 256>>>(d_states, n);
 
   // store the number of finished events per cycle
   std::vector<int> completed_per_cycle;
