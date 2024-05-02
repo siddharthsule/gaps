@@ -83,7 +83,7 @@ class vec4 {
   // angles
   double theta() const {
     double p_val = p();
-    return p != 0 ? acos(pz / p_val) : 0;
+    return p_val != 0 ? acos(pz / p_val) : 0;
   }
 
   double phi() const {
