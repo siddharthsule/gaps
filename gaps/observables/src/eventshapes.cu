@@ -1,13 +1,13 @@
 #include "eventshapes.cuh"
 
-// Event Shapes
+// event shapes
 
-// Bubble sort to sort the momenta in descending order of P()
-__device__ void bubbleSort(Vec4* moms, int n) {
+// bubble sort to sort the momenta in descending order of p()
+__device__ void bubble_sort(vec4* moms, int n) {
   for (int i = 0; i < n - 1; i++) {
     for (int j = 0; j < n - i - 1; j++) {
-      if (moms[j].P() < moms[j + 1].P()) {
-        Vec4 temp = moms[j];
+      if (moms[j].p() < moms[j + 1].p()) {
+        vec4 temp = moms[j];
         moms[j] = moms[j + 1];
         moms[j + 1] = temp;
       }
@@ -15,44 +15,44 @@ __device__ void bubbleSort(Vec4* moms, int n) {
   }
 }
 
-// Thrust calculation from TASSO
-__global__ void calculateThr(Event* events, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// thrust calculation from tasso
+__global__ void calculate_thr(event* events, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event& ev = events[idx];
+  event& ev = events[idx];
 
-  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
+  if (!ev.get_validity() || ev.get_parton_size() < 3) {
     return;
   }
 
-  Vec4 moms[maxPartons];
-  for (int i = 2; i < ev.GetSize(); ++i) {
-    moms[i - 2] = ev.GetParton(i).GetMom();
+  vec4 moms[max_partons];
+  for (int i = 2; i < ev.get_size(); ++i) {
+    moms[i - 2] = ev.get_parton(i).get_mom();
   }
 
-  bubbleSort(moms, maxPartons);
+  bubble_sort(moms, max_partons);
 
   double momsum = 0.;
-  for (int i = 0; i < ev.GetPartonSize(); ++i) {
-    momsum += moms[i].P();
+  for (int i = 0; i < ev.get_parton_size(); ++i) {
+    momsum += moms[i].p();
   }
 
   double thr = 0.;
-  Vec4 t_axis = Vec4();
+  vec4 t_axis = vec4();
 
-  for (int k = 1; k < ev.GetPartonSize(); ++k) {
+  for (int k = 1; k < ev.get_parton_size(); ++k) {
     for (int j = 0; j < k; ++j) {
-      Vec4 tmp_axis = moms[j].Cross(moms[k]);
-      Vec4 p_thrust = Vec4();
-      Vec4 p_combin[4];
+      vec4 tmp_axis = moms[j].cross(moms[k]);
+      vec4 p_thrust = vec4();
+      vec4 p_combin[4];
 
-      for (int i = 0; i < ev.GetPartonSize(); ++i) {
+      for (int i = 0; i < ev.get_parton_size(); ++i) {
         if (i != j && i != k) {
-          if (moms[i].Dot(tmp_axis) >= 0) {
+          if (moms[i].dot(tmp_axis) >= 0) {
             p_thrust = p_thrust + moms[i];
           } else {
             p_thrust = p_thrust - moms[i];
@@ -66,7 +66,7 @@ __global__ void calculateThr(Event* events, int N) {
       p_combin[3] = (p_thrust - moms[j] - moms[k]);
 
       for (int i = 0; i < 4; ++i) {
-        double temp = p_combin[i].P();
+        double temp = p_combin[i].p();
         if (temp > thr) {
           thr = temp;
           t_axis = p_combin[i];
@@ -78,7 +78,7 @@ __global__ void calculateThr(Event* events, int N) {
   thr /= momsum;
   thr = 1. - thr;
 
-  t_axis = t_axis / (t_axis).P();
+  t_axis = t_axis / (t_axis).p();
   if (t_axis[3] < 0) {
     t_axis = t_axis * -1.;
   }
@@ -87,43 +87,43 @@ __global__ void calculateThr(Event* events, int N) {
     thr = -5.;
   }
 
-  ev.SetThr(thr);
-  ev.SetTAxis(t_axis);
+  ev.set_thr(thr);
+  ev.set_t_axis(t_axis);
 }
 
-// Jet Mass and Broadening
-__global__ void calculateJetMBr(Event* events, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// jet mass and broadening
+__global__ void calculate_jet_m_br(event* events, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event& ev = events[idx];
+  event& ev = events[idx];
 
-  if (!ev.GetValidity() || ev.GetPartonSize() < 3) {
+  if (!ev.get_validity() || ev.get_parton_size() < 3) {
     return;
   }
 
-  Vec4 moms[maxPartons];
-  for (int i = 2; i < ev.GetSize(); ++i) {
-    moms[i - 2] = ev.GetParton(i).GetMom();
+  vec4 moms[max_partons];
+  for (int i = 2; i < ev.get_size(); ++i) {
+    moms[i - 2] = ev.get_parton(i).get_mom();
   }
 
   double momsum = 0.;
-  for (int i = 0; i < ev.GetSize(); ++i) {
-    momsum += moms[i].P();
+  for (int i = 0; i < ev.get_size(); ++i) {
+    momsum += moms[i].p();
   }
 
-  Vec4 p_with, p_against;
+  vec4 p_with, p_against;
   int n_with = 0, n_against = 0;
   double e_vis = 0., broad_with = 0., broad_against = 0.,
          broad_denominator = 0.;
 
-  for (int i = 0; i < ev.GetPartonSize(); ++i) {
-    double mo_para = moms[i].Dot(ev.GetTAxis());
-    double mo_perp = (moms[i] - (ev.GetTAxis() * mo_para)).P();
-    double enrg = moms[i].P();
+  for (int i = 0; i < ev.get_parton_size(); ++i) {
+    double mo_para = moms[i].dot(ev.get_t_axis());
+    double mo_perp = (moms[i] - (ev.get_t_axis() * mo_para)).p();
+    double enrg = moms[i].p();
 
     e_vis += enrg;
     broad_denominator += 2. * enrg;
@@ -148,8 +148,8 @@ __global__ void calculateJetMBr(Event* events, int N) {
 
   double e2_vis = e_vis * e_vis;
 
-  double mass2_with = fabs(p_with.M2() / e2_vis);
-  double mass2_against = fabs(p_against.M2() / e2_vis);
+  double mass2_with = fabs(p_with.m2() / e2_vis);
+  double mass2_against = fabs(p_against.m2() / e2_vis);
 
   double mass_with = sqrt(mass2_with);
   double mass_against = sqrt(mass2_against);
@@ -157,19 +157,19 @@ __global__ void calculateJetMBr(Event* events, int N) {
   broad_with /= broad_denominator;
   broad_against /= broad_denominator;
 
-  double mH = fmax(mass_with, mass_against);
-  double mL = fmin(mass_with, mass_against);
+  double m_h = fmax(mass_with, mass_against);
+  double m_l = fmin(mass_with, mass_against);
 
-  double bW = fmax(broad_with, broad_against);
-  double bN = fmin(broad_with, broad_against);
+  double b_w = fmax(broad_with, broad_against);
+  double b_n = fmin(broad_with, broad_against);
 
   if (n_with == 1 || n_against == 1) {
-    ev.SetHJM(mH);
-    ev.SetWJB(bW);
+    ev.set_hjm(m_h);
+    ev.set_wjb(b_w);
   } else {
-    ev.SetHJM(mH);
-    ev.SetLJM(mL);
-    ev.SetWJB(bW);
-    ev.SetNJB(bN);
+    ev.set_hjm(m_h);
+    ev.set_ljm(m_l);
+    ev.set_wjb(b_w);
+    ev.set_njb(b_n);
   }
 }

@@ -1,55 +1,57 @@
-#ifndef QCD_CUH_
-#define QCD_CUH_
+#ifndef qcd_cuh_
+#define qcd_cuh_
 
-// Parton includes Base, which has the CUDA libraries
+// parton includes base, which has the cuda libraries
 #include "event.cuh"
 
 /**
- * The Strong Coupling Constant
+ * the strong coupling constant
  * ----------------------------
  *
- * This file contains the QCD constants and the alpha_s class. The alpha_s class
+ * this file contains the qcd constants and the alpha_s class. the alpha_s class
  * is a simple class that calculates the strong coupling constant at a given
- * scale. The class is designed to be used in a CUDA kernel, so it is a simple
+ * scale. the class is designed to be used in a cuda kernel, so it is a simple
  * class with no dynamic memory allocation.
  */
 
-// QCD Constants, maybe you can use for SU(Not 3) ?
-const double kNC = 3.;
-const double kTR = 0.5;
-const double kCA = kNC;
-const double kCF = (kNC * kNC - 1.) / (2. * kNC);
+// qcd constants, maybe you can use for su(not 3) ?
+const double k_nc = 3.;
+const double k_tr = 0.5;
+const double k_ca = k_nc;
+const double k_cf = (k_nc * k_nc - 1.) / (2. * k_nc);
 
-// A lot of the member functions can be defined here, but we need a .cu file to
+// a lot of the member functions can be defined here, but we need a .cu file to
 // define the kernels, so might as well define everything in the .cu file!
-class AlphaS {
+class alpha_s {
  private:
   int order;
   double mc2, mb2, mz2, asmz, asmb, asmc;
 
  public:
-  // Constructor
-  __device__ AlphaS(double mz, double asmz, int order = 1, double mb = 4.75,
-                    double mc = 1.27);
+  // constructor
+  __device__ alpha_s(double mz, double asmz, int order = 1, double mb = 4.75,
+                     double mc = 1.27);
 
-  // Setup function for device code
+  // setup function for device code
   __device__ void setup(double mz, double asmz, int order = 1, double mb = 4.75,
                         double mc = 1.27);
 
-  // All the required functions to calculate the strong coupling constant
-  __device__ double Beta0(int nf);
-  __device__ double Beta1(int nf);
-  __device__ double As0(double t);
-  __device__ double As1(double t);
+  // all the required functions to calculate the strong coupling constant
+  __device__ double beta0(int nf);
+  __device__ double beta1(int nf);
+  __device__ double as0(double t);
+  __device__ double as1(double t);
   __device__ double operator()(double t);
 };
 
-// Setup the alpha_s class
-__global__ void asSetupKernel(AlphaS *as, double mz, double asmz, int order = 1,
-                              double mb = 4.75, double mc = 1.27);
+// setup the alpha_s class
+__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz,
+                                int order = 1, double mb = 4.75,
+                                double mc = 1.27);
 
-// Calculate the strong coupling constant
-__global__ void asValue(AlphaS *as, double *asval, double t);
-__global__ void asShowerKernel(AlphaS *as, Event *events, double *asval, int N);
+// calculate the strong coupling constant
+__global__ void as_value(alpha_s *as, double *asval, double t);
+__global__ void as_shower_kernel(alpha_s *as, event *events, double *asval,
+                                 int n);
 
-#endif  // QCD_CUH_
+#endif  // qcd_cuh_

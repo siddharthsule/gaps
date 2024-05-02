@@ -1,9 +1,9 @@
-#ifndef DALITZ_CUH_
-#define DALITZ_CUH_
+#ifndef dalitz_cuh_
+#define dalitz_cuh_
 
 #include "event.cuh"
 
-// Dalitz Plot
-__global__ void calculateDalitz(Event* events, int N);
+// dalitz plot
+__global__ void calculate_dalitz(event* events, int n);
 
-#endif  // DALITZ_CUH_
+#endif  // dalitz_cuh_

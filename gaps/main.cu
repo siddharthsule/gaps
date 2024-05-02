@@ -1,17 +1,17 @@
-// To Measure Wall Clock Time and Write to File
+// to measure wall clock time and write to file
 #include <chrono>
 #include <fstream>
 
-// Base Components
+// base components
 #include "base.cuh"
 
-// Matrix Element
+// matrix element
 #include "matrix.cuh"
 
-// Parton Shower
+// parton shower
 #include "shower.cuh"
 
-// Jet and Event Shape Analysis
+// jet and event shape analysis
 #include "observables.cuh"
 
 /**
@@ -31,7 +31,7 @@
 
 // -----------------------------------------------------------------------------
 
-void runGenerator(const int& N, const double& E, const std::string& filename) {
+void run_generator(const int& n, const double& e, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
 
@@ -39,64 +39,64 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   std::cout << "|      GAPS: a GPU-Amplified Parton Shower      |" << std::endl;
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Process: e+ e- --> q qbar" << std::endl;
-  std::cout << "Number of Events: " << N << std::endl;
-  std::cout << "Center of Mass Energy: " << E << " GeV" << std::endl;
+  std::cout << "Number of Events: " << n << std::endl;
+  std::cout << "Center of Mass Energy: " << e << " GeV" << std::endl;
   std::cout << "" << std::endl;
 
   // ---------------------------------------------------------------------------
-  // Initialisation
+  // initialisation
 
   std::cout << "Initialising..." << std::endl;
-  thrust::device_vector<Event> d_events(N);
+  thrust::device_vector<event> d_events(n);
 
   // ---------------------------------------------------------------------------
-  // ME Generation
+  // me generation
 
-  std::cout << "Generating Matrix Elements..." << std::endl;
+  std::cout << "Generating matrix elements..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  calcLOME(d_events, E);
+  calc_lome(d_events, e);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
 
   // ---------------------------------------------------------------------------
-  // Do the Showering
+  // do the showering
 
-  std::cout << "Showering Partons..." << std::endl;
+  std::cout << "Showering partons..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
-  runShower(d_events);
+  run_shower(d_events);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_sh = end - start;
 
   // ---------------------------------------------------------------------------
-  // Analyze Events
+  // analyze events
 
-  std::cout << "Analysing Events..." << std::endl;
+  std::cout << "Analysing events..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
-  // Analysis
-  doAnalysis(d_events, filename);
+  // analysis
+  do_analysis(d_events, filename);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;
 
   // ---------------------------------------------------------------------------
-  // Empty the device vector (Not neccessary, but good practice)
+  // empty the device vector (not neccessary, but good practice)
 
   d_events.clear();
   d_events.shrink_to_fit();
 
   /**
-   * Maybe in the future, to allow > 10^6 events, we can split the large number
-   * into smaller batches. Right now, we write events to file directly from the
+   * maybe in the future, to allow > 10^6 events, we can split the large number
+   * into smaller batches. right now, we write events to file directly from the
    * do... functions, so the code is not ready for this.
    */
 
   // ---------------------------------------------------------------------------
-  // Results
+  // results
 
   double diff = diff_me.count() + diff_sh.count() + diff_an.count();
 
@@ -110,15 +110,15 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
   std::cout << "Total Time: " << diff << " s" << std::endl;
   std::cout << "" << std::endl;
 
-  // Open the file in append mode. This will create the file if it doesn't
+  // open the file in append mode. this will create the file if it doesn't
   // exist.
   std::ofstream outfile("gaps-time.dat", std::ios_base::app);
 
-  // Write diff_sh.count() to the file.
+  // write diff_sh.count() to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
           << diff_an.count() << ", " << diff << std::endl;
 
-  // Close the file.
+  // close the file.
   outfile.close();
 
   std::cout << "Histograms written to " << filename << std::endl;
@@ -128,37 +128,37 @@ void runGenerator(const int& N, const double& E, const std::string& filename) {
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-  // Import Settings
-  int N = argc > 1 ? atoi(argv[1]) : 10000;
-  double E = argc > 2 ? atof(argv[2]) : 91.2;
+  // import settings
+  int n = argc > 1 ? atoi(argv[1]) : 10000;
+  double e = argc > 2 ? atof(argv[2]) : 91.2;
 
-  // If more than maxEvents, run in batches
-  if (N > maxEvents) {
+  // if more than max_events, run in batches
+  if (n > max_events) {
     std::cout << "-------------------------------------------------"
               << std::endl;
     std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
     std::cout << "Running in batches..." << std::endl;
     std::cout << "Please use rivet-merge to combine runs" << std::endl;
 
-    // Split into batches
-    int nBatches = N / maxEvents;
-    int nRemainder = N % maxEvents;
-    std::cout << "Number of Batches: " << nBatches << std::endl;
-    std::cout << "Size of Remainder: " << nRemainder << std::endl;
+    // split into batches
+    int n_batches = n / max_events;
+    int n_remainder = n % max_events;
+    std::cout << "Number of Batches: " << n_batches << std::endl;
+    std::cout << "Size of Remainder: " << n_remainder << std::endl;
 
-    // Run in batches
-    for (int i = 0; i < nBatches; i++) {
+    // run in batches
+    for (int i = 0; i < n_batches; i++) {
       std::string filename = "gaps-" + std::to_string(i) + ".yoda";
-      runGenerator(maxEvents, E, filename);
+      run_generator(max_events, e, filename);
     }
 
-    // Run remainder
-    if (nRemainder > 0) {
-      std::string filename = "gaps-" + std::to_string(nBatches) + ".yoda";
-      runGenerator(nRemainder, E, filename);
+    // run remainder
+    if (n_remainder > 0) {
+      std::string filename = "gaps-" + std::to_string(n_batches) + ".yoda";
+      run_generator(n_remainder, e, filename);
     }
   } else {
-    runGenerator(N, E, "gaps.yoda");
+    run_generator(n, e, "gaps.yoda");
   }
 
   return 0;

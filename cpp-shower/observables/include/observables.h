@@ -1,5 +1,5 @@
-#ifndef DURHAM_H_
-#define DURHAM_H_
+#ifndef durham_h_
+#define durham_h_
 
 #include "dalitz.h"
 #include "event.h"
@@ -8,40 +8,40 @@
 #include "jetrates.h"
 
 /**
- * Slight Difference between C++ and CUDA codes
+ * slight difference between c++ and cuda codes
  * --------------------------------------------
  *
- * Here, we don't need Analyse and Finalize functions to be outside the class.
- * So we can just include them in the class definition. Also we have to use the
+ * here, we don't need analyse and finalize functions to be outside the class.
+ * so we can just include them in the class definition. also we have to use the
  * same class for all events!
  */
-class Analysis {
+class analysis {
  public:
-  Histo1D hists[10];
-  Histo2D dalitz;
+  histo1d hists[10];
+  histo2d dalitz;
 
-  double wtot;  // Scale by Weight for 1/sigma d(sigma)/d Observable
-  double ntot;  // Scale by Number for d(sigma)/d Observable
+  double wtot;  // scale by weight for 1/sigma d(sigma)/d observable
+  double ntot;  // scale by number for d(sigma)/d observable
 
  public:
-  Analysis() : wtot(0.), ntot(0.) {
-    hists[0] = Histo1D(-4.3, -0.3, "/gaps/log10y23\n");
-    hists[1] = Histo1D(-4.3, -0.3, "/gaps/log10y34\n");
-    hists[2] = Histo1D(-4.3, -0.3, "/gaps/log10y45\n");
-    hists[3] = Histo1D(-4.3, -0.3, "/gaps/log10y56\n");
-    hists[4] = Histo1D(0., 0.5, "/gaps/tvalue\n");
-    hists[5] = Histo1D(0., 0.5, "/gaps/tzoomd\n");
-    hists[6] = Histo1D(0., 1., "/gaps/hjm\n");
-    hists[7] = Histo1D(0., 0.5, "/gaps/ljm\n");
-    hists[8] = Histo1D(0., 0.5, "/gaps/wjb\n");
-    hists[9] = Histo1D(0., 0.2, "/gaps/njb\n");
+  analysis() : wtot(0.), ntot(0.) {
+    hists[0] = histo1d(-4.3, -0.3, "/gaps/log10y23\n");
+    hists[1] = histo1d(-4.3, -0.3, "/gaps/log10y34\n");
+    hists[2] = histo1d(-4.3, -0.3, "/gaps/log10y45\n");
+    hists[3] = histo1d(-4.3, -0.3, "/gaps/log10y56\n");
+    hists[4] = histo1d(0., 0.5, "/gaps/tvalue\n");
+    hists[5] = histo1d(0., 0.5, "/gaps/tzoomd\n");
+    hists[6] = histo1d(0., 1., "/gaps/hjm\n");
+    hists[7] = histo1d(0., 0.5, "/gaps/ljm\n");
+    hists[8] = histo1d(0., 0.5, "/gaps/wjb\n");
+    hists[9] = histo1d(0., 0.2, "/gaps/njb\n");
 
-    dalitz = Histo2D(0., 1., 0., 1., "/gaps/dalitz\n");
+    dalitz = histo2d(0., 1., 0., 1., "/gaps/dalitz\n");
   }
 
-  // Member Functions Here, but not in CUDA
-  void Analyze(Event& ev);
-  void Finalize(const std::string& filename);
+  // member functions here, but not in cuda
+  void analyze(event& ev);
+  void finalize(const std::string& filename);
 };
 
-#endif  // DURHAM_H_
+#endif  // durham_h_

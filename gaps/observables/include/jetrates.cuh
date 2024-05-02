@@ -1,10 +1,10 @@
-#ifndef JETRATES_CUH_
-#define JETRATES_CUH_
+#ifndef jetrates_cuh_
+#define jetrates_cuh_
 
 #include "event.cuh"
 
-// Jet rates using Durham algorithm
-__device__ double Yij(const Vec4& p, const Vec4& q, double ecm2);
-__global__ void doCluster(Event* events, int N);
+// jet rates using durham algorithm
+__device__ double yij(const vec4& p, const vec4& q, double ecm2);
+__global__ void do_cluster(event* events, int n);
 
-#endif  // JETRATES_CUH_
+#endif  // jetrates_cuh_

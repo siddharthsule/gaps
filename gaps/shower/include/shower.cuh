@@ -1,56 +1,56 @@
-#ifndef SHOWER_CUH_
-#define SHOWER_CUH_
+#ifndef shower_cuh_
+#define shower_cuh_
 
 // qcd includes all the necessary headers
 #include "qcd.cuh"
 
 /**
- * A Dipole Shower on GPU
+ * a dipole shower on gpu
  * ----------------------
  *
- * NOTE: Kernel = CUDA function, Splitting Function = QCD function
+ * note: kernel = cuda function, splitting function = qcd function
  *
- * This is the main result of the published work. It is a full implementation of
- * a dipole shower on the GPU. It is designed to be as fast as possible*, and
- * uses a number of tricks to achieve this. The main trick is to use a single
+ * this is the main result of the published work. it is a full implementation of
+ * a dipole shower on the gpu. it is designed to be as fast as possible*, and
+ * uses a number of tricks to achieve this. the main trick is to use a single
  * kernel to perform the entire shower, and to use a number of optimisations to
  * make the code as fast as possible.
  *
- * With the Event Object storing all the neccessary information and with the
- * fact that kernel's can't be member functions, the Shower Class has been
+ * with the event object storing all the neccessary information and with the
+ * fact that kernel's can't be member functions, the shower class has been
  * removed
  *
- * *: as possible as a second year PhD student can make it ;)
+ * *: as possible as a second year ph_d student can make it ;)
  */
 
-// Initialise the curandStates
-__global__ void initCurandStates(curandState *states, int N);
+// initialise the curand_states
+__global__ void init_curand_states(curand_state *states, int n);
 
-// Prepare Events for the Shower
-__global__ void prepShower(Event *events, int N);
+// prepare events for the shower
+__global__ void prep_shower(event *events, int n);
 
-// Selecting the Winner Emission
-__global__ void selectWinnerSplitFunc(Event *events, curandState *states,
-                                      int N);
+// selecting the winner emission
+__global__ void select_winner_split_func(event *events, curand_state *states,
+                                         int n);
 
-// Check the Cutoff
-__global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
-                            int N);
+// check the cutoff
+__global__ void check_cutoff(event *events, int *d_completed, double cutoff,
+                             int n);
 
-// Veto Algorithm
-__global__ void vetoAlg(Event *events, double *asval, bool *acceptEmission,
-                        curandState *states, int N);
+// veto algorithm
+__global__ void veto_alg(event *events, double *asval, bool *accept_emission,
+                         curand_state *states, int n);
 
-// Perform the Splitting
-__global__ void doSplitting(Event *events, bool *acceptEmission,
-                            curandState *states, int N);
+// perform the splitting
+__global__ void do_splitting(event *events, bool *accept_emission,
+                             curand_state *states, int n);
 
-// Kinematics
-__device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
-                               const double phi, const Vec4 pijt,
-                               const Vec4 pkt);
+// kinematics
+__device__ void make_kinematics(vec4 *kinematics, const double z,
+                                const double y, const double phi,
+                                const vec4 pijt, const vec4 pkt);
 
-// All tasks wrapped into a function
-void runShower(thrust::device_vector<Event> &d_events);
+// all tasks wrapped into a function
+void run_shower(thrust::device_vector<event> &d_events);
 
-#endif  // SHOWER_CUH_
+#endif  // shower_cuh_

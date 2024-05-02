@@ -1,25 +1,25 @@
 #include "base.cuh"
 
-// Sync Device and Check for Errors
-void syncGPUAndCheck(const char *operation) {
+// sync device and check for errors
+void sync_gpu_and_check(const char *operation) {
   // synchronize with the device
-  cudaDeviceSynchronize();
+  cuda_device_synchronize();
 
   // check for an error
-  cudaError_t error = cudaGetLastError();
-  if (error != cudaSuccess) {
-    // print the CUDA error message
-    std::cerr << "CUDA error @" << operation << ": "
-              << cudaGetErrorString(error) << std::endl;
+  cuda_error_t error = cuda_get_last_error();
+  if (error != cuda_success) {
+    // print the cuda error message
+    std::cerr << "cuda error @" << operation << ": "
+              << cuda_get_error_string(error) << std::endl;
 
     // abort the program
-    std::exit(EXIT_FAILURE);
+    std::exit(exit_failure);
   }
 }
 
-// Debug messages
-__host__ __device__ void DEBUG_MSG(const char *message) {
+// debug messages
+__host__ __device__ void debug_msg(const char *message) {
   if (debug) {
-    printf("DEBUG: %s\n", message);
+    printf("debug: %s\n", message);
   }
 }

@@ -1,167 +1,175 @@
-#ifndef EVENT_H_
-#define EVENT_H_
+#ifndef event_h_
+#define event_h_
 
 #include "parton.h"
 
-// Event Class
-// Built to contain the partons and the dxs as one accesible object
-// In future, can use to store thrust, log10y23 to parallelise those
-class Event {
+// event class
+// built to contain the partons and the dxs as one accesible object
+// in future, can use to store thrust, log10y23 to parallelise those
+class event {
  private:
-  // Temporary Solution - Allows a limited number of partons
-  // Better Solution would be to use a dynamic array, but not GPU friendly
-  Parton partons[maxPartons];
+  // temporary solution - allows a limited number of partons
+  // better solution would be to use a dynamic array, but not gpu friendly
+  parton partons[max_partons];
 
-  // ME Params -----------------------------------------------------------------
+  // me params -----------------------------------------------------------------
 
-  double dxs = 0.;  // Differential Cross Section
-  int nHard = 0;    // Number of Hard Partons
-  // int nInitial = 0;    // Number of Initial Partons (Prep for ISR)
-  // int nNonParton = 0;  // Number of Non-Parton Partons (Prep for ISR)
+  double dxs = 0.;  // differential cross section
+  int n_hard = 0;   // number of hard partons
+  // int n_initial = 0;    // number of initial partons (prep for isr)
+  // int n_non_parton = 0;  // number of non-parton partons (prep for isr)
 
-  // Shower Params -------------------------------------------------------------
+  // shower params -------------------------------------------------------------
 
-  int nEmission = 0;    // Number of Emissions
-  double showerT = 0.;  // Evolution and Splitting Variables
-  double showerZ = 0.;
-  double showerY = 0.;
-  int showerC = 0;  // Colour Counter
+  int n_emission = 0;    // number of emissions
+  double shower_t = 0.;  // evolution and splitting variables
+  double shower_z = 0.;
+  double shower_y = 0.;
+  int shower_c = 0;  // colour counter
 
-  // Selecting Winner Emission - Defaults Values which represent no winner
-  int winSF = 16;
-  int winDipole[2] = {-1, -1};
-  double winParams[2] = {0., 0.};
+  // selecting winner emission - defaults values which represent no winner
+  int win_sf = 16;
+  int win_dipole[2] = {-1, -1};
+  double win_params[2] = {0., 0.};
 
-  bool endShower = false;  // Shower End Flag - used if T < 1 GeV
+  bool end_shower = false;  // shower end flag - used if t < 1 ge_v
 
-  // Analysis Variables --------------------------------------------------------
+  // analysis variables --------------------------------------------------------
 
-  // Event Validity - Momentum and Colour Conservation
+  // event validity - momentum and colour conservation
   bool validity = true;
 
-  // Jet Rates using the Durham Algorithm
+  // jet rates using the durham algorithm
   double y23 = -50., y34 = -50., y45 = -50., y56 = -50.;
 
-  // Event Shape Variables - Thrust, Jet Masses and Broadenings
+  // event shape variables - thrust, jet masses and broadenings
   double thr = -50., hjm = -50., ljm = -50., wjb = -50., njb = -50.;
-  Vec4 t_axis = Vec4();
+  vec4 t_axis = vec4();
 
-  // Dalitz Plot
+  // dalitz plot
   double dalitz[2] = {-50., -50.};
 
  public:
-  // Constructor ---------------------------------------------------------------
+  // constructor ---------------------------------------------------------------
 
-  // Empty, so that we can build our ME, PS onto it
-  Event() {}
+  // empty, so that we can build our me, ps onto it
+  event() {}
 
-  // Getters -------------------------------------------------------------------
+  // getters -------------------------------------------------------------------
 
-  // Access Partons in the Event
-  Parton GetParton(int i) const { return partons[i]; }
-  int GetSize() const { return nHard + nEmission; }
-  int GetHard() const { return nHard; }
-  int GetEmissions() const { return nEmission; }
-  int GetPartonSize() const { return (nHard + nEmission) - 2; }  // -2: e+, e-
+  // access partons in the event
+  parton get_parton(int i) const { return partons[i]; }
+  int get_size() const { return n_hard + n_emission; }
+  int get_hard() const { return n_hard; }
+  int get_emissions() const { return n_emission; }
+  int get_parton_size() const {
+    return (n_hard + n_emission) - 2;
+  }  // -2: e+, e-
 
-  // Get Differential Cross Section
-  double GetDxs() const { return dxs; }
+  // get differential cross section
+  double get_dxs() const { return dxs; }
 
-  // Get Shower Params
-  double GetShowerT() const { return showerT; }
-  double GetShowerY() const { return showerY; }
-  double GetShowerZ() const { return showerZ; }
-  int GetShowerC() const { return showerC; }
+  // get shower params
+  double get_shower_t() const { return shower_t; }
+  double get_shower_y() const { return shower_y; }
+  double get_shower_z() const { return shower_z; }
+  int get_shower_c() const { return shower_c; }
 
-  // Get Winner Emission
-  int GetWinSF() const { return winSF; }
-  int GetWinDipole(int i) const { return winDipole[i]; }
-  double GetWinParam(int i) const { return winParams[i]; }
+  // get winner emission
+  int get_win_sf() const { return win_sf; }
+  int get_win_dipole(int i) const { return win_dipole[i]; }
+  double get_win_param(int i) const { return win_params[i]; }
 
-  // Get Analysis Variables
-  bool GetValidity() const { return validity; }
+  // get analysis variables
+  bool get_validity() const { return validity; }
 
-  double GetY23() const { return y23; }
-  double GetY34() const { return y34; }
-  double GetY45() const { return y45; }
-  double GetY56() const { return y56; }
-  double GetThr() const { return thr; }
-  double GetHJM() const { return hjm; }
-  double GetLJM() const { return ljm; }
-  double GetWJB() const { return wjb; }
-  double GetNJB() const { return njb; }
+  double get_y23() const { return y23; }
+  double get_y34() const { return y34; }
+  double get_y45() const { return y45; }
+  double get_y56() const { return y56; }
+  double get_thr() const { return thr; }
+  double get_hjm() const { return hjm; }
+  double get_ljm() const { return ljm; }
+  double get_wjb() const { return wjb; }
+  double get_njb() const { return njb; }
 
-  Vec4 GetTAxis() const { return t_axis; }
+  vec4 get_t_axis() const { return t_axis; }
 
-  double GetDalitz(int i) const { return dalitz[i]; }
+  double get_dalitz(int i) const { return dalitz[i]; }
 
-  // Setters -------------------------------------------------------------------
+  // setters -------------------------------------------------------------------
 
-  // Add / Replace Parton
-  void SetParton(int i, Parton parton) { partons[i] = parton; }
+  // add / replace parton
+  void set_parton(int i, parton parton) { partons[i] = parton; }
 
-  // Not used in ME [HOST]
-  void SetPartonPid(int i, int pid) { partons[i].SetPid(pid); }
-  void SetPartonMom(int i, Vec4 mom) { partons[i].SetMom(mom); }
-  void SetPartonCol(int i, int col) { partons[i].SetCol(col); }
-  void SetPartonAntiCol(int i, int anticol) { partons[i].SetAntiCol(anticol); }
+  // not used in me [host]
+  void set_parton_pid(int i, int pid) { partons[i].set_pid(pid); }
+  void set_parton_mom(int i, vec4 mom) { partons[i].set_mom(mom); }
+  void set_parton_col(int i, int col) { partons[i].set_col(col); }
+  void set_parton_anti_col(int i, int anticol) {
+    partons[i].set_anti_col(anticol);
+  }
 
-  // Set Differential Cross Section and nHard
-  void SetDxs(double dxs) { this->dxs = dxs; }
-  void SetHard(int nHard) { this->nHard = nHard; }
+  // set differential cross section and n_hard
+  void set_dxs(double dxs) { this->dxs = dxs; }
+  void set_hard(int n_hard) { this->n_hard = n_hard; }
 
-  // Adjust and Increment Number of Emissions
-  void SetEmissions(int nEmission) { this->nEmission = nEmission; }
-  void IncrementEmissions() { nEmission++; }
+  // adjust and increment number of emissions
+  void set_emissions(int n_emission) { this->n_emission = n_emission; }
+  void increment_emissions() { n_emission++; }
 
-  // Set Shower Params
-  void SetShowerT(double showerT) { this->showerT = showerT; }
-  void SetShowerY(double showerY) { this->showerY = showerY; }
-  void SetShowerZ(double showerZ) { this->showerZ = showerZ; }
+  // set shower params
+  void set_shower_t(double shower_t) { this->shower_t = shower_t; }
+  void set_shower_y(double shower_y) { this->shower_y = shower_y; }
+  void set_shower_z(double shower_z) { this->shower_z = shower_z; }
 
-  void SetShowerC(int showerC) { this->showerC = showerC; }
-  void IncrementShowerC() { showerC++; }
+  void set_shower_c(int shower_c) { this->shower_c = shower_c; }
+  void increment_shower_c() { shower_c++; }
 
-  // Set Winner Emission
-  void SetWinSF(int winSF) { this->winSF = winSF; }
-  void SetWinDipole(int i, int winDipole) { this->winDipole[i] = winDipole; }
-  void SetWinParam(int i, double winParams) { this->winParams[i] = winParams; }
+  // set winner emission
+  void set_win_sf(int win_sf) { this->win_sf = win_sf; }
+  void set_win_dipole(int i, int win_dipole) {
+    this->win_dipole[i] = win_dipole;
+  }
+  void set_win_param(int i, double win_params) {
+    this->win_params[i] = win_params;
+  }
 
-  // Set Analysis Variables
-  void SetValidity(bool validity) { this->validity = validity; }
+  // set analysis variables
+  void set_validity(bool validity) { this->validity = validity; }
 
-  void SetY23(double y23) { this->y23 = y23; }
-  void SetY34(double y34) { this->y34 = y34; }
-  void SetY45(double y45) { this->y45 = y45; }
-  void SetY56(double y56) { this->y56 = y56; }
-  void SetThr(double thr) { this->thr = thr; }
-  void SetHJM(double hjm) { this->hjm = hjm; }
-  void SetLJM(double ljm) { this->ljm = ljm; }
-  void SetWJB(double wjb) { this->wjb = wjb; }
-  void SetNJB(double njb) { this->njb = njb; }
+  void set_y23(double y23) { this->y23 = y23; }
+  void set_y34(double y34) { this->y34 = y34; }
+  void set_y45(double y45) { this->y45 = y45; }
+  void set_y56(double y56) { this->y56 = y56; }
+  void set_thr(double thr) { this->thr = thr; }
+  void set_hjm(double hjm) { this->hjm = hjm; }
+  void set_ljm(double ljm) { this->ljm = ljm; }
+  void set_wjb(double wjb) { this->wjb = wjb; }
+  void set_njb(double njb) { this->njb = njb; }
 
-  void SetTAxis(Vec4 t_axis) { this->t_axis = t_axis; }
+  void set_t_axis(vec4 t_axis) { this->t_axis = t_axis; }
 
-  void SetDalitz(double x1, double x2) {
+  void set_dalitz(double x1, double x2) {
     dalitz[0] = x1;
     dalitz[1] = x2;
   }
 
-  // Member Functions ----------------------------------------------------------
+  // member functions ----------------------------------------------------------
 
-  // Validation of Result Data
-  bool Validate() {
-    Vec4 psum = Vec4();
+  // validation of result data
+  bool validate() {
+    vec4 psum = vec4();
 
-    // N Colours = N Partons - 1
-    int csum[maxPartons - 1] = {0};
+    // n colours = n partons - 1
+    int csum[max_partons - 1] = {0};
 
-    for (int i = 0; i < GetSize(); i++) {
-      Parton p = GetParton(i);
+    for (int i = 0; i < get_size(); i++) {
+      parton p = get_parton(i);
 
-      Vec4 pmom = p.GetMom();
-      int pcol = p.GetCol();
-      int pAntiCol = p.GetAntiCol();
+      vec4 pmom = p.get_mom();
+      int pcol = p.get_col();
+      int p_anti_col = p.get_anti_col();
 
       psum = psum + pmom;
 
@@ -169,8 +177,8 @@ class Event {
         csum[pcol] += 1;
       }
 
-      if (pAntiCol > 0) {
-        csum[pAntiCol] -= 1;
+      if (p_anti_col > 0) {
+        csum[p_anti_col] -= 1;
       }
     }
 
@@ -181,9 +189,9 @@ class Event {
     }
 
     bool ccheck = true;
-    for (int i = 0; i < maxPartons - 1; i++) {
+    for (int i = 0; i < max_partons - 1; i++) {
       if (csum[i] != 0) {
-        std::cout << "Colour " << i << " is not conserved." << std::endl;
+        std::cout << "colour " << i << " is not conserved." << std::endl;
         ccheck = false;
         break;
       }
@@ -193,28 +201,28 @@ class Event {
   }
 
   void print_info() const {
-    std::cout << "Event Information:\n";
-    std::cout << "Dxs: " << GetDxs() << "\n";
-    std::cout << "Number of Emissions: " << GetEmissions() << "\n";
-    std::cout << "Shower T: " << GetShowerT() << "\n";
-    std::cout << "Shower Y: " << GetShowerY() << "\n";
-    std::cout << "Shower Z: " << GetShowerZ() << "\n";
-    std::cout << "Shower C: " << GetShowerC() << "\n";
-    std::cout << "Winner SF: " << GetWinSF() << "\n";
-    std::cout << "Winner Dipole 1: " << GetWinDipole(0) << "\n";
-    std::cout << "Winner Dipole 2: " << GetWinDipole(1) << "\n";
-    std::cout << "Winner Params 1: " << GetWinParam(0) << "\n";
-    std::cout << "Winner Params 2: " << GetWinParam(1) << "\n";
-    std::cout << "Partons:\n";
-    for (int i = 0; i < GetSize(); i++) {
-      Parton parton = GetParton(i);
-      std::cout << "  Parton " << i << ":\n";
-      std::cout << "    Pid: " << parton.GetPid() << "\n";
-      std::cout << "    Mom: " << parton.GetMom() << "\n";
-      std::cout << "    Col: " << parton.GetCol() << "\n";
-      std::cout << "    AntiCol: " << parton.GetAntiCol() << "\n";
+    std::cout << "event information:\n";
+    std::cout << "dxs: " << get_dxs() << "\n";
+    std::cout << "number of emissions: " << get_emissions() << "\n";
+    std::cout << "shower t: " << get_shower_t() << "\n";
+    std::cout << "shower y: " << get_shower_y() << "\n";
+    std::cout << "shower z: " << get_shower_z() << "\n";
+    std::cout << "shower c: " << get_shower_c() << "\n";
+    std::cout << "winner sf: " << get_win_sf() << "\n";
+    std::cout << "winner dipole 1: " << get_win_dipole(0) << "\n";
+    std::cout << "winner dipole 2: " << get_win_dipole(1) << "\n";
+    std::cout << "winner params 1: " << get_win_param(0) << "\n";
+    std::cout << "winner params 2: " << get_win_param(1) << "\n";
+    std::cout << "partons:\n";
+    for (int i = 0; i < get_size(); i++) {
+      parton parton = get_parton(i);
+      std::cout << "  parton " << i << ":\n";
+      std::cout << "    pid: " << parton.get_pid() << "\n";
+      std::cout << "    mom: " << parton.get_mom() << "\n";
+      std::cout << "    col: " << parton.get_col() << "\n";
+      std::cout << "    anti_col: " << parton.get_anti_col() << "\n";
     }
   }
 };
 
-#endif  // EVENT_H_
+#endif  // event_h_

@@ -1,42 +1,42 @@
-#ifndef SHOWER_KINEMATICS_CUH_
-#define SHOWER_KINEMATICS_CUH_
+#ifndef shower_kinematics_cuh_
+#define shower_kinematics_cuh_
 
 #include "qcd.cuh"
 
 /**
- * Why is this function in a header file? See Vec4.cuh
+ * why is this function in a header file? see vec4.cuh
  */
 
-__device__ void MakeKinematics(Vec4 *kinematics, const double z, const double y,
-                               const double phi, const Vec4 pijt,
-                               const Vec4 pkt) {
-  Vec4 Q = pijt + pkt;
+__device__ void make_kinematics(vec4 *kinematics, const double z,
+                                const double y, const double phi,
+                                const vec4 pijt, const vec4 pkt) {
+  vec4 q = pijt + pkt;
 
-  // Generating the Momentum (0, kt1, kt2, 0)
-  double rkt = sqrt(Q.M2() * y * z * (1. - z));
+  // generating the momentum (0, kt1, kt2, 0)
+  double rkt = sqrt(q.m2() * y * z * (1. - z));
 
-  Vec4 kt1 = pijt.Cross(pkt);
-  if (kt1.P() < 1.e-6) {
-    Vec4 xaxis(0., 1., 0., 0.);
-    kt1 = pijt.Cross(xaxis);
+  vec4 kt1 = pijt.cross(pkt);
+  if (kt1.p() < 1.e-6) {
+    vec4 xaxis(0., 1., 0., 0.);
+    kt1 = pijt.cross(xaxis);
   }
-  kt1 = kt1 * (rkt * cos(phi) / kt1.P());
+  kt1 = kt1 * (rkt * cos(phi) / kt1.p());
 
-  Vec4 kt2cms = Q.Boost(pijt);
-  kt2cms = kt2cms.Cross(kt1);
-  kt2cms = kt2cms * (rkt * sin(phi) / kt2cms.P());
-  Vec4 kt2 = Q.BoostBack(kt2cms);
+  vec4 kt2cms = q.boost(pijt);
+  kt2cms = kt2cms.cross(kt1);
+  kt2cms = kt2cms * (rkt * sin(phi) / kt2cms.p());
+  vec4 kt2 = q.boost_back(kt2cms);
 
-  // Conversion to {i, j, k} basis
-  Vec4 pi = pijt * z + pkt * ((1. - z) * y) + kt1 + kt2;
-  Vec4 pj = pijt * (1. - z) + pkt * (z * y) - kt1 - kt2;
-  Vec4 pk = pkt * (1. - y);
+  // conversion to {i, j, k} basis
+  vec4 pi = pijt * z + pkt * ((1. - z) * y) + kt1 + kt2;
+  vec4 pj = pijt * (1. - z) + pkt * (z * y) - kt1 - kt2;
+  vec4 pk = pkt * (1. - y);
 
-  // No need to do *kinematics[0], for arrays the elements are already
+  // no need to do *kinematics[0], for arrays the elements are already
   // pointers
   kinematics[0] = pi;
   kinematics[1] = pj;
   kinematics[2] = pk;
 }
 
-#endif  // SHOWER_KINEMATICS_CUH_
+#endif  // shower_kinematics_cuh_

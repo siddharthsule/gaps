@@ -3,158 +3,158 @@
 #include "observables.cuh"
 
 // -----------------------------------------------------------------------------
-// Validate Events before binning
+// validate events before binning
 
-__global__ void validateEvents(Event* events, int* invalid, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void validate_events(event* events, int* invalid, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event& ev = events[idx];
-  ev.SetValidity(ev.Validate());
+  event& ev = events[idx];
+  ev.set_validity(ev.validate());
 
-  if (!ev.GetValidity()) {
-    // printf("Invalid Event\n");
-    atomicAdd(invalid, 1);
+  if (!ev.get_validity()) {
+    // printf("invalid event\n");
+    atomic_add(invalid, 1);
   }
 }
 
 // -----------------------------------------------------------------------------
-// Analysis
+// analysis
 
-// Fill theHistograms (Atomically!)
-__global__ void fillHistos(Analysis* an, Event* events, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// fill the_histograms (atomically!)
+__global__ void fill_histos(analysis* an, event* events, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event& ev = events[idx];
+  event& ev = events[idx];
 
-  an->hists[0].Fill(ev.GetY23(), ev.GetDxs());
-  an->hists[1].Fill(ev.GetY34(), ev.GetDxs());
-  an->hists[2].Fill(ev.GetY45(), ev.GetDxs());
-  an->hists[3].Fill(ev.GetY56(), ev.GetDxs());
-  an->hists[4].Fill(ev.GetThr(), ev.GetDxs());
-  an->hists[5].Fill(ev.GetThr(), ev.GetDxs());
-  an->hists[6].Fill(ev.GetHJM(), ev.GetDxs());
-  an->hists[7].Fill(ev.GetLJM(), ev.GetDxs());
-  an->hists[8].Fill(ev.GetWJB(), ev.GetDxs());
-  an->hists[9].Fill(ev.GetNJB(), ev.GetDxs());
+  an->hists[0].fill(ev.get_y23(), ev.get_dxs());
+  an->hists[1].fill(ev.get_y34(), ev.get_dxs());
+  an->hists[2].fill(ev.get_y45(), ev.get_dxs());
+  an->hists[3].fill(ev.get_y56(), ev.get_dxs());
+  an->hists[4].fill(ev.get_thr(), ev.get_dxs());
+  an->hists[5].fill(ev.get_thr(), ev.get_dxs());
+  an->hists[6].fill(ev.get_hjm(), ev.get_dxs());
+  an->hists[7].fill(ev.get_ljm(), ev.get_dxs());
+  an->hists[8].fill(ev.get_wjb(), ev.get_dxs());
+  an->hists[9].fill(ev.get_njb(), ev.get_dxs());
 
-  // Dalitz Plot is OFF
-  // an->dalitz.Fill(ev.GetDalitz(0), ev.GetDalitz(1), ev.GetDxs());
+  // dalitz plot is off
+  // an->dalitz.fill(ev.get_dalitz(0), ev.get_dalitz(1), ev.get_dxs());
 
-  atomicAdd(&an->wtot, ev.GetDxs());
-  atomicAdd(&an->ntot, 1.);
+  atomic_add(&an->wtot, ev.get_dxs());
+  atomic_add(&an->ntot, 1.);
 }
 
-// Run the above kernels
-void doAnalysis(thrust::device_vector<Event>& d_events, std::string filename) {
+// run the above kernels
+void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   /**
-   * Only Place for a Host Object
+   * only place for a host object
    * ----------------------------
    *
-   * While most of the work is done on the device, one cannot directly write
-   * to a file from the device. Therefore, we will create a host object to
+   * while most of the work is done on the device, one cannot directly write
+   * to a file from the device. therefore, we will create a host object to
    * store the histograms, and then copy the results back to the host for
    * writing to file.
    */
 
-  // Device Analysis Object
-  Analysis *h_an, *d_an;
+  // device analysis object
+  analysis *h_an, *d_an;
 
-  // Allocate memory for the device analysis object
-  h_an = new Analysis();
-  cudaMalloc(&d_an, sizeof(Analysis));
-  cudaMemcpy(d_an, h_an, sizeof(Analysis), cudaMemcpyHostToDevice);
+  // allocate memory for the device analysis object
+  h_an = new analysis();
+  cuda_malloc(&d_an, sizeof(analysis));
+  cuda_memcpy(d_an, h_an, sizeof(analysis), cuda_memcpy_host_to_device);
 
-  // Get Event Data
-  int N = d_events.size();
-  Event* d_events_ptr = thrust::raw_pointer_cast(d_events.data());
+  // get event data
+  int n = d_events.size();
+  event* d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
-  // Validate the Events
+  // validate the events
   int* d_invalid;
-  cudaMalloc(&d_invalid, sizeof(int));
-  cudaMemset(d_invalid, 0, sizeof(int));
+  cuda_malloc(&d_invalid, sizeof(int));
+  cuda_memset(d_invalid, 0, sizeof(int));
 
-  validateEvents<<<(N + 255) / 256, 256>>>(d_events_ptr, d_invalid, N);
-  syncGPUAndCheck("validateEvents");
+  validate_events<<<(n + 255) / 256, 256>>>(d_events_ptr, d_invalid, n);
+  sync_gpu_and_check("validate_events");
 
   int h_invalid;
-  cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaFree(d_invalid);
+  cuda_memcpy(&h_invalid, d_invalid, sizeof(int), cuda_memcpy_device_to_host);
+  cuda_free(d_invalid);
 
   if (h_invalid > 0) {
     std::cout << "" << std::endl;
-    std::cout << "ERROR: Invalid Events Found" << std::endl;
-    std::cout << "Number of Invalid Events: " << h_invalid << "\n";
+    std::cout << "error: invalid events found" << std::endl;
+    std::cout << "number of invalid events: " << h_invalid << "\n";
   }
 
-  // Calculare the Observables
-  doCluster<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("doCluster");
+  // calculare the observables
+  do_cluster<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  sync_gpu_and_check("do_cluster");
 
-  calculateThr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("calculateThr");
+  calculate_thr<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  sync_gpu_and_check("calculate_thr");
 
-  calculateJetMBr<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("calculateJetMBr");
+  calculate_jet_m_br<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  sync_gpu_and_check("calculate_jet_m_br");
 
   /**
-   * Why is the Dalitz Plot off?
+   * why is the dalitz plot off?
    * ---------------------------
    *
-   * While the Dalitz analysis also benefits from the GPU parallelisation, the
+   * while the dalitz analysis also benefits from the gpu parallelisation, the
    * writing of the data to file severely limits the performance, as instead of
-   * the usual 100 bins, we have 100^2 = 1000 bins. This takes around 0.04s,
-   * which is minute in the C++ case, but is in fact 40% of the total analysis
-   * time! So for our tests, we keep this off, to keep our comparisons fair,
-   * and relvant to the actual GPU effect.
+   * the usual 100 bins, we have 100^2 = 1000 bins. this takes around 0.04s,
+   * which is minute in the c++ case, but is in fact 40% of the total analysis
+   * time! so for our tests, we keep this off, to keep our comparisons fair,
+   * and relvant to the actual gpu effect.
    *
-   * If you want to turn it on, uncomment the lines in this file, and it's
+   * if you want to turn it on, uncomment the lines in this file, and it's
    * equivalent in the 'observables.cpp' file.
    */
-  // calculateDalitz<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  // syncGPUAndCheck("calculateDalitz");
+  // calculate_dalitz<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  // sync_gpu_and_check("calculate_dalitz");
 
-  // Do the Analysis
-  fillHistos<<<(N + 255) / 256, 256>>>(d_an, d_events_ptr, N);
-  syncGPUAndCheck("fillHistos");
+  // do the analysis
+  fill_histos<<<(n + 255) / 256, 256>>>(d_an, d_events_ptr, n);
+  sync_gpu_and_check("fill_histos");
 
-  // Copy the results back to the host
-  cudaMemcpy(h_an, d_an, sizeof(Analysis), cudaMemcpyDeviceToHost);
+  // copy the results back to the host
+  cuda_memcpy(h_an, d_an, sizeof(analysis), cuda_memcpy_device_to_host);
 
-  // Normalize the histograms
+  // normalize the histograms
   for (auto& hist : h_an->hists) {
-    hist.ScaleW(1. / h_an->ntot);
+    hist.scale_w(1. / h_an->ntot);
   }
 
-  // Dalitz Plot is OFF
-  // h_an->dalitz.ScaleW(1. / h_an->ntot);
+  // dalitz plot is off
+  // h_an->dalitz.scale_w(1. / h_an->ntot);
 
-  // Remove existing file
+  // remove existing file
   std::remove(filename.c_str());
 
-  // Write the histograms to file
-  Write(h_an->hists[0], "/gaps/log10y23\n", filename);
-  Write(h_an->hists[1], "/gaps/log10y34\n", filename);
-  Write(h_an->hists[2], "/gaps/log10y45\n", filename);
-  Write(h_an->hists[3], "/gaps/log10y56\n", filename);
-  Write(h_an->hists[4], "/gaps/tvalue\n", filename);
-  Write(h_an->hists[5], "/gaps/tzoomd\n", filename);
-  Write(h_an->hists[6], "/gaps/hjm\n", filename);
-  Write(h_an->hists[7], "/gaps/ljm\n", filename);
-  Write(h_an->hists[8], "/gaps/wjb\n", filename);
-  Write(h_an->hists[9], "/gaps/njb\n", filename);
+  // write the histograms to file
+  write(h_an->hists[0], "/gaps/log10y23\n", filename);
+  write(h_an->hists[1], "/gaps/log10y34\n", filename);
+  write(h_an->hists[2], "/gaps/log10y45\n", filename);
+  write(h_an->hists[3], "/gaps/log10y56\n", filename);
+  write(h_an->hists[4], "/gaps/tvalue\n", filename);
+  write(h_an->hists[5], "/gaps/tzoomd\n", filename);
+  write(h_an->hists[6], "/gaps/hjm\n", filename);
+  write(h_an->hists[7], "/gaps/ljm\n", filename);
+  write(h_an->hists[8], "/gaps/wjb\n", filename);
+  write(h_an->hists[9], "/gaps/njb\n", filename);
 
-  // Dalitz Plot is OFF
-  // Write(h_an->dalitz, "/gaps/dalitz\n", filename);
+  // dalitz plot is off
+  // write(h_an->dalitz, "/gaps/dalitz\n", filename);
 
-  // Clean up
+  // clean up
   delete h_an;
-  cudaFree(d_an);
+  cuda_free(d_an);
 }

@@ -1,23 +1,23 @@
-#ifndef MATRIX_H_
-#define MATRIX_H_
+#ifndef matrix_h_
+#define matrix_h_
 
-// Parton includes Base, which has the CUDA libraries
+// parton includes base, which has the cuda libraries
 #include "event.h"
 
-// Matrix class
-class Matrix {
+// matrix class
+class matrix {
  private:
-  double alphas, ecms, MZ2, GZ2, alpha, sin2tw, amin, ye, ze, ws;
+  double alphas, ecms, mz2, gz2, alpha, sin2tw, amin, ye, ze, ws;
 
  public:
-  // Constructor
-  Matrix(double alphas = asmz, double ecms = 91.2);
+  // constructor
+  matrix(double alphas = asmz, double ecms = 91.2);
 
-  // Leading Order Matrix Element Generation
-  double ME2(int fl, double s, double t);
+  // leading order matrix element generation
+  double me2(int fl, double s, double t);
 
-  // Generate a leading order point
-  void GenerateLOPoint(Event &ev);
+  // generate a leading order point
+  void generate_lo_point(event &ev);
 };
 
-#endif  // MATRIX_H_
+#endif  // matrix_h_

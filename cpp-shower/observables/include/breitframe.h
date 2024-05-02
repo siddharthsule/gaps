@@ -1,9 +1,9 @@
-#ifndef BREITFRAME_H_
-#define BREITFRAME_H_
+#ifndef breitframe_h_
+#define breitframe_h_
 
 #include "event.h"
 
-// Breit Frame Event Shapes - Simple Calculations so only one
-void CalculateBFObs(Event& ev);
+// breit frame event shapes - simple calculations so only one
+void calculate_bf_obs(event& ev);
 
-#endif  // BREITFRAME_H_
+#endif  // breitframe_h_

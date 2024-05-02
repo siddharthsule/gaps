@@ -1,9 +1,9 @@
-#ifndef DALITZ_H_
-#define DALITZ_H_
+#ifndef dalitz_h_
+#define dalitz_h_
 
 #include "event.h"
 
-// Dalitz Plot
-void CalculateDalitz(Event& ev);
+// dalitz plot
+void calculate_dalitz(event& ev);
 
-#endif  // DALITZ_H_
+#endif  // dalitz_h_

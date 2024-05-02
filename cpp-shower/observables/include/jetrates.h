@@ -1,10 +1,10 @@
-#ifndef JETRATES_H_
-#define JETRATES_H_
+#ifndef jetrates_h_
+#define jetrates_h_
 
 #include "event.h"
 
-// Jet Rates using the Durham Algorithm
-double Yij(const Vec4& p, const Vec4& q);
-void Cluster(Event& ev);
+// jet rates using the durham algorithm
+double yij(const vec4& p, const vec4& q);
+void cluster(event& ev);
 
-#endif  // JETRATES_H_
+#endif  // jetrates_h_

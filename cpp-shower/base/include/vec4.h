@@ -1,23 +1,23 @@
-#ifndef VEC4_H_
-#define VEC4_H_
+#ifndef vec4_h_
+#define vec4_h_
 
-// Base Class, with all the important definitions
+// base class, with all the important definitions
 #include "base.h"
 
-class Vec4 {
+class vec4 {
  private:
-  double E, px, py, pz;
+  double e, px, py, pz;
 
  public:
-  // Constructor - Define key attributes Energy and Momentum
-  Vec4(double E = 0., double px = 0., double py = 0., double pz = 0.)
-      : E(E), px(px), py(py), pz(pz) {}
+  // constructor - define key attributes energy and momentum
+  vec4(double e = 0., double px = 0., double py = 0., double pz = 0.)
+      : e(e), px(px), py(py), pz(pz) {}
 
-  // Get Method to Obtain Attribute Value
+  // get method to obtain attribute value
   double operator[](int i) const {
     switch (i) {
       case 0:
-        return E;
+        return e;
       case 1:
         return px;
       case 2:
@@ -29,64 +29,64 @@ class Vec4 {
     }
   }
 
-  // Print a Column Vector with the attributes
-  friend std::ostream& operator<<(std::ostream& os, const Vec4& v) {
-    os << "(" << v.E << "," << v.px << "," << v.py << "," << v.pz << ")";
+  // print a column vector with the attributes
+  friend std::ostream& operator<<(std::ostream& os, const vec4& v) {
+    os << "(" << v.e << "," << v.px << "," << v.py << "," << v.pz << ")";
     return os;
   }
 
-  // Simple Mathematics with Four vectors
-  Vec4 operator+(const Vec4& v) const {
-    return Vec4(E + v.E, px + v.px, py + v.py, pz + v.pz);
+  // simple mathematics with four vectors
+  vec4 operator+(const vec4& v) const {
+    return vec4(e + v.e, px + v.px, py + v.py, pz + v.pz);
   }
 
-  Vec4 operator-() const { return Vec4(-E, -px, -py, -pz); }
+  vec4 operator-() const { return vec4(-e, -px, -py, -pz); }
 
-  Vec4 operator-(const Vec4& v) const {
-    return Vec4(E - v.E, px - v.px, py - v.py, pz - v.pz);
+  vec4 operator-(const vec4& v) const {
+    return vec4(e - v.e, px - v.px, py - v.py, pz - v.pz);
   }
 
-  // Multiplication (and Dot Product)
-  double operator*(const Vec4& v) const {
-    return E * v.E - px * v.px - py * v.py - pz * v.pz;
+  // multiplication (and dot product)
+  double operator*(const vec4& v) const {
+    return e * v.e - px * v.px - py * v.py - pz * v.pz;
   }
 
-  Vec4 operator*(double v) const { return Vec4(E * v, px * v, py * v, pz * v); }
+  vec4 operator*(double v) const { return vec4(e * v, px * v, py * v, pz * v); }
 
-  // Division
-  Vec4 operator/(double v) const { return Vec4(E / v, px / v, py / v, pz / v); }
+  // division
+  vec4 operator/(double v) const { return vec4(e / v, px / v, py / v, pz / v); }
 
-  // Magnitude of the Vector
-  double M2() const { return (*this) * (*this); }
+  // magnitude of the vector
+  double m2() const { return (*this) * (*this); }
 
-  double M() const {
-    double m2 = M2();
-    return m2 > 0 ? sqrt(m2) : 0;
+  double m() const {
+    double m2_val = m2();
+    return m2_val > 0 ? sqrt(m2_val) : 0;
   }
 
-  // 3 Momenta
-  double P2() const { return px * px + py * py + pz * pz; }
+  // 3 momenta
+  double p2() const { return px * px + py * py + pz * pz; }
 
-  double P() const {
-    double p2 = P2();
-    return p2 > 0 ? sqrt(p2) : 0;
+  double p() const {
+    double p2_val = p2();
+    return p2_val > 0 ? sqrt(p2_val) : 0;
   }
 
-  // Transverse Momenta
-  double PT2() const { return px * px + py * py; }
+  // transverse momenta
+  double pt2() const { return px * px + py * py; }
 
-  double PT() const {
-    double pt2 = PT2();
-    return pt2 > 0 ? sqrt(pt2) : 0;
+  double pt() const {
+    double pt2_val = pt2();
+    return pt2_val > 0 ? sqrt(pt2_val) : 0;
   }
 
-  // Angles
-  double Theta() const {
-    double p = P();
-    return p != 0 ? acos(pz / p) : 0;
+  // angles
+  double theta() const {
+    double p_val = p();
+    return p != 0 ? acos(pz / p_val) : 0;
   }
 
-  double Phi() const {
+  double phi() const {
     if (px == 0 && py == 0) {
       return 0.;
     } else {
@@ -94,38 +94,38 @@ class Vec4 {
     }
   }
 
-  double Rapidity() const {
-    double denominator = (E - pz);
-    return denominator != 0 ? 0.5 * log((E + pz) / denominator) : 0;
+  double rapidity() const {
+    double denominator = (e - pz);
+    return denominator != 0 ? 0.5 * log((e + pz) / denominator) : 0;
   }
 
-  double Eta() const {
-    double theta = Theta();
-    return -log(tan(theta / 2.));
+  double eta() const {
+    double theta_val = theta();
+    return -log(tan(theta_val / 2.));
   }
 
-  // Three Momenta Dot and Cross Product
-  double Dot(const Vec4& v) const { return px * v.px + py * v.py + pz * v.pz; }
+  // three momenta dot and cross product
+  double dot(const vec4& v) const { return px * v.px + py * v.py + pz * v.pz; }
 
-  Vec4 Cross(const Vec4& v) const {
-    return Vec4(0., py * v.pz - pz * v.py, pz * v.px - px * v.pz,
+  vec4 cross(const vec4& v) const {
+    return vec4(0., py * v.pz - pz * v.py, pz * v.px - px * v.pz,
                 px * v.py - py * v.px);
   }
 
-  // Boosts
-  Vec4 Boost(const Vec4& v) const {
-    double rsq = M();
-    double v0 = (E * v.E - px * v.px - py * v.py - pz * v.pz) / rsq;
-    double c1 = (v.E + v0) / (rsq + E);
-    return Vec4(v0, v.px - c1 * px, v.py - c1 * py, v.pz - c1 * pz);
+  // boosts
+  vec4 boost(const vec4& v) const {
+    double rsq = m();
+    double v0 = (e * v.e - px * v.px - py * v.py - pz * v.pz) / rsq;
+    double c1 = (v.e + v0) / (rsq + e);
+    return vec4(v0, v.px - c1 * px, v.py - c1 * py, v.pz - c1 * pz);
   }
 
-  Vec4 BoostBack(const Vec4& v) const {
-    double rsq = M();
-    double v0 = (E * v.E + px * v.px + py * v.py + pz * v.pz) / rsq;
-    double c1 = (v.E + v0) / (rsq + E);
-    return Vec4(v0, v.px + c1 * px, v.py + c1 * py, v.pz + c1 * pz);
+  vec4 boost_back(const vec4& v) const {
+    double rsq = m();
+    double v0 = (e * v.e + px * v.px + py * v.py + pz * v.pz) / rsq;
+    double c1 = (v.e + v0) / (rsq + e);
+    return vec4(v0, v.px + c1 * px, v.py + c1 * py, v.pz + c1 * pz);
   }
 };
 
-#endif  // VEC4_H_
+#endif  // vec4_h_

@@ -1,23 +1,23 @@
 #include "dalitz.h"
 
-// Dalitz Plot
+// dalitz plot
 
-void CalculateDalitz(Event& ev) {
-  if (!ev.GetValidity() || ev.GetPartonSize() != 3) {
+void calculate_dalitz(event& ev) {
+  if (!ev.get_validity() || ev.get_parton_size() != 3) {
     return;
   }
 
-  // Obtain Energy from incoming partons
-  double E = abs(ev.GetParton(0).GetMom()[0] + ev.GetParton(1).GetMom()[0]);
+  // obtain energy from incoming partons
+  double e = abs(ev.get_parton(0).get_mom()[0] + ev.get_parton(1).get_mom()[0]);
 
-  // By default, element 2 is quark and 3 is antiquark
+  // by default, element 2 is quark and 3 is antiquark
   // i.e. emission will be element 4
-  Vec4 p1 = ev.GetParton(2).GetMom();
-  Vec4 p2 = ev.GetParton(3).GetMom();
+  vec4 p1 = ev.get_parton(2).get_mom();
+  vec4 p2 = ev.get_parton(3).get_mom();
 
-  // Calculate x1 and x2
-  double x1 = 2 * p1.P() / E;
-  double x2 = 2 * p2.P() / E;
+  // calculate x1 and x2
+  double x1 = 2 * p1.p() / e;
+  double x2 = 2 * p2.p() / e;
 
-  ev.SetDalitz(x1, x2);
+  ev.set_dalitz(x1, x2);
 }

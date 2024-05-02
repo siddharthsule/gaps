@@ -1,11 +1,11 @@
-#ifndef EVENTSHAPES_H_
-#define EVENTSHAPES_H_
+#ifndef eventshapes_h_
+#define eventshapes_h_
 
 #include "event.h"
 
-// Event Shapes
-void bubbleSort(Vec4* moms, int n);
-void CalculateThrust(Event& ev);
-void CalculateJetMBr(Event& ev);
+// event shapes
+void bubble_sort(vec4* moms, int n);
+void calculate_thrust(event& ev);
+void calculate_jet_m_br(event& ev);
 
-#endif  // EVENTSHAPES_H_
+#endif  // eventshapes_h_

@@ -1,125 +1,126 @@
 #include "shower.cuh"
 
-// Need to be here to avoid multiple definitions
+// need to be here to avoid multiple definitions
 #include "colours.cuh"
 #include "kinematics.cuh"
 #include "splittings.cuh"
 
 // -----------------------------------------------------------------------------
-// Random Number Generator
+// random number generator
 
-// No need during matrix as initialised once and used once only
-// But for shower used 80 to 100 times
-__global__ void initCurandStates(curandState *states, int N) {
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= N) {
+// no need during matrix as initialised once and used once only
+// but for shower used 80 to 100 times
+__global__ void init_curand_states(curand_state *states, int n) {
+  int idx = thread_idx.x + block_idx.x * block_dim.x;
+  if (idx >= n) {
     return;
   }
-  // Every events[idx] has a seed idx
+  // every events[idx] has a seed idx
   // curand_init(idx, 0, 0, &states[idx]);
 
-  // Every events[idx] has a seed idx and clok64() is used to get a seed
+  // every events[idx] has a seed idx and clok64() is used to get a seed
   curand_init(clock64(), idx, 0, &states[idx]);
 }
 
 // -----------------------------------------------------------------------------
-// Preparing the Shower
+// preparing the shower
 
-__global__ void prepShower(Event *events, int N) {
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+__global__ void prep_shower(event *events, int n) {
+  int idx = thread_idx.x + block_idx.x * block_dim.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event &ev = events[idx];
+  event &ev = events[idx];
 
-  // Set the starting shower scale
-  double t_max = (ev.GetParton(0).GetMom() + ev.GetParton(1).GetMom()).M2();
-  ev.SetShowerT(t_max);
+  // set the starting shower scale
+  double t_max = (ev.get_parton(0).get_mom() + ev.get_parton(1).get_mom()).m2();
+  ev.set_shower_t(t_max);
 
-  // Set the initial number of emissions
-  ev.SetEmissions(0);
+  // set the initial number of emissions
+  ev.set_emissions(0);
 
-  // Set the Colour Counter to 1 (q and qbar)
-  ev.SetShowerC(1);
+  // set the colour counter to 1 (q and qbar)
+  ev.set_shower_c(1);
 
-  // Set the initial end shower flag - No need, default value is false
-  // ev.SetEndShower(false);
+  // set the initial end shower flag - no need, default value is false
+  // ev.set_end_shower(false);
 }
 
 // -----------------------------------------------------------------------------
 
 /**
- * Selecting the Winner Splitting Function
+ * selecting the winner splitting function
  * ---------------------------------------
  *
- * When you profile the code, you will notice that this is the process that
- * takes up half of the shower time. This method below is a first attempt at
+ * when you profile the code, you will notice that this is the process that
+ * takes up half of the shower time. this method below is a first attempt at
  * parallelizing the process.
  */
 
-__global__ void selectWinnerSplitFunc(Event *events, curandState *states,
-                                      int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void select_winner_split_func(event *events, curand_state *states,
+                                         int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  curandState state = states[idx];
+  curand_state state = states[idx];
 
-  Event &ev = events[idx];
+  event &ev = events[idx];
 
-  // Do not run if the shower has ended
-  if (ev.GetEndShower()) {
+  // do not run if the shower has ended
+  if (ev.get_end_shower()) {
     return;
   }
 
-  // Default Values
-  double win_tt = tC;  // Lowest possible value is Cutoff Scale (in base.cuh)
-  int win_sf = 0;      // 0 = No Splitting
+  // default values
+  double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
+  int win_sf = 0;       // 0 = no splitting
   int win_ij = 0;
   int win_k = 0;
   double win_zp = 0.;
   double win_m2 = 0.;
 
-  // We start at 2 because elements 0 and 1 are electrons - To change with ISR
-  for (int ij = 2; ij < ev.GetSize(); ij++) {
-    for (int k = 2; k < ev.GetSize(); k++) {
-      // Sanity Check to ensure ij != k
+  // we start at 2 because elements 0 and 1 are electrons - to change with isr
+  for (int ij = 2; ij < ev.get_size(); ij++) {
+    for (int k = 2; k < ev.get_size(); k++) {
+      // sanity check to ensure ij != k
       if (ij == k) {
         continue;
       }
 
-      // Need to check if ij and k are colour connected
-      if (!ev.GetParton(ij).IsColorConnected(ev.GetParton(k))) {
+      // need to check if ij and k are colour connected
+      if (!ev.get_parton(ij).is_color_connected(ev.get_parton(k))) {
         continue;
       }
 
-      // Params Identical to all splitting functions
-      double m2 = (ev.GetParton(ij).GetMom() + ev.GetParton(k).GetMom()).M2();
-      if (m2 < 4. * tC) {
+      // params identical to all splitting functions
+      double m2 =
+          (ev.get_parton(ij).get_mom() + ev.get_parton(k).get_mom()).m2();
+      if (m2 < 4. * t_c) {
         continue;
       }
 
-      // Phase Space Limits
-      double zp = 0.5 * (1. + sqrt(1. - 4. * tC / m2));
+      // phase space limits
+      double zp = 0.5 * (1. + sqrt(1. - 4. * t_c / m2));
 
-      // Codes instead of Object Oriented Approach!
-      for (int sf : sfCodes) {
-        // Check if the Splitting Function is valid for the current partons
-        if (!validateSplitting(ev.GetParton(ij).GetPid(), sf)) {
+      // codes instead of object oriented approach!
+      for (int sf : sf_codes) {
+        // check if the splitting function is valid for the current partons
+        if (!validate_splitting(ev.get_parton(ij).get_pid(), sf)) {
           continue;
         }
 
-        // Calculate the Evolution Variable
-        double g = asmax / (2. * M_PI) * sfIntegral(1 - zp, zp, sf);
-        double tt = ev.GetShowerT() * pow(curand_uniform(&state), 1. / g);
+        // calculate the evolution variable
+        double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
+        double tt = ev.get_shower_t() * pow(curand_uniform(&state), 1. / g);
 
-        states[idx] = state;  // So that the next number is not the same!
+        states[idx] = state;  // so that the next number is not the same!
 
-        // Check if tt is greater than the current winner
+        // check if tt is greater than the current winner
         if (tt > win_tt) {
           win_tt = tt;
           win_sf = sf;
@@ -132,95 +133,95 @@ __global__ void selectWinnerSplitFunc(Event *events, curandState *states,
     }
   }
 
-  // Store the results
-  ev.SetShowerT(win_tt);
-  ev.SetWinSF(win_sf);
-  ev.SetWinDipole(0, win_ij);
-  ev.SetWinDipole(1, win_k);
-  ev.SetWinParam(0, win_zp);
-  ev.SetWinParam(1, win_m2);
+  // store the results
+  ev.set_shower_t(win_tt);
+  ev.set_win_sf(win_sf);
+  ev.set_win_dipole(0, win_ij);
+  ev.set_win_dipole(1, win_k);
+  ev.set_win_param(0, win_zp);
+  ev.set_win_param(1, win_m2);
 }
 
 // -----------------------------------------------------------------------------
 
-__global__ void checkCutoff(Event *events, int *d_completed, double cutoff,
-                            int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void check_cutoff(event *events, int *d_completed, double cutoff,
+                             int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event &ev = events[idx];
+  event &ev = events[idx];
 
-  // Do not run if the shower has ended
-  if (ev.GetEndShower()) {
+  // do not run if the shower has ended
+  if (ev.get_end_shower()) {
     return;
   }
 
   /**
-   * End shower if t < cutoff
+   * end shower if t < cutoff
    *
-   * ev.GetShowerT() <= cutoff is equally valid
-   * I just prefer this way because this way is
-   * how we usually write it in Literature
+   * ev.get_shower_t() <= cutoff is equally valid
+   * i just prefer this way because this way is
+   * how we usually write it in literature
    */
-  if (!(ev.GetShowerT() > cutoff)) {
-    ev.SetEndShower(true);
-    atomicAdd(d_completed, 1);  // Increment the number of completed events
+  if (!(ev.get_shower_t() > cutoff)) {
+    ev.set_end_shower(true);
+    atomic_add(d_completed, 1);  // increment the number of completed events
   }
 }
 
 // -----------------------------------------------------------------------------
 
-__global__ void vetoAlg(Event *events, double *asval, bool *acceptEmission,
-                        curandState *states, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void veto_alg(event *events, double *asval, bool *accept_emission,
+                         curand_state *states, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event &ev = events[idx];
-  curandState state = states[idx];
+  event &ev = events[idx];
+  curand_state state = states[idx];
 
-  // Do not run if the shower has ended
-  if (ev.GetEndShower()) {
+  // do not run if the shower has ended
+  if (ev.get_end_shower()) {
     return;
   }
 
-  // Set to False, only set to True if accpeted
-  acceptEmission[idx] = false;
+  // set to false, only set to true if accpeted
+  accept_emission[idx] = false;
 
-  // Get the Splitting Function
-  int sf = ev.GetWinSF();
+  // get the splitting function
+  int sf = ev.get_win_sf();
 
   double rand = curand_uniform(&state);
   states[idx] = state;
 
-  // Generate z
-  double zp = ev.GetWinParam(0);
-  double z = sfGenerateZ(1 - zp, zp, rand, sf);
+  // generate z
+  double zp = ev.get_win_param(0);
+  double z = sf_generate_z(1 - zp, zp, rand, sf);
 
-  double y = ev.GetShowerT() / ev.GetWinParam(1) / z / (1. - z);
+  double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
   double f = 0.;
   double g = 0.;
   double value = 0.;
   double estimate = 0.;
 
-  // CS Kernel: y can't be 1
+  // cs kernel: y can't be 1
   if (y < 1.) {
-    value = sfValue(z, y, sf);
-    estimate = sfEstimate(z, sf);
+    value = sf_value(z, y, sf);
+    estimate = sf_estimate(z, sf);
 
     f = (1. - y) * asval[idx] * value;
     g = asmax * estimate;
 
     if (curand_uniform(&state) < f / g) {
-      acceptEmission[idx] = true;
-      ev.SetShowerZ(z);
-      ev.SetShowerY(y);
+      accept_emission[idx] = true;
+      ev.set_shower_z(z);
+      ev.set_shower_y(y);
     }
     states[idx] = state;
   }
@@ -228,52 +229,53 @@ __global__ void vetoAlg(Event *events, double *asval, bool *acceptEmission,
 
 // -----------------------------------------------------------------------------
 
-// Do Splitting
-__global__ void doSplitting(Event *events, bool *acceptEmission,
-                            curandState *states, int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// do splitting
+__global__ void do_splitting(event *events, bool *accept_emission,
+                             curand_state *states, int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) {
+  if (idx >= n) {
     return;
   }
 
-  Event &ev = events[idx];
+  event &ev = events[idx];
 
-  // Do not run if the shower has ended
-  if (ev.GetEndShower()) {
+  // do not run if the shower has ended
+  if (ev.get_end_shower()) {
     return;
   }
 
-  if (!acceptEmission[idx]) {
+  if (!accept_emission[idx]) {
     return;
   }
 
-  curandState state = states[idx];
+  curand_state state = states[idx];
 
   double phi = 2. * M_PI * curand_uniform(&state);
   states[idx] = state;
 
-  int win_ij = ev.GetWinDipole(0);
-  int win_k = ev.GetWinDipole(1);
+  int win_ij = ev.get_win_dipole(0);
+  int win_k = ev.get_win_dipole(1);
 
-  // Make Kinematics
-  Vec4 moms[3] = {Vec4(), Vec4(), Vec4()};
+  // make kinematics
+  vec4 moms[3] = {vec4(), vec4(), vec4()};
 
-  MakeKinematics(moms, ev.GetShowerZ(), ev.GetShowerY(), phi,
-                 ev.GetParton(win_ij).GetMom(), ev.GetParton(win_k).GetMom());
+  make_kinematics(moms, ev.get_shower_z(), ev.get_shower_y(), phi,
+                  ev.get_parton(win_ij).get_mom(),
+                  ev.get_parton(win_k).get_mom());
 
-  // Adjust Colors
+  // adjust colors
 
-  // Get Flavs from Kernel Number
-  int sf = ev.GetWinSF();
+  // get flavs from kernel number
+  int sf = ev.get_win_sf();
   int flavs[3];
-  sfToFlavs(sf, flavs);
+  sf_to_flavs(sf, flavs);
 
-  int colij[2] = {ev.GetParton(win_ij).GetCol(),
-                  ev.GetParton(win_ij).GetAntiCol()};
+  int colij[2] = {ev.get_parton(win_ij).get_col(),
+                  ev.get_parton(win_ij).get_anti_col()};
 
-  int colk[2] = {ev.GetParton(win_k).GetCol(),
-                 ev.GetParton(win_k).GetAntiCol()};
+  int colk[2] = {ev.get_parton(win_k).get_col(),
+                 ev.get_parton(win_k).get_anti_col()};
 
   int coli[2] = {0, 0};
   int colj[2] = {0, 0};
@@ -281,182 +283,182 @@ __global__ void doSplitting(Event *events, bool *acceptEmission,
   double rand = curand_uniform(&state);
   states[idx] = state;
 
-  MakeColours(ev, coli, colj, flavs, colij, colk, rand);
+  make_colours(ev, coli, colj, flavs, colij, colk, rand);
 
-  // Modify Splitter
-  ev.SetPartonPid(win_ij, flavs[1]);
-  ev.SetPartonMom(win_ij, moms[0]);
-  ev.SetPartonCol(win_ij, coli[0]);
-  ev.SetPartonAntiCol(win_ij, coli[1]);
+  // modify splitter
+  ev.set_parton_pid(win_ij, flavs[1]);
+  ev.set_parton_mom(win_ij, moms[0]);
+  ev.set_parton_col(win_ij, coli[0]);
+  ev.set_parton_anti_col(win_ij, coli[1]);
 
-  // Modify Recoiled Spectator
-  ev.SetPartonMom(win_k, moms[2]);
+  // modify recoiled spectator
+  ev.set_parton_mom(win_k, moms[2]);
 
-  // Add Emitted Parton
-  Parton em = Parton(flavs[2], moms[1], colj[0], colj[1]);
-  ev.SetParton(ev.GetSize(), em);
+  // add emitted parton
+  parton em = parton(flavs[2], moms[1], colj[0], colj[1]);
+  ev.set_parton(ev.get_size(), em);
 
-  // Increment Emissions (IMPORTANT)
-  ev.IncrementEmissions();
+  // increment emissions (important)
+  ev.increment_emissions();
 }
 
 // -----------------------------------------------------------------------------
 
 /*
-__global__ void countBools(Event *events, int *trueCount, bool *acceptEmission,
-                           int *falseCount, int N) {
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= N) {
+__global__ void count_bools(event *events, int *true_count, bool
+*accept_emission, int *false_count, int n) { int idx = thread_idx.x +
+block_idx.x * block_dim.x; if (idx >= n) { return;
+  }
+
+  event &ev = events[idx];
+
+  if (ev.get_end_shower()) {
     return;
   }
 
-  Event &ev = events[idx];
-
-  if (ev.GetEndShower()) {
-    return;
-  }
-
-  if (!acceptEmission[idx]){
-    atomicAdd(trueCount, 1);
+  if (!accept_emission[idx]){
+    atomic_add(true_count, 1);
   } else {
-    atomicAdd(falseCount, 1);
+    atomic_add(false_count, 1);
   }
 }
 */
 
 // -----------------------------------------------------------------------------
 
-void runShower(thrust::device_vector<Event> &d_events) {
-  // Number of Events - Can get from d_events.size()
-  int N = d_events.size();
+void run_shower(thrust::device_vector<event> &d_events) {
+  // number of events - can get from d_events.size()
+  int n = d_events.size();
 
-  // Set up the device alphaS
-  AlphaS *d_as;
-  cudaMalloc(&d_as, sizeof(AlphaS));
-  asSetupKernel<<<1, 1>>>(d_as, mz, asmz);
-  syncGPUAndCheck("asSetupKernel");
+  // set up the device alpha_s
+  alpha_s *d_as;
+  cuda_malloc(&d_as, sizeof(alpha_s));
+  as_setup_kernel<<<1, 1>>>(d_as, mz, asmz);
+  sync_gpu_and_check("as_setup_kernel");
 
-  // Allocate device memory for completed events counter
+  // allocate device memory for completed events counter
   int *d_completed;
-  cudaMalloc(&d_completed, sizeof(int));
-  cudaMemset(d_completed, 0, sizeof(int));
+  cuda_malloc(&d_completed, sizeof(int));
+  cuda_memset(d_completed, 0, sizeof(int));
 
   // as(t) and veto
   double *d_asval;
-  cudaMalloc(&d_asval, N * sizeof(double));
-  bool *d_acceptEmission;
-  cudaMalloc(&d_acceptEmission, N * sizeof(bool));
+  cuda_malloc(&d_asval, n * sizeof(double));
+  bool *d_accept_emission;
+  cuda_malloc(&d_accept_emission, n * sizeof(bool));
 
-  // Allocate space for curand states
-  curandState *d_states;
-  cudaMalloc(&d_states, N * sizeof(curandState));
+  // allocate space for curand states
+  curand_state *d_states;
+  cuda_malloc(&d_states, n * sizeof(curand_state));
 
-  // Initialize the states
-  initCurandStates<<<(N + 255) / 256, 256>>>(d_states, N);
+  // initialize the states
+  init_curand_states<<<(n + 255) / 256, 256>>>(d_states, n);
 
-  // Store the number of finished events per cycle
-  std::vector<int> completedPerCycle;
+  // store the number of finished events per cycle
+  std::vector<int> completed_per_cycle;
 
-  // Use a pointer to the device events
-  Event *d_events_ptr = thrust::raw_pointer_cast(d_events.data());
-
-  // ---------------------------------------------------------------------------
-  // Prepare the Shower
-
-  DEBUG_MSG("Running @prepShower");
-  prepShower<<<(N + 255) / 256, 256>>>(d_events_ptr, N);
-  syncGPUAndCheck("prepShower");
+  // use a pointer to the device events
+  event *d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
   // ---------------------------------------------------------------------------
-  // Run the Shower
+  // prepare the shower
+
+  debug_msg("running @prep_shower");
+  prep_shower<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  sync_gpu_and_check("prep_shower");
+
+  // ---------------------------------------------------------------------------
+  // run the shower
 
   int completed = 0;
   int cycle = 0;
-  while (completed < N) {
-    // Run all the kernels here...
+  while (completed < n) {
+    // run all the kernels here...
     // -------------------------------------------------------------------------
-    // Select the winner kernel
+    // select the winner kernel
 
-    DEBUG_MSG("Running @selectWinnerSplitFunc");
-    selectWinnerSplitFunc<<<(N + 255) / 256, 256>>>(d_events_ptr, d_states, N);
-    syncGPUAndCheck("selectWinnerSplitFunc");
-
-    // -------------------------------------------------------------------------
-    // Check Cutoff
-
-    DEBUG_MSG("Running @checkCutoff");
-    checkCutoff<<<(N + 255) / 256, 256>>>(d_events_ptr, d_completed, tC, N);
-    syncGPUAndCheck("checkCutoff");
+    debug_msg("running @select_winner_split_func");
+    select_winner_split_func<<<(n + 255) / 256, 256>>>(d_events_ptr, d_states,
+                                                       n);
+    sync_gpu_and_check("select_winner_split_func");
 
     // -------------------------------------------------------------------------
-    // Calculate AlphaS for Veto Algorithm
+    // check cutoff
 
-    DEBUG_MSG("Running @asShowerKernel");
-    asShowerKernel<<<(N + 255) / 256, 256>>>(d_as, d_events_ptr, d_asval, N);
-    syncGPUAndCheck("asShowerKernel");
-
-    // -------------------------------------------------------------------------
-    // Veto Algorithm
-
-    DEBUG_MSG("Running @vetoAlg");
-    vetoAlg<<<(N + 255) / 256, 256>>>(d_events_ptr, d_asval, d_acceptEmission,
-                                      d_states, N);
-    syncGPUAndCheck("vetoAlg");
+    debug_msg("running @check_cutoff");
+    check_cutoff<<<(n + 255) / 256, 256>>>(d_events_ptr, d_completed, t_c, n);
+    sync_gpu_and_check("check_cutoff");
 
     // -------------------------------------------------------------------------
-    // Splitting Algorithm
+    // calculate alpha_s for veto algorithm
 
-    DEBUG_MSG("Running @doSplitting");
-    doSplitting<<<(N + 255) / 256, 256>>>(d_events_ptr, d_acceptEmission,
-                                          d_states, N);
-    syncGPUAndCheck("doSplitting");
+    debug_msg("running @as_shower_kernel");
+    as_shower_kernel<<<(n + 255) / 256, 256>>>(d_as, d_events_ptr, d_asval, n);
+    sync_gpu_and_check("as_shower_kernel");
 
     // -------------------------------------------------------------------------
-    // Import the Number of Completed Events
+    // veto algorithm
 
-    cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
+    debug_msg("running @veto_alg");
+    veto_alg<<<(n + 255) / 256, 256>>>(d_events_ptr, d_asval, d_accept_emission,
+                                       d_states, n);
+    sync_gpu_and_check("veto_alg");
+
+    // -------------------------------------------------------------------------
+    // splitting algorithm
+
+    debug_msg("running @do_splitting");
+    do_splitting<<<(n + 255) / 256, 256>>>(d_events_ptr, d_accept_emission,
+                                           d_states, n);
+    sync_gpu_and_check("do_splitting");
+
+    // -------------------------------------------------------------------------
+    // import the number of completed events
+
+    cuda_memcpy(&completed, d_completed, sizeof(int),
+                cuda_memcpy_device_to_host);
     cycle++;
 
-    // Until Paper is Published, we will use this
-    completedPerCycle.push_back(completed);
+    // until paper is published, we will use this
+    completed_per_cycle.push_back(completed);
 
     // -------------------------------------------------------------------------
-    // Print number of Accepted / Vetoed Events - for A. V.
+    // print number of accepted / vetoed events - for a. v.
 
     /*
-    // TRUE means that the event is vetoed
-    // FALSE means that the event is accepted
+    // true means that the event is vetoed
+    // false means that the event is accepted
 
-    int *d_trueCount, *d_falseCount;
-    cudaMalloc(&d_trueCount, sizeof(int));
-    cudaMalloc(&d_falseCount, sizeof(int));
-    cudaMemset(d_trueCount, 0, sizeof(int));
-    cudaMemset(d_falseCount, 0, sizeof(int));
+    int *d_true_count, *d_false_count;
+    cuda_malloc(&d_true_count, sizeof(int));
+    cuda_malloc(&d_false_count, sizeof(int));
+    cuda_memset(d_true_count, 0, sizeof(int));
+    cuda_memset(d_false_count, 0, sizeof(int));
 
-    DEBUG_MSG("Running @countBools");
-    countBools<<<(N + 255) / 256, 256>>>(d_events_ptr, d_acceptEmission,
-    d_trueCount, d_falseCount, N); syncGPUAndCheck("countBools");
+    debug_msg("running @count_bools");
+    count_bools<<<(n + 255) / 256, 256>>>(d_events_ptr, d_accept_emission,
+    d_true_count, d_false_count, n); sync_gpu_and_check("count_bools");
 
-    int h_trueCount(0), h_falseCount(0);  // Number of vetoed events
-    cudaMemcpy(&h_trueCount, d_trueCount, sizeof(int), cudaMemcpyDeviceToHost);
-    cudaMemcpy(&h_falseCount, d_falseCount, sizeof(int),
-               cudaMemcpyDeviceToHost);
+    int h_true_count(0), h_false_count(0);  // number of vetoed events
+    cuda_memcpy(&h_true_count, d_true_count, sizeof(int),
+    cuda_memcpy_device_to_host); cuda_memcpy(&h_false_count, d_false_count,
+    sizeof(int), cuda_memcpy_device_to_host);
 
-    std::cout << cycle << ", " << N - completed << ", " << h_trueCount << ", "
-              << h_falseCount << std::endl;
+    std::cout << cycle << ", " << n - completed << ", " << h_true_count << ", "
+              << h_false_count << std::endl;
     */
   }
 
   // ---------------------------------------------------------------------------
-  // Write completedPerCycle to file
+  // write completed_per_cycle to file
   std::ofstream file("gaps-cycles.dat");
-  for (auto &i : completedPerCycle) {
+  for (auto &i : completed_per_cycle) {
     file << i << std::endl;
   }
 
   // ---------------------------------------------------------------------------
-  // Clean Up Device Memory
-  cudaFree(d_asval);
-  cudaFree(d_acceptEmission);
-  cudaFree(d_completed);
+  // clean up device memory
+  cuda_free(d_asval);
+  cuda_free(d_accept_emission);
+  cuda_free(d_completed);
 }

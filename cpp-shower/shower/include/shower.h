@@ -1,51 +1,51 @@
-#ifndef SHOWER_H_
-#define SHOWER_H_
+#ifndef shower_h_
+#define shower_h_
 
 #include "event.h"
 #include "qcd.h"
 
-// Splitting Function Codes - Only FF for now (Removed Zeroes)
+// splitting function codes - only ff for now (removed zeroes)
 // ------------------------------------------
-const int sfCodes[] = {1,  2,  3,   4,   5,   11,  12,  13,
-                       14, 15, 200, 301, 302, 303, 304, 305};
+const int sf_codes[] = {1,  2,  3,   4,   5,   11,  12,  13,
+                        14, 15, 200, 301, 302, 303, 304, 305};
 
-// Shower Class - NOT IN GPU as kernels cannot be member functions
-class Shower {
+// shower class - not in gpu as kernels cannot be member functions
+class shower {
  private:
-  AlphaS as = AlphaS(mz, asmz);
+  alpha_s as = alpha_s(mz, asmz);
 
  public:
-  Shower();  // tC and asmax are preset in base
+  shower();  // t_c and asmax are preset in base
 
-  // In CUDA, we cannot point by reference, so we use
+  // in cuda, we cannot point by reference, so we use
   // pointers (*) instead of references (&).
 
-  // Splitting Functions
-  double sfValue(double z, double y, int sf);
-  double sfEstimate(double z, int sf);
-  double sfIntegral(double zm, double zp, int sf);
-  double sfGenerateZ(double zm, double zp, double rand, int sf);
+  // splitting functions
+  double sf_value(double z, double y, int sf);
+  double sf_estimate(double z, int sf);
+  double sf_integral(double zm, double zp, int sf);
+  double sf_generate_z(double zm, double zp, double rand, int sf);
 
-  // Utilities
-  bool validateSplitting(int ij, const int sf);
-  void sfToFlavs(int sf, int* flavs);
+  // utilities
+  bool validate_splitting(int ij, const int sf);
+  void sf_to_flavs(int sf, int* flavs);
 
-  // Select the Winner Emission
-  void SelectWinner(Event& ev, std::mt19937& gen);
+  // select the winner emission
+  void select_winner(event& ev, std::mt19937& gen);
 
-  // Kinematics
-  void MakeKinematics(Vec4* kinematics, const double z, const double y,
-                      const double phi, const Vec4 pijt, const Vec4 pkt);
+  // kinematics
+  void make_kinematics(vec4* kinematics, const double z, const double y,
+                       const double phi, const vec4 pijt, const vec4 pkt);
 
-  // Colours
-  void MakeColours(Event& ev, int* coli, int* colj, const int flavs[3],
-                   const int colij[2], const int colk[2], const double r);
+  // colours
+  void make_colours(event& ev, int* coli, int* colj, const int flavs[3],
+                    const int colij[2], const int colk[2], const double r);
 
-  // Veto Algorithm + Perform the Splitting
-  void GenerateSplitting(Event& ev, std::mt19937& gen);
+  // veto algorithm + perform the splitting
+  void generate_splitting(event& ev, std::mt19937& gen);
 
-  // Run the Shower
-  void Run(Event& ev);
+  // run the shower
+  void run(event& ev);
 };
 
-#endif  // SHOWER_H_
+#endif  // shower_h_

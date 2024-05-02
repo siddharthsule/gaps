@@ -1,8 +1,8 @@
 #include "qcd.cuh"
 
-// Constructor
-__device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
-                          double mc)
+// constructor
+__device__ alpha_s::alpha_s(double mz, double asmz, int order, double mb,
+                            double mc)
     : order(order),
       mc2(mc * mc),
       mb2(mb * mb),
@@ -11,9 +11,9 @@ __device__ AlphaS::AlphaS(double mz, double asmz, int order, double mb,
       asmb((*this)(mb2)),
       asmc((*this)(mc2)) {}
 
-// Setup
-__device__ void AlphaS::setup(double mz, double asmz, int order, double mb,
-                              double mc) {
+// setup
+__device__ void alpha_s::setup(double mz, double asmz, int order, double mb,
+                               double mc) {
   this->order = order;
   this->mc2 = mc * mc;
   this->mb2 = mb * mb;
@@ -23,88 +23,88 @@ __device__ void AlphaS::setup(double mz, double asmz, int order, double mb,
   this->asmc = (*this)(mc2);
 }
 
-// Beta and Alpha S functions
-__device__ double AlphaS::Beta0(int nf) {
-  return (11. / 6. * kCA) - (2. / 3. * kTR * nf);
+// beta and alpha s functions
+__device__ double alpha_s::beta0(int nf) {
+  return (11. / 6. * k_ca) - (2. / 3. * k_tr * nf);
 }
 
-__device__ double AlphaS::Beta1(int nf) {
-  return (17. / 6. * kCA * kCA) - ((5. / 3. * kCA + kCF) * kTR * nf);
+__device__ double alpha_s::beta1(int nf) {
+  return (17. / 6. * k_ca * k_ca) - ((5. / 3. * k_ca + k_cf) * k_tr * nf);
 }
 
-// Alpha_s at order 0 and 1 (One-Loop and Two-Loop)
-__device__ double AlphaS::As0(double t) {
+// alpha_s at order 0 and 1 (one-loop and two-loop)
+__device__ double alpha_s::as0(double t) {
   double tref, asref, b0;
   if (t >= mb2) {
     tref = mz2;
     asref = asmz;
-    b0 = Beta0(5) / (2. * M_PI);
+    b0 = beta0(5) / (2. * M_PI);
   } else if (t >= mc2) {
     tref = mb2;
     asref = asmb;
-    b0 = Beta0(4) / (2. * M_PI);
+    b0 = beta0(4) / (2. * M_PI);
   } else {
     tref = mc2;
     asref = asmc;
-    b0 = Beta0(3) / (2. * M_PI);
+    b0 = beta0(3) / (2. * M_PI);
   }
   return 1. / (1. / asref + b0 * log(t / tref));
 }
 
-__device__ double AlphaS::As1(double t) {
+__device__ double alpha_s::as1(double t) {
   double tref, asref, b0, b1, w;
   if (t >= mb2) {
     tref = mz2;
     asref = asmz;
-    b0 = Beta0(5) / (2. * M_PI);
-    b1 = Beta1(5) / pow(2. * M_PI, 2);
+    b0 = beta0(5) / (2. * M_PI);
+    b1 = beta1(5) / pow(2. * M_PI, 2);
   } else if (t >= mc2) {
     tref = mb2;
     asref = asmb;
-    b0 = Beta0(4) / (2. * M_PI);
-    b1 = Beta1(4) / pow(2. * M_PI, 2);
+    b0 = beta0(4) / (2. * M_PI);
+    b1 = beta1(4) / pow(2. * M_PI, 2);
   } else {
     tref = mc2;
     asref = asmc;
-    b0 = Beta0(3) / (2. * M_PI);
-    b1 = Beta1(3) / pow(2. * M_PI, 2);
+    b0 = beta0(3) / (2. * M_PI);
+    b1 = beta1(3) / pow(2. * M_PI, 2);
   }
   w = 1. + b0 * asref * log(t / tref);
   return asref / w * (1. - b1 / b0 * asref * log(w) / w);
 }
 
-__device__ double AlphaS::operator()(double t) {
+__device__ double alpha_s::operator()(double t) {
   if (order == 0) {
-    return As0(t);
+    return as0(t);
   } else {
-    return As1(t);
+    return as1(t);
   }
 }
 
-// Set up Kernel on the Device
-__global__ void asSetupKernel(AlphaS *as, double mz, double asmz, int order,
-                              double mb, double mc) {
+// set up kernel on the device
+__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz, int order,
+                                double mb, double mc) {
   as->setup(mz, asmz, order, mb, mc);
 }
 
-// Calculate AlphaS on the Device for ONE input
-__global__ void asValue(AlphaS *as, double *asval, double t) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// calculate alpha_s on the device for one input
+__global__ void as_value(alpha_s *as, double *asval, double t) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
   if (idx >= 1) return;
 
   asval[idx] = (*as)(t);
-  printf("asVal: %f\n", (*as)(t));
+  printf("as_val: %f\n", (*as)(t));
 }
 
-// Calculate AlphaS on the Device for MANY inputs
-// Exclusively used for Parton Shower Veto Algorithm
-__global__ void asShowerKernel(AlphaS *as, Event *events, double *asval,
-                               int N) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+// calculate alpha_s on the device for many inputs
+// exclusively used for parton shower veto algorithm
+__global__ void as_shower_kernel(alpha_s *as, event *events, double *asval,
+                                 int n) {
+  int idx = block_idx.x * block_dim.x + thread_idx.x;
 
-  if (idx >= N) return;
-  Event &ev = events[idx];
+  if (idx >= n) return;
+  event &ev = events[idx];
 
-  asval[idx] = (*as)(ev.GetShowerT());
+  asval[idx] = (*as)(ev.get_shower_t());
 }

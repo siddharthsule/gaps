@@ -1,36 +1,36 @@
-#ifndef HISTOGRAM_CUH_
-#define HISTOGRAM_CUH_
+#ifndef histogram_cuh_
+#define histogram_cuh_
 
 #include "base.cuh"
 
 /**
- * Binning and Histogramming
+ * binning and histogramming
  * -------------------------
  *
- * This file contains tools needed for binning and histogramming data. The data
- * is binned and then stored as a Yoda file[1]
+ * this file contains tools needed for binning and histogramming data. the data
+ * is binned and then stored as a yoda file[1]
  *
- * Yoda: https://yoda.hepforge.org/
+ * yoda: https://yoda.hepforge.org/
  */
 
-class Bin1D {
+class bin1d {
  public:
   double xmin, xmax, w, w2, wx, wx2, n;
 
-  __host__ __device__ Bin1D(double xmin = 0., double xmax = 0.)
+  __host__ __device__ bin1d(double xmin = 0., double xmax = 0.)
       : xmin(xmin), xmax(xmax), w(0.), w2(0.), wx(0.), wx2(0.), n(0.) {}
 
-  __host__ __device__ double Width() const { return xmax - xmin; }
+  __host__ __device__ double width() const { return xmax - xmin; }
 
-  __device__ void AtomicFill(double x, double weight) {
-    atomicAdd(&w, weight);
-    atomicAdd(&w2, weight * weight);
-    atomicAdd(&wx, weight * x);
-    atomicAdd(&wx2, weight * weight * x);
-    atomicAdd(&n, 1.);
+  __device__ void atomic_fill(double x, double weight) {
+    atomic_add(&w, weight);
+    atomic_add(&w2, weight * weight);
+    atomic_add(&wx, weight * x);
+    atomic_add(&wx2, weight * weight * x);
+    atomic_add(&n, 1.);
   }
 
-  __host__ __device__ void ScaleW(double scale) {
+  __host__ __device__ void scale_w(double scale) {
     w *= scale;
     w2 *= scale * scale;
     wx *= scale;
@@ -38,12 +38,12 @@ class Bin1D {
   }
 };
 
-class Bin2D {
+class bin2d {
  public:
   double xmin, xmax, ymin, ymax, w, w2, wx, wx2, wy, wy2, wxy, n;
 
  public:
-  __host__ __device__ Bin2D(double xmin = 0., double xmax = 0.,
+  __host__ __device__ bin2d(double xmin = 0., double xmax = 0.,
                             double ymin = 0., double ymax = 0.)
       : xmin(xmin),
         xmax(xmax),
@@ -58,21 +58,21 @@ class Bin2D {
         wxy(0.),
         n(0.) {}
 
-  __host__ __device__ double WidthX() const { return xmax - xmin; }
-  __host__ __device__ double WidthY() const { return ymax - ymin; }
+  __host__ __device__ double width_x() const { return xmax - xmin; }
+  __host__ __device__ double width_y() const { return ymax - ymin; }
 
-  __device__ void AtomicFill(double x, double y, double weight) {
-    atomicAdd(&w, weight);
-    atomicAdd(&w2, weight * weight);
-    atomicAdd(&wx, weight * x);
-    atomicAdd(&wx2, weight * weight * x);
-    atomicAdd(&wy, weight * y);
-    atomicAdd(&wy2, weight * weight * y);
-    atomicAdd(&wxy, weight * x * y);
-    atomicAdd(&n, 1.);
+  __device__ void atomic_fill(double x, double y, double weight) {
+    atomic_add(&w, weight);
+    atomic_add(&w2, weight * weight);
+    atomic_add(&wx, weight * x);
+    atomic_add(&wx2, weight * weight * x);
+    atomic_add(&wy, weight * y);
+    atomic_add(&wy2, weight * weight * y);
+    atomic_add(&wxy, weight * x * y);
+    atomic_add(&n, 1.);
   }
 
-  __host__ __device__ void ScaleW(double scale) {
+  __host__ __device__ void scale_w(double scale) {
     w *= scale;
     w2 *= scale * scale;
     wx *= scale;
@@ -84,41 +84,41 @@ class Bin2D {
 };
 
 /**
- * Name component of Histo1D
+ * name component of histo1d
  * -------------------------
  *
- * Unfortunately, std::string is not a feature in CUDA, so we have to provide
- * the name additinally whern writing to file. This is the only difference
- * between the CUDA and C++ versions of the code.
+ * unfortunately, std::string is not a feature in cuda, so we have to provide
+ * the name additinally whern writing to file. this is the only difference
+ * between the cuda and c++ versions of the code.
  */
-// Histo1D class
-class Histo1D {
+// histo1d class
+class histo1d {
  public:
-  Bin1D bins[nBins];  // Array of Bin1D objects on the device
-  Bin1D uflow;
-  Bin1D oflow;
-  Bin1D total;
+  bin1d bins[n_bins];  // array of bin1d objects on the device
+  bin1d uflow;
+  bin1d oflow;
+  bin1d total;
   double scale;
-  // static constexpr int nbin = nBins;  // SET IN BASE.CUH
+  // static constexpr int nbin = n_bins;  // set in base.cuh
 
  public:
-  __host__ __device__ Histo1D(double xmin = 0., double xmax = 1.)
+  __host__ __device__ histo1d(double xmin = 0., double xmax = 1.)
       : uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
         total(xmin - 100., xmax + 100.),
         scale(1.) {
-    double width = (xmax - xmin) / nBins;
-    for (int i = 0; i < nBins; ++i) {
+    double width = (xmax - xmin) / n_bins;
+    for (int i = 0; i < n_bins; ++i) {
       double xlow = xmin + i * width;
       double xhigh = xlow + width;
-      bins[i] = Bin1D(xlow, xhigh);  // Initialize Bin1D object on the device
+      bins[i] = bin1d(xlow, xhigh);  // initialize bin1d object on the device
     }
   }
 
-  // Atomic Binning! Each event is binned simultaneously here
-  __device__ void Fill(double x, double w) {
+  // atomic binning! each event is binned simultaneously here
+  __device__ void fill(double x, double w) {
     int l = 0;
-    int r = nBins - 1;
+    int r = n_bins - 1;
     int c = (l + r) / 2;
     double a = bins[c].xmin;
 
@@ -134,62 +134,62 @@ class Histo1D {
 
     if (x > bins[r].xmin) {
       if (x > bins[r].xmax) {
-        oflow.AtomicFill(x, w);
+        oflow.atomic_fill(x, w);
       } else {
-        bins[r].AtomicFill(x, w);
+        bins[r].atomic_fill(x, w);
       }
     } else if (x < bins[l].xmin) {
-      uflow.AtomicFill(x, w);
+      uflow.atomic_fill(x, w);
     } else {
-      bins[l].AtomicFill(x, w);
+      bins[l].atomic_fill(x, w);
     }
 
-    total.AtomicFill(x, w);
+    total.atomic_fill(x, w);
   }
 
-  __host__ __device__ void ScaleW(double scale) {
-    for (int i = 0; i < nBins; ++i) {
-      bins[i].ScaleW(scale);
+  __host__ __device__ void scale_w(double scale) {
+    for (int i = 0; i < n_bins; ++i) {
+      bins[i].scale_w(scale);
     }
-    uflow.ScaleW(scale);
-    oflow.ScaleW(scale);
-    total.ScaleW(scale);
+    uflow.scale_w(scale);
+    oflow.scale_w(scale);
+    total.scale_w(scale);
     this->scale *= scale;
   }
 };
 
-class Histo2D {
+class histo2d {
  public:
-  Bin2D bins[nBins2D][nBins2D];
-  Bin2D uflow;
-  Bin2D oflow;
-  Bin2D total;
+  bin2d bins[n_bins2d][n_bins2d];
+  bin2d uflow;
+  bin2d oflow;
+  bin2d total;
   double scale;
 
  public:
-  __host__ __device__ Histo2D(double xmin = 0., double xmax = 1.,
+  __host__ __device__ histo2d(double xmin = 0., double xmax = 1.,
                               double ymin = 0., double ymax = 1.)
       : uflow(xmin - 100., xmin, ymin - 100., ymin),
         oflow(xmax, xmax + 100., ymax, ymax + 100.),
         total(xmin - 100., xmax + 100., ymin - 100., ymax + 100.),
         scale(1.) {
-    double widthX = (xmax - xmin) / nBins2D;
-    double widthY = (ymax - ymin) / nBins2D;
-    for (int i = 0; i < nBins2D; ++i) {
-      for (int j = 0; j < nBins2D; ++j) {
-        double xlow = xmin + i * widthX;
-        double xhigh = xlow + widthX;
-        double ylow = ymin + j * widthY;
-        double yhigh = ylow + widthY;
-        bins[i][j] = Bin2D(xlow, xhigh, ylow, yhigh);
+    double width_x = (xmax - xmin) / n_bins2d;
+    double width_y = (ymax - ymin) / n_bins2d;
+    for (int i = 0; i < n_bins2d; ++i) {
+      for (int j = 0; j < n_bins2d; ++j) {
+        double xlow = xmin + i * width_x;
+        double xhigh = xlow + width_x;
+        double ylow = ymin + j * width_y;
+        double yhigh = ylow + width_y;
+        bins[i][j] = bin2d(xlow, xhigh, ylow, yhigh);
       }
     }
   }
 
-  __device__ void Fill(double x, double y, double w) {
-    // Find the bin for the x-coordinate
+  __device__ void fill(double x, double y, double w) {
+    // find the bin for the x-coordinate
     int lx = 0;
-    int rx = nBins2D - 1;
+    int rx = n_bins2d - 1;
     int cx = (lx + rx) / 2;
     double ax = bins[cx][0].xmin;
 
@@ -203,9 +203,9 @@ class Histo2D {
       ax = bins[cx][0].xmin;
     }
 
-    // Find the bin for the y-coordinate
+    // find the bin for the y-coordinate
     int ly = 0;
-    int ry = nBins2D - 1;
+    int ry = n_bins2d - 1;
     int cy = (ly + ry) / 2;
     double ay = bins[0][cy].ymin;
 
@@ -219,41 +219,41 @@ class Histo2D {
       ay = bins[0][cy].ymin;
     }
 
-    // Fill the appropriate bin
+    // fill the appropriate bin
     if (x > bins[rx][0].xmin && y > bins[0][ry].ymin) {
       if (x > bins[rx][0].xmax || y > bins[0][ry].ymax) {
-        oflow.AtomicFill(x, y, w);
+        oflow.atomic_fill(x, y, w);
       } else {
-        bins[rx][ry].AtomicFill(x, y, w);
+        bins[rx][ry].atomic_fill(x, y, w);
       }
     } else if (x < bins[lx][0].xmin || y < bins[0][ly].ymin) {
-      uflow.AtomicFill(x, y, w);
+      uflow.atomic_fill(x, y, w);
     } else {
-      bins[lx][ly].AtomicFill(x, y, w);
+      bins[lx][ly].atomic_fill(x, y, w);
     }
 
-    total.AtomicFill(x, y, w);
+    total.atomic_fill(x, y, w);
   }
 
-  void ScaleW(double scale) {
-    for (auto& binRow : bins) {
-      for (auto& bin : binRow) {
-        bin.ScaleW(scale);
+  void scale_w(double scale) {
+    for (auto& bin_row : bins) {
+      for (auto& bin : bin_row) {
+        bin.scale_w(scale);
       }
     }
-    uflow.ScaleW(scale);
-    oflow.ScaleW(scale);
-    total.ScaleW(scale);
+    uflow.scale_w(scale);
+    oflow.scale_w(scale);
+    total.scale_w(scale);
     this->scale *= scale;
   }
 };
 
-// Writing is done outside of the class in CUDA implementation
-std::string ToString(Histo1D h, std::string name);
-void Write(Histo1D h, std::string name, const std::string& filename);
+// writing is done outside of the class in cuda implementation
+std::string to_string(histo1d h, std::string name);
+void write(histo1d h, std::string name, const std::string& filename);
 
-// Overload for Histo2D
-std::string ToString(Histo2D h, std::string name);
-void Write(Histo2D h, std::string name, const std::string& filename);
+// overload for histo2d
+std::string to_string(histo2d h, std::string name);
+void write(histo2d h, std::string name, const std::string& filename);
 
-#endif  // HISTOGRAM_CUH_
+#endif  // histogram_cuh_

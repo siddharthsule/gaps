@@ -1,34 +1,34 @@
-#ifndef BASE_H_
-#define BASE_H_
+#ifndef base_h_
+#define base_h_
 
 // -----------------------------------------------------------------------------
-// Import Libraries
+// import libraries
 
-#include <cmath>     // Math Functions
-#include <fstream>   // File I/O
-#include <iostream>  // Standard I/O
-#include <random>    // Random Number Generation
-#include <vector>    // Vector
+#include <cmath>     // math functions
+#include <fstream>   // file i/o
+#include <iostream>  // standard i/o
+#include <random>    // random number generation
+#include <vector>    // vector
 
 // -----------------------------------------------------------------------------
-// Program Settings - CAREFUL WITH CHANGES
+// program settings - careful with changes
 
-// Max Number of Partons, set to save memory
-const int maxPartons = 30;
+// max number of partons, set to save memory
+const int max_partons = 30;
 
-// LEP 91.2 settings
+// lep 91.2 settings
 const double mz = 91.1876;
 const double asmz = 0.118;
 
-// Cutoff and its value of alpha_s (pre-calculated)
-const double tC = 1.;
+// cutoff and its value of alpha_s (pre-calculated)
+const double t_c = 1.;
 const double asmax = 0.440886;
 
-// Number of Histogram Bins: Common for all Plots (for now...)
-const int nBins = 100;
-const int nBins2D = 100;  // 10x10 Grid
+// number of histogram bins: common for all plots (for now...)
+const int n_bins = 100;
+const int n_bins2d = 100;  // 10x10 grid
 
-// Maximum Number of Events, beyond which program will be done in batches
-const int maxEvents = 1000000;
+// maximum number of events, beyond which program will be done in batches
+const int max_events = 1000000;
 
-#endif  // BASE_H_
+#endif  // base_h_
