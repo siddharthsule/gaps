@@ -49,8 +49,8 @@ __global__ void do_cluster(event* events, int n) {
   double kt2[max_partons] = {-1.};
   int counter = 0;
 
-  // number of partons (which will change when clustered), lower case to avoid n
-  int n = ev.get_parton_size();
+  // number of partons (which will change when clustered), to avoid n
+  int n_partons = ev.get_parton_size();
 
   // imap will store the indices of the partons
   int imap[max_partons];
@@ -62,7 +62,7 @@ __global__ void do_cluster(event* events, int n) {
   double kt2ij[max_partons][max_partons] = {0.};
   double dmin = 1.;
   int ii = 0, jj = 0;
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < n_partons; ++i) {
     for (int j = 0; j < i; ++j) {
       double dij = kt2ij[i][j] = yij(p[i], p[j], ecm2);
       if (dij < dmin) {
@@ -74,23 +74,23 @@ __global__ void do_cluster(event* events, int n) {
   }
 
   // cluster the partons
-  while (n > 2) {
-    --n;
+  while (n_partons > 2) {
+    --n_partons;
     kt2[counter] = dmin;
     counter++;
     int jjx = imap[jj];
     p[jjx] = p[jjx] + p[imap[ii]];
-    for (int i = ii; i < n; ++i) {
+    for (int i = ii; i < n_partons; ++i) {
       imap[i] = imap[i + 1];
     }
     for (int j = 0; j < jj; ++j) {
       kt2ij[jjx][imap[j]] = yij(p[jjx], p[imap[j]], ecm2);
     }
-    for (int i = jj + 1; i < n; ++i) {
+    for (int i = jj + 1; i < n_partons; ++i) {
       kt2ij[imap[i]][jjx] = yij(p[jjx], p[imap[i]], ecm2);
     }
     dmin = 1.;
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n_partons; ++i) {
       for (int j = 0; j < i; ++j) {
         double dij = kt2ij[imap[i]][imap[j]];
         if (dij < dmin) {
