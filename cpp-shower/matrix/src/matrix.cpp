@@ -73,6 +73,7 @@ void matrix::generate_lo_point(event &ev) {
   p1 = vec4(p0, p0 * st * cos(phi), p0 * st * sin(phi), p0 * ct);     // q
   p2 = vec4(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);  // qbar
 
+  /*
   // ---------------------------------------------------------------------------
   // dis kinematics - in breit frame
 
@@ -104,6 +105,7 @@ void matrix::generate_lo_point(event &ev) {
   pb = vec4(eta2 * p_b, 0., 0., -eta2 * p_b);  // qbar
   p1 = vec4(p0, 0., 0., p0);                   // e+
   p2 = vec4(p0, 0., 0., -p0);                  // e-
+  */
 
   /**
    * partonic matrix element for massless 2 -> 2 scattering
