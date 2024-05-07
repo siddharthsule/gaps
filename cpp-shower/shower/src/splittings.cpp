@@ -166,12 +166,12 @@ double shower::sf_generate_z(double zm, double zp, double rand, int sf) {
     case 13:
     case 14:
     case 15:
-      return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
+      return 1. + (zm - 1.) * pow((1. - zm) / (1. - zp), -rand);
       break;
 
     // ff g -> gg
     case 200:
-      return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
+      return 1. + (zm - 1.) * pow((1. - zm) / (1. - zp), -rand);
       break;
 
     // ff g -> qqbar
