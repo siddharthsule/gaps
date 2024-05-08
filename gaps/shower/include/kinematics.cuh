@@ -22,10 +22,10 @@ __device__ void make_kinematics(vec4 *kinematics, const double z,
   }
   kt1 = kt1 * (rkt * cos(phi) / kt1.p());
 
-  vec4 kt2cms = q.boost(pijt);
+  vec4 kt2cms = q.dipole_boost(pijt);
   kt2cms = kt2cms.cross(kt1);
   kt2cms = kt2cms * (rkt * sin(phi) / kt2cms.p());
-  vec4 kt2 = q.boost_back(kt2cms);
+  vec4 kt2 = q.dipole_boost_back(kt2cms);
 
   // conversion to {i, j, k} basis
   vec4 pi = pijt * z + pkt * ((1. - z) * y) + kt1 + kt2;
