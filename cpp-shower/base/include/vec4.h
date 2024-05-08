@@ -113,14 +113,14 @@ class vec4 {
   }
 
   // boosts
-  vec4 boost(const vec4& v) const {
+  vec4 dipole_boost(const vec4& v) const {
     double rsq = m();
     double v0 = (e * v.e - px * v.px - py * v.py - pz * v.pz) / rsq;
     double c1 = (v.e + v0) / (rsq + e);
     return vec4(v0, v.px - c1 * px, v.py - c1 * py, v.pz - c1 * pz);
   }
 
-  vec4 boost_back(const vec4& v) const {
+  vec4 dipole_boost_back(const vec4& v) const {
     double rsq = m();
     double v0 = (e * v.e + px * v.px + py * v.py + pz * v.pz) / rsq;
     double c1 = (v.e + v0) / (rsq + e);
