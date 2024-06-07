@@ -148,6 +148,15 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
     return;
   }
 
+  // limit to one emission
+  /*
+  if (ev.get_emissions() == 1) {
+    ev.set_end_shower(true);
+    atomicAdd(d_completed, 1);  // increment the number of completed events
+    return;
+  }
+  */
+
   /**
    * end shower if t < cutoff
    *
@@ -158,6 +167,7 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
   if (!(ev.get_shower_t() > cutoff)) {
     ev.set_end_shower(true);
     atomicAdd(d_completed, 1);  // increment the number of completed events
+    return;
   }
 }
 
@@ -296,6 +306,10 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
 
   // increment emissions (important)
   ev.increment_emissions();
+
+  // store the random seed
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }
 
 // -----------------------------------------------------------------------------
