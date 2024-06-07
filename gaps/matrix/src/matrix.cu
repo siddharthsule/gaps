@@ -110,6 +110,9 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   // set the random seed
   ev.set_seed(seed);
   ev.set_rand(rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f\n", seed, rand);
+  }
 }
 
 // function to generate the lo matrix elements + momenta

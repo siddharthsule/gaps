@@ -129,6 +129,9 @@ __global__ void select_winner_split_func(event *events, int n) {
   // store the random seed
   ev.set_seed(seed);
   ev.set_rand(rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f\n", seed, rand);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -231,6 +234,9 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
     // store the random seed
     ev.set_seed(seed);
     ev.set_rand(rand);
+    if (idx == 0) {
+      printf("Seed: %lu, Rand: %f\n", seed, rand);
+    }
   }
 }
 
@@ -310,6 +316,9 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   // store the random seed
   ev.set_seed(seed);
   ev.set_rand(rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f\n", seed, rand);
+  }
 }
 
 // -----------------------------------------------------------------------------
