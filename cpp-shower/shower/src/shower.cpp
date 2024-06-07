@@ -105,6 +105,7 @@ void shower::generate_splitting(event& ev) {
       // generate z
       double zp = ev.get_win_param(0);
       double z = sf_generate_z(1 - zp, zp, rand, sf);
+      printf("Zp: %f, Rand: %f, Z = %f\n", zp, rand, z);
       seed = ev.get_seed();
       rand = ev.get_rand();
       update_rng(seed, rand);

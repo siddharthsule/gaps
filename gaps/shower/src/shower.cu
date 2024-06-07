@@ -135,7 +135,8 @@ __global__ void select_winner_split_func(event *events, int n) {
   ev.set_win_param(1, win_m2);
 
   if (idx == 0) {
-    printf("Winner: %d, %d, %f, %f\n", win_sf, win_ij, win_zp, win_m2);
+    printf("Winner: %d, %d, %f, %f, %f\n", win_sf, win_ij, win_zp, win_m2,
+           win_tt);
   }
 
   // store the random seed
@@ -217,6 +218,9 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   // generate z
   double zp = ev.get_win_param(0);
   double z = sf_generate_z(1 - zp, zp, rand, sf);
+  if (idx == 0) {
+    printf("Zp: %f, Rand: %f, Z = %f\n", zp, rand, z);
+  }
   seed = ev.get_seed();
   rand = ev.get_rand();
   update_rng(seed, rand);
