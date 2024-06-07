@@ -163,4 +163,5 @@ void matrix::generate_lo_point(event &ev) {
   // set the seed and rand back to the event
   ev.set_seed(seed);
   ev.set_rand(rand);
+  printf("Seed: %lu, Rand: %f\n", seed, rand);
 }

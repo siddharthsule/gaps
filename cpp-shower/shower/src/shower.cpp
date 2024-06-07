@@ -77,6 +77,7 @@ void shower::select_winner(event& ev) {
   // set the seed and random number
   ev.set_seed(seed);
   ev.set_rand(rand);
+  printf("Seed: %lu, Rand: %f\n", seed, rand);
 }
 
 /**
@@ -175,6 +176,7 @@ void shower::generate_splitting(event& ev) {
   // set the seed and random number - if no emissions
   ev.set_seed(seed);
   ev.set_rand(rand);
+  printf("Seed: %lu, Rand: %f\n", seed, rand);
 }
 
 void shower::run(event& ev) {
