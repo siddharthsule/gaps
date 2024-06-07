@@ -66,6 +66,9 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   unsigned long seed = ev.get_seed();
   double rand = ev.get_rand();
 
+  // First Time Only - Generate the random number
+  update_rng(seed, rand);
+
   int fl = static_cast<int>(rand) % 5 + 1;
   update_rng(seed, rand);
 

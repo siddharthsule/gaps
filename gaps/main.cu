@@ -39,12 +39,7 @@ __global__ void set_seed_kernel(event* events, int n) {
   }
 
   event& ev = events[idx];
-
-  unsigned long seed = idx;
-  double rand = 0.;
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
+  ev.set_seed(idx);
 }
 
 void run_generator(const int& n, const double& e, const std::string& filename) {
