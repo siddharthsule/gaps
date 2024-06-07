@@ -16,14 +16,15 @@
 
 class event {
  private:
-  // temporary solution - allows a limited number of partons
-  // better solution would be to use a dynamic array, but not gpu friendly
-  parton partons[max_partons];
-
   // random seed ---------------------------------------------------------------
 
   unsigned long seed = 0;
-  double rand = 0.;
+
+  // partons -------------------------------------------------------------------
+
+  // temporary solution - allows a limited number of partons
+  // better solution would be to use a dynamic array, but not gpu friendly
+  parton partons[max_partons];
 
   // me params -----------------------------------------------------------------
 
@@ -73,7 +74,6 @@ class event {
 
   // random seed
   __device__ unsigned long get_seed() const { return seed; }
-  __device__ double get_rand() const { return rand; }
 
   // access partons in the event
   __device__ parton get_parton(int i) const { return partons[i]; }
@@ -121,7 +121,6 @@ class event {
 
   // set random seed
   __device__ void set_seed(unsigned long seed) { this->seed = seed; }
-  __device__ void set_rand(double rand) { this->rand = rand; }
 
   // add / replace parton
   __device__ void set_parton(int i, parton parton) { partons[i] = parton; }
@@ -255,6 +254,9 @@ class event {
       printf("    anti_col: %d\n", parton.get_anti_col());
     }
   }
+
+  // Generate a random seed and random number based on the Event's seed
+  __device__ double gen_random() { return generate_lcg(seed); }
 };
 
 #endif  // event_cuh_

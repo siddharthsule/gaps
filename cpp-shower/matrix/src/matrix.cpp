@@ -41,18 +41,8 @@ double matrix::me2(int fl, double s, double t) {
 
 // generate a point
 void matrix::generate_lo_point(event &ev) {
-  // PRNG - Get at the start of Function, Set at the end
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   // Flavour
-  int fl = static_cast<int>(rand) % 5 + 1;
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Flavour\n", seed, rand);
+  int fl = static_cast<int>(ev.gen_random()) % 5 + 1;
 
   vec4 pa, pb, p1, p2;
   double p0;
@@ -63,21 +53,9 @@ void matrix::generate_lo_point(event &ev) {
   // -------
   // scalars
   p0 = 0.5 * ecms;
-  double ct = 2. * rand - 1.;
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Cos Theta\n", seed, rand);
+  double ct = 2. * ev.gen_random() - 1.;
   double st = std::sqrt(1. - ct * ct);
-  double phi = 2. * M_PI * rand;
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Phi \n", seed, rand);
+  double phi = 2. * M_PI * ev.gen_random();
 
   // -------
   // vectors
@@ -174,8 +152,4 @@ void matrix::generate_lo_point(event &ev) {
   // set the me params
   ev.set_dxs(dxs);
   ev.set_hard(4);
-
-  // set the seed and rand back to the event
-  ev.set_seed(seed);
-  ev.set_rand(rand);
 }

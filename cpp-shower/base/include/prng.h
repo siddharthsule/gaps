@@ -12,6 +12,6 @@
  * everthing should be the same.
  */
 
-void update_rng(unsigned long& current_seed, double& rand);
+double generate_lcg(unsigned long& current_seed);
 
 #endif  // prng_h_

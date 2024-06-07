@@ -30,6 +30,7 @@
  */
 
 // -----------------------------------------------------------------------------
+// kernel to set the seed for the random number generator
 
 __global__ void set_seed_kernel(event* events, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -40,6 +41,7 @@ __global__ void set_seed_kernel(event* events, int n) {
 
   event& ev = events[idx];
   ev.set_seed(idx);
+  double dummy = ev.gen_random();
 }
 
 void run_generator(const int& n, const double& e, const std::string& filename) {

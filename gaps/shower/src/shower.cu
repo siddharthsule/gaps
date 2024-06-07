@@ -3,7 +3,6 @@
 // need to be here to avoid multiple definitions
 #include "colours.cuh"
 #include "kinematics.cuh"
-#include "prng.cuh"
 #include "splittings.cuh"
 
 // -----------------------------------------------------------------------------
@@ -57,10 +56,6 @@ __global__ void select_winner_split_func(event *events, int n) {
     return;
   }
 
-  // Get the Seed and Random Number
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   // default values
   double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
   int win_sf = 0;       // 0 = no splitting
@@ -101,17 +96,7 @@ __global__ void select_winner_split_func(event *events, int n) {
 
         // calculate the evolution variable
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
-        double tt = ev.get_shower_t() * pow(rand, 1. / g);
-
-        // Set seed and random number
-        seed = ev.get_seed();
-        rand = ev.get_rand();
-        update_rng(seed, rand);
-        ev.set_seed(seed);
-        ev.set_rand(rand);
-        if (idx == 0) {
-          printf("Seed: %lu, Rand: %f, Select Winner\n", seed, rand);
-        }
+        double tt = ev.get_shower_t() * pow(ev.gen_random(), 1. / g);
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -133,15 +118,6 @@ __global__ void select_winner_split_func(event *events, int n) {
   ev.set_win_dipole(1, win_k);
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
-
-  if (idx == 0) {
-    printf("Winner: %d, %d, %f, %f, %f\n", win_sf, win_ij, win_zp, win_m2,
-           win_tt);
-  }
-
-  // store the random seed
-  ev.set_seed(seed);
-  ev.set_rand(rand);
 }
 
 // -----------------------------------------------------------------------------
@@ -200,10 +176,6 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
 
   event &ev = events[idx];
 
-  // Set seed and random number
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   // do not run if the shower has ended
   if (ev.get_end_shower()) {
     return;
@@ -217,18 +189,7 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
 
   // generate z
   double zp = ev.get_win_param(0);
-  double z = sf_generate_z(1 - zp, zp, rand, sf);
-  if (idx == 0) {
-    printf("Zp: %f, Rand: %f, Z = %f\n", zp, rand, z);
-  }
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Z Gen, Z = %f\n", seed, rand, z);
-  }
+  double z = sf_generate_z(1 - zp, zp, ev.gen_random(), sf);
 
   double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
@@ -245,26 +206,11 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
     f = (1. - y) * asval[idx] * value;
     g = asmax * estimate;
 
-    // To avoid Confusion...
-    double r = rand;
-    seed = ev.get_seed();
-    rand = ev.get_rand();
-    update_rng(seed, rand);
-    ev.set_seed(seed);
-    ev.set_rand(rand);
-    if (idx == 0) {
-      printf("Seed: %lu, Rand: %f, Veto Step\n", seed, rand);
-    }
-
-    if (r < f / g) {
+    if (ev.gen_random() < f / g) {
       accept_emission[idx] = true;
       ev.set_shower_z(z);
       ev.set_shower_y(y);
     }
-
-    // store the random seed
-    ev.set_seed(seed);
-    ev.set_rand(rand);
   }
 }
 
@@ -293,16 +239,7 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   unsigned long seed = ev.get_seed();
   double rand = ev.get_rand();
 
-  double phi = 2. * M_PI * rand;
-  // Set seed and random number
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Phi Shower Gen\n", seed, rand);
-  }
+  double phi = 2. * M_PI * ev.gen_random();
 
   int win_ij = ev.get_win_dipole(0);
   int win_k = ev.get_win_dipole(1);
@@ -330,16 +267,7 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   int coli[2] = {0, 0};
   int colj[2] = {0, 0};
 
-  make_colours(ev, coli, colj, flavs, colij, colk, rand);
-  // Set seed and random number
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Colour Gen\n", seed, rand);
-  }
+  make_colours(ev, coli, colj, flavs, colij, colk, ev.gen_random());
 
   // modify splitter
   ev.set_parton_pid(win_ij, flavs[1]);
@@ -357,9 +285,7 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   // increment emissions (important)
   ev.increment_emissions();
 
-  // store the random seed
-  ev.set_seed(seed);
-  ev.set_rand(rand);
+  return;
 }
 
 // -----------------------------------------------------------------------------

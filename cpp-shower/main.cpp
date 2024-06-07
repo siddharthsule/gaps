@@ -47,15 +47,11 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   // inititalisation
 
   std::cout << "Initialising..." << std::endl;
-  std::vector<event> events(n);
+  std::vector<event> events(n);  // Create n events
 
   for (int i = 0; i < n; i++) {
-    unsigned long seed = i;
-    double rand = 0.5;
-    update_rng(seed, rand);
-    printf("Seed: %lu, Rand: %f, First Gen\n", seed, rand);
-    events[i].set_seed(seed);
-    events[i].set_rand(rand);
+    events[i].set_seed(i);                  // Set the seed
+    double dummy = events[i].gen_random();  // Generate the first random number
   }
 
   // ---------------------------------------------------------------------------
@@ -149,29 +145,8 @@ int main(int argc, char* argv[]) {
 
   // if more than max_events, run in batches
   if (n > max_events) {
-    std::cout << "-------------------------------------------------"
-              << std::endl;
     std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
-    std::cout << "Running in batches..." << std::endl;
-    std::cout << "Please use rivet-merge to combine runs" << std::endl;
-
-    // split into batches
-    int n_batches = n / max_events;
-    int n_remainder = n % max_events;
-    std::cout << "Number of Batches: " << n_batches << std::endl;
-    std::cout << "Size of Remainder: " << n_remainder << std::endl;
-
-    // run in batches
-    for (int i = 0; i < n_batches; i++) {
-      std::string filename = "cpp-" + std::to_string(i) + ".yoda";
-      run_generator(max_events, e, filename);
-    }
-
-    // run remainder
-    if (n_remainder > 0) {
-      std::string filename = "cpp-" + std::to_string(n_batches) + ".yoda";
-      run_generator(n_remainder, e, filename);
-    }
+    return 1;
   } else {
     run_generator(n, e, "cpp.yoda");
   }

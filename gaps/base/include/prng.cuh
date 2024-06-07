@@ -12,10 +12,12 @@
  * everthing should be the same.
  */
 
-__device__ __inline__ void update_rng(unsigned long& current_seed,
-                                      double& rand) {
+__device__ double generate_lcg(unsigned long& current_seed) {
+  // Update the seed
   current_seed = (lcg_a * (current_seed) + lcg_c) % lcg_m;
-  rand = static_cast<double>(current_seed) / lcg_m;
+
+  // Return the random number
+  return static_cast<double>(current_seed) / static_cast<double>(lcg_m);
 }
 
 #endif  // prng_cuh_

@@ -2,7 +2,6 @@
 #define shower_h_
 
 #include "event.h"
-#include "prng.h"
 #include "qcd.h"
 
 // splitting function codes - only ff for now (removed zeroes)

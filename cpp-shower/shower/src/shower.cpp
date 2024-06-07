@@ -7,10 +7,6 @@ shower::shower() {}
  * gpu version for a fair test
  */
 void shower::select_winner(event& ev) {
-  // Seed and Random
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   // default values
   double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
   int win_sf = 0;       // 0 = no splitting
@@ -50,13 +46,7 @@ void shower::select_winner(event& ev) {
 
         // calculate the evolution variable
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
-        double tt = ev.get_shower_t() * pow(rand, 1. / g);
-        seed = ev.get_seed();
-        rand = ev.get_rand();
-        update_rng(seed, rand);
-        ev.set_seed(seed);
-        ev.set_rand(rand);
-        printf("Seed: %lu, Rand: %f, Select Winner \n", seed, rand);
+        double tt = ev.get_shower_t() * std::pow(ev.gen_random(), 1. / g);
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -78,29 +68,14 @@ void shower::select_winner(event& ev) {
   ev.set_win_dipole(1, win_k);
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
-
-  printf("Winner: %d, %d, %f, %f, %f\n", win_sf, win_ij, win_zp, win_m2,
-         win_tt);
-
-  // set the seed and random number
-  ev.set_seed(seed);
-  ev.set_rand(rand);
 }
 
 /**
  * in the gpu version, this would be split into multiple cuda kernels
  */
 void shower::generate_splitting(event& ev) {
-  // Seed and Random
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   while (ev.get_shower_t() > t_c) {
     select_winner(ev);
-
-    // Re-get seed and random number as it changes in select_winner
-    seed = ev.get_seed();
-    rand = ev.get_rand();
 
     if (ev.get_shower_t() > t_c) {
       // get the splitting function
@@ -108,14 +83,7 @@ void shower::generate_splitting(event& ev) {
 
       // generate z
       double zp = ev.get_win_param(0);
-      double z = sf_generate_z(1 - zp, zp, rand, sf);
-      printf("Zp: %f, Rand: %f, Z = %f\n", zp, rand, z);
-      seed = ev.get_seed();
-      rand = ev.get_rand();
-      update_rng(seed, rand);
-      ev.set_seed(seed);
-      ev.set_rand(rand);
-      printf("Seed: %lu, Rand: %f, Z Gen, Z = %f\n", seed, rand, z);
+      double z = sf_generate_z(1 - zp, zp, ev.gen_random(), sf);
 
       double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
@@ -132,26 +100,11 @@ void shower::generate_splitting(event& ev) {
         f = (1. - y) * as(ev.get_shower_t()) * value;
         g = asmax * estimate;
 
-        // Just to Avoid Confusion...
-        double r = rand;
-        seed = ev.get_seed();
-        rand = ev.get_rand();
-        update_rng(seed, rand);
-        ev.set_seed(seed);
-        ev.set_rand(rand);
-        printf("Seed: %lu, Rand: %f, Veto Step\n", seed, rand);
-
-        if (r < f / g) {
+        if (ev.gen_random() < f / g) {
           ev.set_shower_z(z);
           ev.set_shower_y(y);
 
-          double phi = 2. * M_PI * rand;
-          seed = ev.get_seed();
-          rand = ev.get_rand();
-          update_rng(seed, rand);
-          ev.set_seed(seed);
-          ev.set_rand(rand);
-          printf("Seed: %lu, Rand: %f, Phi Shower Gen\n", seed, rand);
+          double phi = 2. * M_PI * ev.gen_random();
 
           int win_ij = ev.get_win_dipole(0);
           int win_k = ev.get_win_dipole(1);
@@ -171,13 +124,7 @@ void shower::generate_splitting(event& ev) {
 
           int coli[2] = {0, 0};
           int colj[2] = {0, 0};
-          make_colours(ev, coli, colj, flavs, colij, colk, rand);
-          seed = ev.get_seed();
-          rand = ev.get_rand();
-          update_rng(seed, rand);
-          ev.set_seed(seed);
-          ev.set_rand(rand);
-          printf("Seed: %lu, Rand: %f, Colour Gen\n", seed, rand);
+          make_colours(ev, coli, colj, flavs, colij, colk, ev.gen_random());
 
           // modify splitter
           ev.set_parton_pid(win_ij, flavs[1]);
@@ -195,19 +142,11 @@ void shower::generate_splitting(event& ev) {
           // increment emissions (important)
           ev.increment_emissions();
 
-          // set the seed and random number - here if it returns early
-          ev.set_seed(seed);
-          ev.set_rand(rand);
-
           return;
         }
       }
     }
   }
-
-  // set the seed and random number - if no emissions
-  ev.set_seed(seed);
-  ev.set_rand(rand);
 }
 
 void shower::run(event& ev) {

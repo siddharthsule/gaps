@@ -1,5 +1,4 @@
 #include "matrix.cuh"
-#include "prng.cuh"
 
 // host constructor
 matrix::matrix(double alphas, double ecms)
@@ -62,52 +61,11 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
 
   event &ev = events[idx];
 
-  // Set seed and random number
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
+  int fl = static_cast<int>(ev.gen_random()) % 5 + 1;
 
-  // First Time Only - Generate the random number
-  update_rng(seed, rand);
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, First Gen \n", seed, rand);
-  }
-
-  int fl = static_cast<int>(rand) % 5 + 1;
-  update_rng(seed, rand);
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Flavour \n", seed, rand);
-  }
-
-  double ct = 2. * rand - 1.;
-  update_rng(seed, rand);
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Cos Theta \n", seed, rand);
-  }
+  double ct = 2. * ev.gen_random() - 1.;
   double st = sqrt(1. - ct * ct);
-  double phi = 2. * M_PI * rand;
-  seed = ev.get_seed();
-  rand = ev.get_rand();
-  update_rng(seed, rand);
-  ev.set_seed(seed);
-  ev.set_rand(rand);
-  if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Phi \n", seed, rand);
-  }
+  double phi = 2. * M_PI * ev.gen_random();
 
   double p0 = matrix->get_ecms() / 2.;  // need to use get because outside class
 

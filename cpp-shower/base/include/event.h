@@ -2,20 +2,22 @@
 #define event_h_
 
 #include "parton.h"
+#include "prng.h"
 
 // event class
 // built to contain the partons and the dxs as one accesible object
 // in future, can use to store thrust, log10y23 to parallelise those
 class event {
  private:
-  // temporary solution - allows a limited number of partons
-  // better solution would be to use a dynamic array, but not gpu friendly
-  parton partons[max_partons];
-
   // random seed ---------------------------------------------------------------
 
   unsigned long seed = 0;
-  double rand = 0.;
+
+  // partons -------------------------------------------------------------------
+
+  // temporary solution - allows a limited number of partons
+  // better solution would be to use a dynamic array, but not gpu friendly
+  parton partons[max_partons];
 
   // me params -----------------------------------------------------------------
 
@@ -62,9 +64,8 @@ class event {
 
   // getters -------------------------------------------------------------------
 
-  // get seed and random number
+  // get random seed
   unsigned long get_seed() const { return seed; }
-  double get_rand() const { return rand; }
 
   // access partons in the event
   parton get_parton(int i) const { return partons[i]; }
@@ -108,9 +109,8 @@ class event {
 
   // setters -------------------------------------------------------------------
 
-  // set random seed and random number
+  // set random seed
   void set_seed(unsigned long seed) { this->seed = seed; }
-  void set_rand(double rand) { this->rand = rand; }
 
   // add / replace parton
   void set_parton(int i, parton parton) { partons[i] = parton; }
@@ -213,6 +213,7 @@ class event {
     return pcheck && ccheck;
   }
 
+  // print event information
   void print_info() const {
     std::cout << "event information:\n";
     std::cout << "dxs: " << get_dxs() << "\n";
@@ -236,6 +237,9 @@ class event {
       std::cout << "    anti_col: " << parton.get_anti_col() << "\n";
     }
   }
+
+  // Generate a random seed and random number based on the Event's seed
+  double gen_random() { return generate_lcg(seed); }
 };
 
 #endif  // event_h_
