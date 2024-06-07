@@ -235,10 +235,6 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
     return;
   }
 
-  // get the random number
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   double phi = 2. * M_PI * ev.gen_random();
 
   int win_ij = ev.get_win_dipole(0);

@@ -95,10 +95,6 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   // set the me params
   ev.set_dxs(dxs);
   ev.set_hard(4);
-
-  // set the random seed
-  ev.set_seed(seed);
-  ev.set_rand(rand);
 }
 
 // function to generate the lo matrix elements + momenta
