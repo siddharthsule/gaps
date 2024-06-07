@@ -2,6 +2,7 @@
 #define event_cuh_
 
 #include "parton.cuh"
+#include "prng.cuh"
 
 /**
  * the event class
