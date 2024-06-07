@@ -56,7 +56,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
     printf("Seed: %lu, Rand: %f, First Gen\n", seed, rand);
     events[i].set_seed(seed);
     events[i].set_rand(rand);
-    }
+  }
 
   // ---------------------------------------------------------------------------
   // matrix element generation

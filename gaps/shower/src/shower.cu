@@ -52,10 +52,6 @@ __global__ void select_winner_split_func(event *events, int n) {
 
   event &ev = events[idx];
 
-  // Set seed and random number
-  unsigned long seed = ev.get_seed();
-  double rand = ev.get_rand();
-
   // do not run if the shower has ended
   if (ev.get_end_shower()) {
     return;
@@ -103,6 +99,9 @@ __global__ void select_winner_split_func(event *events, int n) {
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
         double tt = ev.get_shower_t() * pow(rand, 1. / g);
 
+        // Set seed and random number
+        unsigned long seed = ev.get_seed();
+        double rand = ev.get_rand();
         update_rng(seed, rand);
         ev.set_seed(seed);
         ev.set_rand(rand);
@@ -210,6 +209,8 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   // generate z
   double zp = ev.get_win_param(0);
   double z = sf_generate_z(1 - zp, zp, rand, sf);
+  seed = ev.get_seed();
+  rand = ev.get_rand();
   update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);
@@ -234,6 +235,8 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
 
     // To avoid Confusion...
     double r = rand;
+    seed = ev.get_seed();
+    rand = ev.get_rand();
     update_rng(seed, rand);
     ev.set_seed(seed);
     ev.set_rand(rand);
@@ -279,6 +282,9 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   double rand = ev.get_rand();
 
   double phi = 2. * M_PI * rand;
+  // Set seed and random number
+  seed = ev.get_seed();
+  rand = ev.get_rand();
   update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);
@@ -313,6 +319,9 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   int colj[2] = {0, 0};
 
   make_colours(ev, coli, colj, flavs, colij, colk, rand);
+  // Set seed and random number
+  seed = ev.get_seed();
+  rand = ev.get_rand();
   update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);

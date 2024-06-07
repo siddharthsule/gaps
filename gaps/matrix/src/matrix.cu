@@ -68,6 +68,9 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
 
   // First Time Only - Generate the random number
   update_rng(seed, rand);
+  seed = ev.get_seed();
+  rand = ev.get_rand();
+  update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);
   if (idx == 0) {
@@ -75,6 +78,9 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   }
 
   int fl = static_cast<int>(rand) % 5 + 1;
+  update_rng(seed, rand);
+  seed = ev.get_seed();
+  rand = ev.get_rand();
   update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);
@@ -84,6 +90,9 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
 
   double ct = 2. * rand - 1.;
   update_rng(seed, rand);
+  seed = ev.get_seed();
+  rand = ev.get_rand();
+  update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);
   if (idx == 0) {
@@ -91,6 +100,8 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   }
   double st = sqrt(1. - ct * ct);
   double phi = 2. * M_PI * rand;
+  seed = ev.get_seed();
+  rand = ev.get_rand();
   update_rng(seed, rand);
   ev.set_seed(seed);
   ev.set_rand(rand);

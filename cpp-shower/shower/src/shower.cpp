@@ -51,6 +51,8 @@ void shower::select_winner(event& ev) {
         // calculate the evolution variable
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
         double tt = ev.get_shower_t() * pow(rand, 1. / g);
+        seed = ev.get_seed();
+        rand = ev.get_rand();
         update_rng(seed, rand);
         ev.set_seed(seed);
         ev.set_rand(rand);
@@ -100,6 +102,8 @@ void shower::generate_splitting(event& ev) {
       // generate z
       double zp = ev.get_win_param(0);
       double z = sf_generate_z(1 - zp, zp, rand, sf);
+      seed = ev.get_seed();
+      rand = ev.get_rand();
       update_rng(seed, rand);
       ev.set_seed(seed);
       ev.set_rand(rand);
@@ -122,6 +126,8 @@ void shower::generate_splitting(event& ev) {
 
         // Just to Avoid Confusion...
         double r = rand;
+        seed = ev.get_seed();
+        rand = ev.get_rand();
         update_rng(seed, rand);
         ev.set_seed(seed);
         ev.set_rand(rand);
@@ -132,6 +138,8 @@ void shower::generate_splitting(event& ev) {
           ev.set_shower_y(y);
 
           double phi = 2. * M_PI * rand;
+          seed = ev.get_seed();
+          rand = ev.get_rand();
           update_rng(seed, rand);
           ev.set_seed(seed);
           ev.set_rand(rand);
@@ -156,6 +164,8 @@ void shower::generate_splitting(event& ev) {
           int coli[2] = {0, 0};
           int colj[2] = {0, 0};
           make_colours(ev, coli, colj, flavs, colij, colk, rand);
+          seed = ev.get_seed();
+          rand = ev.get_rand();
           update_rng(seed, rand);
           ev.set_seed(seed);
           ev.set_rand(rand);
