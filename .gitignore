@@ -22,6 +22,9 @@ doc/extra/*.pdf
 doc/extra/*.png
 doc/extra/*-time.dat
 
+# LHAPDF Path - Exclusive to setups
+lhapdf_path.txt
+
 # Any Profiling Results
 *.nsys-rep
 *.sqlite
