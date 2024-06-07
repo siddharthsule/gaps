@@ -79,6 +79,9 @@ void shower::select_winner(event& ev) {
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
 
+  printf("Winner: %d, %d, %f, %f, %f\n", win_sf, win_ij, win_zp, win_m2,
+         win_tt);
+
   // set the seed and random number
   ev.set_seed(seed);
   ev.set_rand(rand);
@@ -107,7 +110,7 @@ void shower::generate_splitting(event& ev) {
       update_rng(seed, rand);
       ev.set_seed(seed);
       ev.set_rand(rand);
-      printf("Seed: %lu, Rand: %f, Z Gen\n", seed, rand);
+      printf("Seed: %lu, Rand: %f, Z Gen, Z = %f\n", seed, rand, z);
 
       double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 

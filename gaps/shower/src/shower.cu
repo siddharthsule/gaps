@@ -134,6 +134,10 @@ __global__ void select_winner_split_func(event *events, int n) {
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
 
+  if (idx == 0) {
+    printf("Winner: %d, %d, %f, %f\n", win_sf, win_ij, win_zp, win_m2);
+  }
+
   // store the random seed
   ev.set_seed(seed);
   ev.set_rand(rand);
@@ -219,7 +223,7 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   ev.set_seed(seed);
   ev.set_rand(rand);
   if (idx == 0) {
-    printf("Seed: %lu, Rand: %f, Z Gen\n", seed, rand);
+    printf("Seed: %lu, Rand: %f, Z Gen, Z = %f\n", seed, rand, z);
   }
 
   double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
