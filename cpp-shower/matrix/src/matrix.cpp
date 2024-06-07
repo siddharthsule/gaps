@@ -48,6 +48,8 @@ void matrix::generate_lo_point(event &ev) {
   // Flavour
   int fl = static_cast<int>(rand) % 5 + 1;
   update_rng(seed, rand);
+  ev.set_seed(seed);
+  ev.set_rand(rand);
   printf("Seed: %lu, Rand: %f, Flavour\n", seed, rand);
 
   vec4 pa, pb, p1, p2;
@@ -61,10 +63,14 @@ void matrix::generate_lo_point(event &ev) {
   p0 = 0.5 * ecms;
   double ct = 2. * rand - 1.;
   update_rng(seed, rand);
+  ev.set_seed(seed);
+  ev.set_rand(rand);
   printf("Seed: %lu, Rand: %f, Cos Theta\n", seed, rand);
   double st = std::sqrt(1. - ct * ct);
   double phi = 2. * M_PI * rand;
   update_rng(seed, rand);
+  ev.set_seed(seed);
+  ev.set_rand(rand);
   printf("Seed: %lu, Rand: %f, Phi \n", seed, rand);
 
   // -------
@@ -166,5 +172,4 @@ void matrix::generate_lo_point(event &ev) {
   // set the seed and rand back to the event
   ev.set_seed(seed);
   ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Post Matrix \n", seed, rand);
 }

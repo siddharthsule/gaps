@@ -52,6 +52,8 @@ void shower::select_winner(event& ev) {
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
         double tt = ev.get_shower_t() * pow(rand, 1. / g);
         update_rng(seed, rand);
+        ev.set_seed(seed);
+        ev.set_rand(rand);
         printf("Seed: %lu, Rand: %f, Select Winner \n", seed, rand);
 
         // check if tt is greater than the current winner
@@ -78,7 +80,6 @@ void shower::select_winner(event& ev) {
   // set the seed and random number
   ev.set_seed(seed);
   ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Post Select Winner \n", seed, rand);
 }
 
 /**
@@ -100,6 +101,8 @@ void shower::generate_splitting(event& ev) {
       double zp = ev.get_win_param(0);
       double z = sf_generate_z(1 - zp, zp, rand, sf);
       update_rng(seed, rand);
+      ev.set_seed(seed);
+      ev.set_rand(rand);
       printf("Seed: %lu, Rand: %f, Z Gen\n", seed, rand);
 
       double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
@@ -120,6 +123,8 @@ void shower::generate_splitting(event& ev) {
         // Just to Avoid Confusion...
         double r = rand;
         update_rng(seed, rand);
+        ev.set_seed(seed);
+        ev.set_rand(rand);
         printf("Seed: %lu, Rand: %f, Veto Step\n", seed, rand);
 
         if (r < f / g) {
@@ -128,6 +133,8 @@ void shower::generate_splitting(event& ev) {
 
           double phi = 2. * M_PI * rand;
           update_rng(seed, rand);
+          ev.set_seed(seed);
+          ev.set_rand(rand);
           printf("Seed: %lu, Rand: %f, Phi Shower Gen\n", seed, rand);
 
           int win_ij = ev.get_win_dipole(0);
@@ -150,6 +157,8 @@ void shower::generate_splitting(event& ev) {
           int colj[2] = {0, 0};
           make_colours(ev, coli, colj, flavs, colij, colk, rand);
           update_rng(seed, rand);
+          ev.set_seed(seed);
+          ev.set_rand(rand);
           printf("Seed: %lu, Rand: %f, Colour Gen\n", seed, rand);
 
           // modify splitter
@@ -171,7 +180,6 @@ void shower::generate_splitting(event& ev) {
           // set the seed and random number - here if it returns early
           ev.set_seed(seed);
           ev.set_rand(rand);
-          printf("Seed: %lu, Rand: %f, Post Shower Gen\n", seed, rand);
 
           return;
         }
@@ -182,7 +190,6 @@ void shower::generate_splitting(event& ev) {
   // set the seed and random number - if no emissions
   ev.set_seed(seed);
   ev.set_rand(rand);
-  printf("Seed: %lu, Rand: %f, Post No More Emis\n", seed, rand);
 }
 
 void shower::run(event& ev) {

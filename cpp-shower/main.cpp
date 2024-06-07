@@ -53,10 +53,10 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
     unsigned long seed = i;
     double rand = 0.5;
     update_rng(seed, rand);
+    printf("Seed: %lu, Rand: %f, First Gen\n", seed, rand);
     events[i].set_seed(seed);
     events[i].set_rand(rand);
-    printf("Seed: %lu, Rand: %f, First Gen\n", seed, rand);
-  }
+    }
 
   // ---------------------------------------------------------------------------
   // matrix element generation
