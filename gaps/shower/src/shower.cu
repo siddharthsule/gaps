@@ -100,8 +100,8 @@ __global__ void select_winner_split_func(event *events, int n) {
         double tt = ev.get_shower_t() * pow(rand, 1. / g);
 
         // Set seed and random number
-        unsigned long seed = ev.get_seed();
-        double rand = ev.get_rand();
+        seed = ev.get_seed();
+        rand = ev.get_rand();
         update_rng(seed, rand);
         ev.set_seed(seed);
         ev.set_rand(rand);
