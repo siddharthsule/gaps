@@ -3,24 +3,8 @@
 // need to be here to avoid multiple definitions
 #include "colours.cuh"
 #include "kinematics.cuh"
+#include "prng.cuh"
 #include "splittings.cuh"
-
-// -----------------------------------------------------------------------------
-// random number generator
-
-// no need during matrix as initialised once and used once only
-// but for shower used 80 to 100 times
-__global__ void init_curandStates(curandState *states, int n) {
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= n) {
-    return;
-  }
-  // every events[idx] has a seed idx
-  // curand_init(idx, 0, 0, &states[idx]);
-
-  // every events[idx] has a seed idx and clok64() is used to get a seed
-  curand_init(clock64(), idx, 0, &states[idx]);
-}
 
 // -----------------------------------------------------------------------------
 // preparing the shower
@@ -59,17 +43,18 @@ __global__ void prep_shower(event *events, int n) {
  * parallelizing the process.
  */
 
-__global__ void select_winner_split_func(event *events, curandState *states,
-                                         int n) {
+__global__ void select_winner_split_func(event *events, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
     return;
   }
 
-  curandState state = states[idx];
-
   event &ev = events[idx];
+
+  // Set seed and random number
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
 
   // do not run if the shower has ended
   if (ev.get_end_shower()) {
@@ -116,9 +101,9 @@ __global__ void select_winner_split_func(event *events, curandState *states,
 
         // calculate the evolution variable
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
-        double tt = ev.get_shower_t() * pow(curand_uniform(&state), 1. / g);
+        double tt = ev.get_shower_t() * pow(rand, 1. / g);
 
-        states[idx] = state;  // so that the next number is not the same!
+        update_rng(seed, rand);  // so that the next number is not the same!
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -140,6 +125,10 @@ __global__ void select_winner_split_func(event *events, curandState *states,
   ev.set_win_dipole(1, win_k);
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
+
+  // store the random seed
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }
 
 // -----------------------------------------------------------------------------
@@ -175,7 +164,7 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
 // -----------------------------------------------------------------------------
 
 __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
-                         curandState *states, int n) {
+                         int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
@@ -183,7 +172,10 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   }
 
   event &ev = events[idx];
-  curandState state = states[idx];
+
+  // Set seed and random number
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
 
   // do not run if the shower has ended
   if (ev.get_end_shower()) {
@@ -196,12 +188,10 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   // get the splitting function
   int sf = ev.get_win_sf();
 
-  double rand = curand_uniform(&state);
-  states[idx] = state;
-
   // generate z
   double zp = ev.get_win_param(0);
   double z = sf_generate_z(1 - zp, zp, rand, sf);
+  update_rng(seed, rand);
 
   double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
@@ -218,20 +208,26 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
     f = (1. - y) * asval[idx] * value;
     g = asmax * estimate;
 
-    if (curand_uniform(&state) < f / g) {
+    // To avoid Confusion...
+    double r = rand;
+    update_rng(seed, rand);
+
+    if (r < f / g) {
       accept_emission[idx] = true;
       ev.set_shower_z(z);
       ev.set_shower_y(y);
     }
-    states[idx] = state;
+
+    // store the random seed
+    ev.set_seed(seed);
+    ev.set_rand(rand);
   }
 }
 
 // -----------------------------------------------------------------------------
 
 // do splitting
-__global__ void do_splitting(event *events, bool *accept_emission,
-                             curandState *states, int n) {
+__global__ void do_splitting(event *events, bool *accept_emission, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
@@ -249,10 +245,12 @@ __global__ void do_splitting(event *events, bool *accept_emission,
     return;
   }
 
-  curandState state = states[idx];
+  // get the random number
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
 
-  double phi = 2. * M_PI * curand_uniform(&state);
-  states[idx] = state;
+  double phi = 2. * M_PI * rand;
+  update_rng(seed, rand);
 
   int win_ij = ev.get_win_dipole(0);
   int win_k = ev.get_win_dipole(1);
@@ -280,10 +278,8 @@ __global__ void do_splitting(event *events, bool *accept_emission,
   int coli[2] = {0, 0};
   int colj[2] = {0, 0};
 
-  double rand = curand_uniform(&state);
-  states[idx] = state;
-
   make_colours(ev, coli, colj, flavs, colij, colk, rand);
+  update_rng(seed, rand);
 
   // modify splitter
   ev.set_parton_pid(win_ij, flavs[1]);
@@ -347,13 +343,6 @@ void run_shower(thrust::device_vector<event> &d_events) {
   bool *d_accept_emission;
   cudaMalloc(&d_accept_emission, n * sizeof(bool));
 
-  // allocate space for curand states
-  curandState *d_states;
-  cudaMalloc(&d_states, n * sizeof(curandState));
-
-  // initialize the states
-  init_curandStates<<<(n + 255) / 256, 256>>>(d_states, n);
-
   // store the number of finished events per cycle
   std::vector<int> completed_per_cycle;
 
@@ -378,8 +367,7 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // select the winner kernel
 
     debug_msg("running @select_winner_split_func");
-    select_winner_split_func<<<(n + 255) / 256, 256>>>(d_events_ptr, d_states,
-                                                       n);
+    select_winner_split_func<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
     sync_gpu_and_check("select_winner_split_func");
 
     // -------------------------------------------------------------------------
@@ -401,15 +389,14 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
     debug_msg("running @veto_alg");
     veto_alg<<<(n + 255) / 256, 256>>>(d_events_ptr, d_asval, d_accept_emission,
-                                       d_states, n);
+                                       n);
     sync_gpu_and_check("veto_alg");
 
     // -------------------------------------------------------------------------
     // splitting algorithm
 
     debug_msg("running @do_splitting");
-    do_splitting<<<(n + 255) / 256, 256>>>(d_events_ptr, d_accept_emission,
-                                           d_states, n);
+    do_splitting<<<(n + 255) / 256, 256>>>(d_events_ptr, d_accept_emission, n);
     sync_gpu_and_check("do_splitting");
 
     // -------------------------------------------------------------------------

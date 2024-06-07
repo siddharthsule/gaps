@@ -23,15 +23,11 @@
  * *: as possible as a second year ph_d student can make it ;)
  */
 
-// initialise the curandStates
-__global__ void init_curandStates(curandState *states, int n);
-
 // prepare events for the shower
 __global__ void prep_shower(event *events, int n);
 
 // selecting the winner emission
-__global__ void select_winner_split_func(event *events, curandState *states,
-                                         int n);
+__global__ void select_winner_split_func(event *events, int n);
 
 // check the cutoff
 __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
@@ -39,11 +35,10 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
 
 // veto algorithm
 __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
-                         curandState *states, int n);
+                         int n);
 
 // perform the splitting
-__global__ void do_splitting(event *events, bool *accept_emission,
-                             curandState *states, int n);
+__global__ void do_splitting(event *events, bool *accept_emission, int n);
 
 // kinematics
 __device__ void make_kinematics(vec4 *kinematics, const double z,

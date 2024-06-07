@@ -44,7 +44,6 @@ void matrix::generate_lo_point(event &ev) {
   // PRNG - Get at the start of Function, Set at the end
   unsigned long seed = ev.get_seed();
   double rand = ev.get_rand();
-  update_rng(seed, rand);
 
   // Flavour
   int fl = static_cast<int>(rand) % 5 + 1;

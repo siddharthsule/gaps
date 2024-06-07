@@ -31,6 +31,22 @@
 
 // -----------------------------------------------------------------------------
 
+__global__ void set_seed_kernel(event* events, int n) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (idx >= n) {
+    return;
+  }
+
+  event& ev = events[idx];
+
+  unsigned long seed = idx;
+  double rand = 0.;
+  update_rng(seed, rand);
+  ev.set_seed(seed);
+  ev.set_rand(rand);
+}
+
 void run_generator(const int& n, const double& e, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
@@ -48,6 +64,10 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
 
   std::cout << "Initialising..." << std::endl;
   thrust::device_vector<event> d_events(n);
+
+  // set the seed
+  set_seed_kernel<<<(n + 255) / 256, 256>>>(
+      thrust::raw_pointer_cast(d_events.data()), n);
 
   // ---------------------------------------------------------------------------
   // me generation
