@@ -1,4 +1,5 @@
 #include "matrix.cuh"
+#include "prng.cuh"
 
 // host constructor
 matrix::matrix(double alphas, double ecms)
@@ -55,25 +56,26 @@ __global__ void matrix_setup_kernel(matrix *matrix, double e) {
 __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-  curandState state;
-
-  // every events[idx] has a seed idx
-  // curand_init(idx, 0, 0, &states[idx]);
-
-  // every events[idx] has a seed idx and clok64() is used to get a seed
-  curand_init(clock64(), idx, 0, &state);
-
   if (idx >= n) {
     return;
   }
 
   event &ev = events[idx];
 
-  double ct = 2. * curand_uniform(&state) - 1.;
-  double st = sqrt(1. - ct * ct);
-  double phi = 2. * M_PI * curand_uniform(&state);
+  // Set seed and random number
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
+  update_rng(seed, rand);
 
   int fl = curand(&state) % 5 + 1;
+  update_rng(seed, rand);
+
+  double ct = 2. * rand - 1.;
+  update_rng(seed, rand);
+  double st = sqrt(1. - ct * ct);
+  double phi = 2. * M_PI * rand;
+  update_rng(seed, rand);
+
   double p0 = matrix->get_ecms() / 2.;  // need to use get because outside class
 
   vec4 pa(p0, 0., 0., p0);
@@ -102,6 +104,10 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
   // set the me params
   ev.set_dxs(dxs);
   ev.set_hard(4);
+
+  // set the random seed
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }
 
 // function to generate the lo matrix elements + momenta

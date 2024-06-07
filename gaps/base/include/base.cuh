@@ -32,8 +32,10 @@
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
 
-// debugging - only debug levels 0 and 1 (true or false)
-const bool debug = false;
+// RNG Settings - Linear Congruential Generator
+const unsigned long lcg_a = 1664525;
+const unsigned long lcg_c = 1013904223;
+const unsigned long lcg_m = 4294967296;
 
 // max number of partons, set to save memory
 // at 10^6 events:
@@ -58,10 +60,13 @@ const int n_bins2d = 100;  // nx_n grid
 const int max_events = 1000000;
 
 // -----------------------------------------------------------------------------
-// common functions
+// common functions and debugging
 
 // sync device and check for cuda errors
 void sync_gpu_and_check(const char *operation);
+
+// debugging - only debug levels 0 and 1 (true or false)
+const bool debug = false;
 
 // debugging function - available in kernels too!
 __host__ __device__ void debug_msg(const char *msg);
