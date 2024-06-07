@@ -3,6 +3,7 @@
 
 // parton includes base, which has the cuda libraries
 #include "event.h"
+#include "prng.h"
 
 // matrix class
 class matrix {

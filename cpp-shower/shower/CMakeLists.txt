@@ -7,3 +7,6 @@ include_directories(include ../base/include)
 file(GLOB SOURCES "src/*.cpp")
 
 add_library(shower ${SOURCES})
+
+# Link to Base
+target_link_libraries(shower base)

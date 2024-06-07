@@ -7,11 +7,16 @@
 #include <cmath>     // math functions
 #include <fstream>   // file i/o
 #include <iostream>  // standard i/o
-#include <random>    // random number generation
-#include <vector>    // vector
+// #include <random>    // random number generation
+#include <vector>  // vector
 
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
+
+// RNG Settings - Linear Congruential Generator
+const unsigned long lcg_a = 1664525;
+const unsigned long lcg_c = 1013904223;
+const unsigned long lcg_m = 4294967296;
 
 // max number of partons, set to save memory
 const int max_partons = 30;

@@ -49,6 +49,10 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   std::cout << "Initialising..." << std::endl;
   std::vector<event> events(n);
 
+  for (int i = 0; i < n; i++) {
+    events[i].set_seed(i);  // event number is seed
+  }
+
   // ---------------------------------------------------------------------------
   // matrix element generation
 
@@ -58,8 +62,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   matrix xs(asmz, e);
 
   for (int i = 0; i < n; i++) {
-    xs.generate_lo_point(events[i]);  // random seed
-    // (same seed option is off in matrix.cpp!)
+    xs.generate_lo_point(events[i]);
   }
 
   auto end = std::chrono::high_resolution_clock::now();
@@ -74,8 +77,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   shower sh;
 
   for (int i = 0; i < n; i++) {
-    sh.run(events[i]);  // random seed
-    // (same seed option is off in shower.cpp!)
+    sh.run(events[i]);
   }
 
   end = std::chrono::high_resolution_clock::now();

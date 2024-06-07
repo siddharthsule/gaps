@@ -6,8 +6,10 @@ shower::shower() {}
  * this function is different from s.h's tutorial, we keep it the same as the
  * gpu version for a fair test
  */
-void shower::select_winner(event& ev, std::mt19937& gen) {
-  std::uniform_real_distribution<> dis(0., 1.);
+void shower::select_winner(event& ev) {
+  // Seed and Random
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
 
   // default values
   double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
@@ -48,7 +50,8 @@ void shower::select_winner(event& ev, std::mt19937& gen) {
 
         // calculate the evolution variable
         double g = asmax / (2. * M_PI) * sf_integral(1 - zp, zp, sf);
-        double tt = ev.get_shower_t() * pow(dis(gen), 1. / g);
+        double tt = ev.get_shower_t() * pow(rand, 1. / g);
+        update_rng(seed, rand);
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -70,26 +73,31 @@ void shower::select_winner(event& ev, std::mt19937& gen) {
   ev.set_win_dipole(1, win_k);
   ev.set_win_param(0, win_zp);
   ev.set_win_param(1, win_m2);
+
+  // set the seed and random number
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }
 
 /**
  * in the gpu version, this would be split into multiple cuda kernels
  */
-void shower::generate_splitting(event& ev, std::mt19937& gen) {
-  std::uniform_real_distribution<> dis(0., 1.);
+void shower::generate_splitting(event& ev) {
+  // Seed and Random
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
 
   while (ev.get_shower_t() > t_c) {
-    select_winner(ev, gen);
+    select_winner(ev);
 
     if (ev.get_shower_t() > t_c) {
       // get the splitting function
       int sf = ev.get_win_sf();
 
-      double rand = dis(gen);
-
       // generate z
       double zp = ev.get_win_param(0);
       double z = sf_generate_z(1 - zp, zp, rand, sf);
+      update_rng(seed, rand);
 
       double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
@@ -106,11 +114,16 @@ void shower::generate_splitting(event& ev, std::mt19937& gen) {
         f = (1. - y) * as(ev.get_shower_t()) * value;
         g = asmax * estimate;
 
-        if (dis(gen) < f / g) {
+        // Just to Avoid Confusion...
+        double r = rand;
+        update_rng(seed, rand);
+
+        if (r < f / g) {
           ev.set_shower_z(z);
           ev.set_shower_y(y);
 
-          double phi = 2. * M_PI * dis(gen);
+          double phi = 2. * M_PI * rand;
+          update_rng(seed, rand);
 
           int win_ij = ev.get_win_dipole(0);
           int win_k = ev.get_win_dipole(1);
@@ -130,7 +143,8 @@ void shower::generate_splitting(event& ev, std::mt19937& gen) {
 
           int coli[2] = {0, 0};
           int colj[2] = {0, 0};
-          make_colours(ev, coli, colj, flavs, colij, colk, dis(gen));
+          make_colours(ev, coli, colj, flavs, colij, colk, rand);
+          update_rng(seed, rand);
 
           // modify splitter
           ev.set_parton_pid(win_ij, flavs[1]);
@@ -148,25 +162,22 @@ void shower::generate_splitting(event& ev, std::mt19937& gen) {
           // increment emissions (important)
           ev.increment_emissions();
 
+          // set the seed and random number - here if it returns early
+          ev.set_seed(seed);
+          ev.set_rand(rand);
+
           return;
         }
       }
     }
   }
+
+  // set the seed and random number - if no emissions
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }
 
 void shower::run(event& ev) {
-  /**
-   * thread local
-   * ------------
-   *
-   * we observed significant slowdown due to the rng - this is because the
-   * code was re initialising the rng. using thread_local means that it is
-   * initialised once and then reused, giving a massive speed-up!
-   */
-  thread_local std::random_device rd;
-  thread_local std::mt19937 gen(rd());
-
   // same seed option. turn off by commenting when not in use!
   // having an if statement if no seed is given would not be a fair comparison
   // to the gpu, so commented out is better for now. maybe in the future.
@@ -183,6 +194,6 @@ void shower::run(event& ev) {
   ev.set_shower_c(1);
 
   while (ev.get_shower_t() > t_c) {
-    generate_splitting(ev, gen);
+    generate_splitting(ev);
   }
 }

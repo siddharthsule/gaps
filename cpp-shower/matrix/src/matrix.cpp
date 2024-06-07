@@ -41,18 +41,14 @@ double matrix::me2(int fl, double s, double t) {
 
 // generate a point
 void matrix::generate_lo_point(event &ev) {
-  thread_local std::random_device rd;
-  thread_local std::mt19937 gen(rd());
+  // PRNG - Get at the start of Function, Set at the end
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
+  update_rng(seed, rand);
 
-  // same seed option. turn off by commenting when not in use!
-  // having an if statement if no seed is given would not be a fair comparison
-  // to the gpu, so commented out is better for now. maybe in the future.
-  // thread_local std::mt19937 gen(seed);
-
-  std::uniform_real_distribution<> dis(0., 1.);  // uniform distribution
-
-  // flavour
-  int fl = std::rand() % 5 + 1;  // faster than using dis(gen)
+  // Flavour
+  int fl = static_cast<int>(rand) % 5 + 1;
+  update_rng(seed, rand);
 
   vec4 pa, pb, p1, p2;
   double p0;
@@ -63,9 +59,12 @@ void matrix::generate_lo_point(event &ev) {
   // -------
   // scalars
   p0 = 0.5 * ecms;
-  double ct = 2. * dis(gen) - 1.;
+  double ct = 2. * rand - 1.;
+  update_rng(seed, rand);
   double st = std::sqrt(1. - ct * ct);
-  double phi = 2. * M_PI * dis(gen);
+  double phi = 2. * M_PI * rand;
+  update_rng(seed, rand);
+
   // -------
   // vectors
   pa = vec4(p0, 0., 0., p0);                                          // e+
@@ -161,4 +160,8 @@ void matrix::generate_lo_point(event &ev) {
   // set the me params
   ev.set_dxs(dxs);
   ev.set_hard(4);
+
+  // set the seed and rand back to the event
+  ev.set_seed(seed);
+  ev.set_rand(rand);
 }

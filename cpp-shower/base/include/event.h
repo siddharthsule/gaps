@@ -12,6 +12,11 @@ class event {
   // better solution would be to use a dynamic array, but not gpu friendly
   parton partons[max_partons];
 
+  // random seed ---------------------------------------------------------------
+
+  unsigned long seed = 0;
+  double rand = 0.;
+
   // me params -----------------------------------------------------------------
 
   double dxs = 0.;  // differential cross section
@@ -57,6 +62,10 @@ class event {
 
   // getters -------------------------------------------------------------------
 
+  // get seed and random number
+  unsigned long get_seed() const { return seed; }
+  double get_rand() const { return rand; }
+
   // access partons in the event
   parton get_parton(int i) const { return partons[i]; }
   int get_size() const { return n_hard + n_emission; }
@@ -98,6 +107,10 @@ class event {
   double get_dalitz(int i) const { return dalitz[i]; }
 
   // setters -------------------------------------------------------------------
+
+  // set random seed and random number
+  void set_seed(unsigned long seed) { this->seed = seed; }
+  void set_rand(double rand) { this->rand = rand; }
 
   // add / replace parton
   void set_parton(int i, parton parton) { partons[i] = parton; }

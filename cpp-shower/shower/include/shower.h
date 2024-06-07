@@ -2,6 +2,7 @@
 #define shower_h_
 
 #include "event.h"
+#include "prng.h"
 #include "qcd.h"
 
 // splitting function codes - only ff for now (removed zeroes)
@@ -31,7 +32,7 @@ class shower {
   void sf_to_flavs(int sf, int* flavs);
 
   // select the winner emission
-  void select_winner(event& ev, std::mt19937& gen);
+  void select_winner(event& ev);
 
   // kinematics
   void make_kinematics(vec4* kinematics, const double z, const double y,
@@ -42,7 +43,7 @@ class shower {
                     const int colij[2], const int colk[2], const double r);
 
   // veto algorithm + perform the splitting
-  void generate_splitting(event& ev, std::mt19937& gen);
+  void generate_splitting(event& ev);
 
   // run the shower
   void run(event& ev);
