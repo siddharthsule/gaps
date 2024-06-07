@@ -98,6 +98,10 @@ void shower::generate_splitting(event& ev) {
   while (ev.get_shower_t() > t_c) {
     select_winner(ev);
 
+    // Re-get seed and random number as it changes in select_winner
+    seed = ev.get_seed();
+    rand = ev.get_rand();
+
     if (ev.get_shower_t() > t_c) {
       // get the splitting function
       int sf = ev.get_win_sf();
