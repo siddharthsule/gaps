@@ -1,0 +1,197 @@
+Initialising...
+Seed: 1013904223, Rand: 0.236068, First Gen
+Generating Matrix Elements (C++)...
+Seed: 1196435762, Rand: 0.278567, Flavour
+Seed: 3519870697, Rand: 0.819534, Cos Theta
+Seed: 2868466484, Rand: 0.667867, Phi 
+Seed: 2868466484, Rand: 0.667867, Post Matrix 
+Showering Partons (C++)...
+Seed: 1649599747, Rand: 0.384077, Select Winner 
+Seed: 2670642822, Rand: 0.621807, Select Winner 
+Seed: 2670642822, Rand: 0.621807, Post Select Winner 
+Seed: 1649599747, Rand: 0.384077, Z Gen
+Seed: 1476291629, Rand: 0.343726, Select Winner 
+Seed: 2748932008, Rand: 0.640036, Select Winner 
+Seed: 2748932008, Rand: 0.640036, Post Select Winner 
+Seed: 2670642822, Rand: 0.621807, Z Gen
+Seed: 2180890343, Rand: 0.507778, Select Winner 
+Seed: 2498801434, Rand: 0.581798, Select Winner 
+Seed: 2498801434, Rand: 0.581798, Post Select Winner 
+Seed: 1476291629, Rand: 0.343726, Z Gen
+Seed: 3421909937, Rand: 0.796725, Select Winner 
+Seed: 3167820124, Rand: 0.737566, Select Winner 
+Seed: 3167820124, Rand: 0.737566, Post Select Winner 
+Seed: 2748932008, Rand: 0.640036, Z Gen
+Seed: 2636375307, Rand: 0.613829, Select Winner 
+Seed: 3801544430, Rand: 0.885116, Select Winner 
+Seed: 3801544430, Rand: 0.885116, Post Select Winner 
+Seed: 2180890343, Rand: 0.507778, Z Gen
+Seed: 28987765, Rand: 0.006749, Select Winner 
+Seed: 2210837584, Rand: 0.514751, Select Winner 
+Seed: 2210837584, Rand: 0.514751, Post Select Winner 
+Seed: 2498801434, Rand: 0.581798, Z Gen
+Seed: 3039689583, Rand: 0.707733, Select Winner 
+Seed: 1338634754, Rand: 0.311675, Select Winner 
+Seed: 1338634754, Rand: 0.311675, Post Select Winner 
+Seed: 3421909937, Rand: 0.796725, Z Gen
+Seed: 1649346937, Rand: 0.384019, Select Winner 
+Seed: 2768872580, Rand: 0.644678, Select Winner 
+Seed: 2768872580, Rand: 0.644678, Post Select Winner 
+Seed: 3167820124, Rand: 0.737566, Z Gen
+Seed: 2254235155, Rand: 0.524855, Select Winner 
+Seed: 2326606934, Rand: 0.541705, Select Winner 
+Seed: 2326606934, Rand: 0.541705, Post Select Winner 
+Seed: 2636375307, Rand: 0.613829, Z Gen
+Seed: 1719328701, Rand: 0.400312, Select Winner 
+Seed: 1061592568, Rand: 0.247171, Select Winner 
+Seed: 1061592568, Rand: 0.247171, Post Select Winner 
+Seed: 3801544430, Rand: 0.885116, Z Gen
+Seed: 53332215, Rand: 0.012417, Select Winner 
+Seed: 1140036074, Rand: 0.265435, Select Winner 
+Seed: 1140036074, Rand: 0.265435, Post Select Winner 
+Seed: 28987765, Rand: 0.006749, Z Gen
+Seed: 4224358465, Rand: 0.983560, Select Winner 
+Seed: 2629538988, Rand: 0.612237, Select Winner 
+Seed: 2629538988, Rand: 0.612237, Post Select Winner 
+Seed: 2210837584, Rand: 0.514751, Z Gen
+Seed: 3039689583, Rand: 0.707733, Veto Step
+Seed: 1946028059, Rand: 0.453095, Select Winner 
+Seed: 573775550, Rand: 0.133593, Select Winner 
+Seed: 573775550, Rand: 0.133593, Post Select Winner 
+Seed: 1338634754, Rand: 0.311675, Z Gen
+Seed: 1473591045, Rand: 0.343097, Select Winner 
+Seed: 95141024, Rand: 0.022152, Select Winner 
+Seed: 95141024, Rand: 0.022152, Post Select Winner 
+Seed: 1649346937, Rand: 0.384019, Z Gen
+Seed: 2768872580, Rand: 0.644678, Veto Step
+Seed: 1592739711, Rand: 0.370839, Select Winner 
+Seed: 1618554578, Rand: 0.376849, Select Winner 
+Seed: 1618554578, Rand: 0.376849, Post Select Winner 
+Seed: 2254235155, Rand: 0.524855, Z Gen
+Seed: 4257218569, Rand: 0.991211, Select Winner 
+Seed: 2685635028, Rand: 0.625298, Select Winner 
+Seed: 2685635028, Rand: 0.625298, Post Select Winner 
+Seed: 2326606934, Rand: 0.541705, Z Gen
+Seed: 1719328701, Rand: 0.400312, Veto Step
+Seed: 2617994019, Rand: 0.609549, Select Winner 
+Seed: 740185638, Rand: 0.172338, Select Winner 
+Seed: 740185638, Rand: 0.172338, Post Select Winner 
+Seed: 1061592568, Rand: 0.247171, Z Gen
+Seed: 53332215, Rand: 0.012417, Veto Step
+Seed: 4194465613, Rand: 0.976600, Select Winner 
+Seed: 2426187848, Rand: 0.564891, Select Winner 
+Seed: 2426187848, Rand: 0.564891, Post Select Winner 
+Seed: 1140036074, Rand: 0.265435, Z Gen
+Seed: 4224358465, Rand: 0.983560, Veto Step
+Seed: 967350023, Rand: 0.225229, Select Winner 
+Seed: 366635194, Rand: 0.085364, Select Winner 
+Seed: 366635194, Rand: 0.085364, Post Select Winner 
+Seed: 2629538988, Rand: 0.612237, Z Gen
+Seed: 2557108433, Rand: 0.595373, Select Winner 
+Seed: 3503432700, Rand: 0.815706, Select Winner 
+Seed: 3503432700, Rand: 0.815706, Post Select Winner 
+Seed: 1946028059, Rand: 0.453095, Z Gen
+Seed: 573775550, Rand: 0.133593, Veto Step
+Seed: 353185579, Rand: 0.082232, Select Winner 
+Seed: 706247310, Rand: 0.164436, Select Winner 
+Seed: 706247310, Rand: 0.164436, Post Select Winner 
+Seed: 1473591045, Rand: 0.343097, Z Gen
+Seed: 95141024, Rand: 0.022152, Veto Step
+Seed: 1592739711, Rand: 0.370839, Phi Showrr Gen
+Seed: 1618554578, Rand: 0.376849, Colour Gen
+Seed: 1618554578, Rand: 0.376849, Post Shower Gen
+Seed: 4257218569, Rand: 0.991211, Select Winner 
+Seed: 2685635028, Rand: 0.625298, Select Winner 
+Seed: 2617994019, Rand: 0.609549, Select Winner 
+Seed: 740185638, Rand: 0.172338, Select Winner 
+Seed: 740185638, Rand: 0.172338, Post Select Winner 
+Seed: 4257218569, Rand: 0.991211, Z Gen
+Seed: 2685635028, Rand: 0.625298, Veto Step
+Seed: 4194465613, Rand: 0.976600, Select Winner 
+Seed: 2426187848, Rand: 0.564891, Select Winner 
+Seed: 967350023, Rand: 0.225229, Select Winner 
+Seed: 366635194, Rand: 0.085364, Select Winner 
+Seed: 366635194, Rand: 0.085364, Post Select Winner 
+Seed: 2617994019, Rand: 0.609549, Z Gen
+Seed: 2557108433, Rand: 0.595373, Select Winner 
+Seed: 3503432700, Rand: 0.815706, Select Winner 
+Seed: 353185579, Rand: 0.082232, Select Winner 
+Seed: 706247310, Rand: 0.164436, Select Winner 
+Seed: 706247310, Rand: 0.164436, Post Select Winner 
+Seed: 740185638, Rand: 0.172338, Z Gen
+Seed: 408928405, Rand: 0.095211, Select Winner 
+Seed: 1855199472, Rand: 0.431947, Select Winner 
+Seed: 1263785871, Rand: 0.294248, Select Winner 
+Seed: 2223693730, Rand: 0.517744, Select Winner 
+Seed: 2223693730, Rand: 0.517744, Post Select Winner 
+Seed: 4194465613, Rand: 0.976600, Z Gen
+Seed: 2426187848, Rand: 0.564891, Veto Step
+Seed: 594074265, Rand: 0.138319, Select Winner 
+Seed: 684458788, Rand: 0.159363, Select Winner 
+Seed: 3868161075, Rand: 0.900626, Select Winner 
+Seed: 1929325558, Rand: 0.449206, Select Winner 
+Seed: 1929325558, Rand: 0.449206, Post Select Winner 
+Seed: 967350023, Rand: 0.225229, Z Gen
+Seed: 366635194, Rand: 0.085364, Veto Step
+Seed: 166605533, Rand: 0.038791, Select Winner 
+Seed: 2640352920, Rand: 0.614755, Select Winner 
+Seed: 1798252823, Rand: 0.418688, Select Winner 
+Seed: 2071081866, Rand: 0.482211, Select Winner 
+Seed: 2071081866, Rand: 0.482211, Post Select Winner 
+Seed: 2557108433, Rand: 0.595373, Z Gen
+Seed: 3503432700, Rand: 0.815706, Veto Step
+Seed: 171871585, Rand: 0.040017, Select Winner 
+Seed: 2087307084, Rand: 0.485989, Select Winner 
+Seed: 698505787, Rand: 0.162634, Select Winner 
+Seed: 3647212126, Rand: 0.849183, Select Winner 
+Seed: 3647212126, Rand: 0.849183, Post Select Winner 
+Seed: 353185579, Rand: 0.082232, Z Gen
+Seed: 706247310, Rand: 0.164436, Veto Step
+Seed: 634580517, Rand: 0.147750, Select Winner 
+Seed: 1956956480, Rand: 0.455639, Select Winner 
+Seed: 2017242015, Rand: 0.469676, Select Winner 
+Seed: 1181484146, Rand: 0.275086, Select Winner 
+Seed: 1181484146, Rand: 0.275086, Post Select Winner 
+Seed: 408928405, Rand: 0.095211, Z Gen
+Seed: 1855199472, Rand: 0.431947, Veto Step
+Seed: 1263785871, Rand: 0.294248, Phi Showrr Gen
+Seed: 2223693730, Rand: 0.517744, Colour Gen
+Seed: 2223693730, Rand: 0.517744, Post Shower Gen
+Seed: 594074265, Rand: 0.138319, Select Winner 
+Seed: 684458788, Rand: 0.159363, Select Winner 
+Seed: 3868161075, Rand: 0.900626, Select Winner 
+Seed: 1929325558, Rand: 0.449206, Select Winner 
+Seed: 166605533, Rand: 0.038791, Select Winner 
+Seed: 2640352920, Rand: 0.614755, Select Winner 
+Seed: 2640352920, Rand: 0.614755, Post Select Winner 
+Seed: 594074265, Rand: 0.138319, Z Gen
+Seed: 684458788, Rand: 0.159363, Veto Step
+Seed: 3868161075, Rand: 0.900626, Phi Showrr Gen
+Seed: 1929325558, Rand: 0.449206, Colour Gen
+Seed: 1929325558, Rand: 0.449206, Post Shower Gen
+Seed: 166605533, Rand: 0.038791, Select Winner 
+Seed: 2640352920, Rand: 0.614755, Select Winner 
+Seed: 1798252823, Rand: 0.418688, Select Winner 
+Seed: 2071081866, Rand: 0.482211, Select Winner 
+Seed: 171871585, Rand: 0.040017, Select Winner 
+Seed: 2087307084, Rand: 0.485989, Select Winner 
+Seed: 698505787, Rand: 0.162634, Select Winner 
+Seed: 3647212126, Rand: 0.849183, Select Winner 
+Seed: 3647212126, Rand: 0.849183, Post Select Winner 
+Seed: 166605533, Rand: 0.038791, Z Gen
+Seed: 2640352920, Rand: 0.614755, Veto Step
+Seed: 1798252823, Rand: 0.418688, Phi Showrr Gen
+Seed: 2071081866, Rand: 0.482211, Colour Gen
+Seed: 2071081866, Rand: 0.482211, Post Shower Gen
+Seed: 171871585, Rand: 0.040017, Select Winner 
+Seed: 2087307084, Rand: 0.485989, Select Winner 
+Seed: 698505787, Rand: 0.162634, Select Winner 
+Seed: 3647212126, Rand: 0.849183, Select Winner 
+Seed: 634580517, Rand: 0.147750, Select Winner 
+Seed: 1956956480, Rand: 0.455639, Select Winner 
+Seed: 2017242015, Rand: 0.469676, Select Winner 
+Seed: 1181484146, Rand: 0.275086, Select Winner 
+Seed: 1221761321, Rand: 0.284463, Select Winner 
+Seed: 3441954932, Rand: 0.801393, Select Winner 
+Seed: 3441954932, Rand: 0.801393, Post Select Winner 
+Seed: 2071081866, Rand: 0.482211, Post No More Emis

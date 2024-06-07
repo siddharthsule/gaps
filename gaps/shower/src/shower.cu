@@ -104,6 +104,9 @@ __global__ void select_winner_split_func(event *events, int n) {
         double tt = ev.get_shower_t() * pow(rand, 1. / g);
 
         update_rng(seed, rand);  // so that the next number is not the same!
+        if (idx == 0) {
+          printf("Seed: %lu, Rand: %f, Select Winner\n", seed, rand);
+        }
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -130,7 +133,7 @@ __global__ void select_winner_split_func(event *events, int n) {
   ev.set_seed(seed);
   ev.set_rand(rand);
   if (idx == 0) {
-    printf("Seed: %lu, Rand: %f\n", seed, rand);
+    printf("Seed: %lu, Rand: %f, Post Select Winner\n", seed, rand);
   }
 }
 
@@ -170,6 +173,10 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
   if (!(ev.get_shower_t() > cutoff)) {
     ev.set_end_shower(true);
     atomicAdd(d_completed, 1);  // increment the number of completed events
+
+    if (idx == 0) {
+      printf("Event %d has ended\n", idx);
+    }
     return;
   }
 }
@@ -205,6 +212,9 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
   double zp = ev.get_win_param(0);
   double z = sf_generate_z(1 - zp, zp, rand, sf);
   update_rng(seed, rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f, Z Gen\n", seed, rand);
+  }
 
   double y = ev.get_shower_t() / ev.get_win_param(1) / z / (1. - z);
 
@@ -224,6 +234,9 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
     // To avoid Confusion...
     double r = rand;
     update_rng(seed, rand);
+    if (idx == 0) {
+      printf("Seed: %lu, Rand: %f, Veto Step\n", seed, rand);
+    }
 
     if (r < f / g) {
       accept_emission[idx] = true;
@@ -234,9 +247,6 @@ __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
     // store the random seed
     ev.set_seed(seed);
     ev.set_rand(rand);
-    if (idx == 0) {
-      printf("Seed: %lu, Rand: %f\n", seed, rand);
-    }
   }
 }
 
@@ -267,6 +277,9 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
 
   double phi = 2. * M_PI * rand;
   update_rng(seed, rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f, Phi Shower Gen\n", seed, rand);
+  }
 
   int win_ij = ev.get_win_dipole(0);
   int win_k = ev.get_win_dipole(1);
@@ -296,6 +309,9 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
 
   make_colours(ev, coli, colj, flavs, colij, colk, rand);
   update_rng(seed, rand);
+  if (idx == 0) {
+    printf("Seed: %lu, Rand: %f, Colour Gen\n", seed, rand);
+  }
 
   // modify splitter
   ev.set_parton_pid(win_ij, flavs[1]);
@@ -317,7 +333,7 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
   ev.set_seed(seed);
   ev.set_rand(rand);
   if (idx == 0) {
-    printf("Seed: %lu, Rand: %f\n", seed, rand);
+    printf("Seed: %lu, Rand: %f, Post Shower Gen\n", seed, rand);
   }
 }
 
