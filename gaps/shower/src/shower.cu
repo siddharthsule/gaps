@@ -57,6 +57,10 @@ __global__ void select_winner_split_func(event *events, int n) {
     return;
   }
 
+  // Get the Seed and Random Number
+  unsigned long seed = ev.get_seed();
+  double rand = ev.get_rand();
+
   // default values
   double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
   int win_sf = 0;       // 0 = no splitting
