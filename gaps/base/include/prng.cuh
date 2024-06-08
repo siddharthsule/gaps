@@ -12,7 +12,7 @@
  * everthing should be the same.
  */
 
-__device__ double generate_lcg(unsigned long& current_seed) {
+__device__ __inline__ double generate_lcg(unsigned long& current_seed) {
   // Update the seed
   current_seed = (lcg_a * (current_seed) + lcg_c) % lcg_m;
 
