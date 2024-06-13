@@ -17,6 +17,10 @@
 
 class event {
  private:
+  /**
+   * Hold the Details of the Event, an Event Record
+   */
+
   // random seed ---------------------------------------------------------------
 
   unsigned long seed = 0;
@@ -66,6 +70,10 @@ class event {
   double dalitz[2] = {-50., -50.};
 
  public:
+  /**
+   * Get, set and member functions for the Event Class
+   */
+
   // constructor ---------------------------------------------------------------
 
   // empty, so that we can build our me, ps onto it
@@ -186,8 +194,11 @@ class event {
 
   // member functions ----------------------------------------------------------
 
-  // validate the event - check momentum and colour conservation
   __device__ bool validate() {
+    /**
+     * validate the event - check momentum and colour conservation
+     */
+
     vec4 psum = vec4();
 
     // n colours = n partons - 1
@@ -233,6 +244,10 @@ class event {
   }
 
   __device__ void print_info() const {
+    /**
+     * print the event information
+     */
+
     printf("event information:\n");
     printf("dxs: %f\n", get_dxs());
     printf("number of emissions: %d\n", get_emissions());

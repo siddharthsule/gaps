@@ -4,6 +4,25 @@
 #include "event.h"
 #include "qcd.h"
 
+/**
+ * a dipole shower on gpu
+ * ----------------------
+ *
+ * note: kernel = cuda function, splitting function = qcd function
+ *
+ * this is the main result of the published work. it is a full implementation of
+ * a dipole shower on the gpu. it is designed to be as fast as possible*, and
+ * uses a number of tricks to achieve this. the main trick is to use a single
+ * kernel to perform the entire shower, and to use a number of optimisations to
+ * make the code as fast as possible.
+ *
+ * with the event object storing all the neccessary information and with the
+ * fact that kernel's can't be member functions, the shower class has been
+ * removed
+ *
+ * *: as possible as a second year ph_d student can make it ;)
+ */
+
 // splitting function codes - only ff for now (removed zeroes)
 // ------------------------------------------
 const int sf_codes[] = {1,  2,  3,   4,   5,   11,  12,  13,

@@ -51,8 +51,11 @@ __global__ void matrix_setup_kernel(matrix *matrix, double e) {
   matrix->setup(asmz, e);
 }
 
-// kernel to generate the event
 __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
+  /**
+   * kernel to generate the event
+   */
+
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {

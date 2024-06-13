@@ -4,6 +4,16 @@
 // base class, with all the important definitions
 #include "base.h"
 
+/**
+ * four momenta
+ * ------------
+ *
+ * this file contains the definition of the four momenta class, which is used to
+ * represent the four-momentum of particles in the event. it is a simple class
+ * with the four attributes (e, px, py, pz) and some basic operations that can
+ * be performed with them.
+ */
+
 class vec4 {
  private:
   double e, px, py, pz;

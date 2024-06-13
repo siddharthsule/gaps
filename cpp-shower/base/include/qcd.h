@@ -1,6 +1,16 @@
 #ifndef qcd_h_
 #define qcd_h_
 
+/**
+ * the strong coupling constant
+ * ----------------------------
+ *
+ * this file contains the qcd constants and the alpha_s class. the alpha_s class
+ * is a simple class that calculates the strong coupling constant at a given
+ * scale. the class is designed to be used in a cuda kernel, so it is a simple
+ * class with no dynamic memory allocation.
+ */
+
 // base class, with all the important definitions
 #include "base.h"
 

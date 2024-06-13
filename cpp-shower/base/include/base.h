@@ -1,6 +1,18 @@
 #ifndef base_h_
 #define base_h_
 
+/**
+ * the base class
+ * --------------
+ *
+ * this file contains the neccessary includes and definitions that are used
+ * throughout the program. this includes cuda libraries, thrust libraries,
+ * c++ libraries, and some global variables. make changes here if you want to
+ * change the global settings of the program!
+ *
+ * (but also be careful with what you change, as it may break the program...)
+ */
+
 // -----------------------------------------------------------------------------
 // import libraries
 
@@ -19,6 +31,10 @@ const unsigned long lcg_c = 1013904223;
 const unsigned long lcg_m = 4294967296;
 
 // max number of partons, set to save memory
+// at 10^6 events:
+//  50 works for all, but observables calc is slow
+//  100 works for me + ps, but not for observables
+//  30 is more than enough to do e+e- at 91.2 GeV
 const int max_partons = 30;
 
 // lep 91.2 settings

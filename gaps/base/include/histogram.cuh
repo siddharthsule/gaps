@@ -115,8 +115,10 @@ class histo1d {
     }
   }
 
-  // atomic binning! each event is binned simultaneously here
   __device__ void fill(double x, double w) {
+    /**
+     * atomic binning! each event is binned simultaneously here
+     */
     int l = 0;
     int r = n_bins - 1;
     int c = (l + r) / 2;

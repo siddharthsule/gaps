@@ -41,7 +41,7 @@ const unsigned long lcg_m = 4294967296;
 // at 10^6 events:
 //  50 works for all, but observables calc is slow
 //  100 works for me + ps, but not for observables
-//  30 is more than enough to do e+e- at 91.2 ge_v
+//  30 is more than enough to do e+e- at 91.2 GeV
 const int max_partons = 30;
 
 // lep 91.2 settings

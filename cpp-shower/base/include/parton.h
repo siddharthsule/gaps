@@ -4,6 +4,14 @@
 // partons have vec4 momentum, vec4 #includes base
 #include "vec4.h"
 
+/**
+ * the parton class
+ * ----------------
+
+ * this file contains the parton object, which has attributes id, momentum and
+ * colour. for now we use it for electrons too.
+ */
+
 class parton {
  public:
   // constructor

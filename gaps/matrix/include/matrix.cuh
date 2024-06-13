@@ -14,6 +14,7 @@
  * massless shower, so the system generates theoretical identical events for
  * all flavours.
  */
+
 class matrix {
  private:
   double alphas, ecms, mz2, gz2, alpha, sin2tw, amin, ye, ze, ws;

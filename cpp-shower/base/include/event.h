@@ -4,11 +4,23 @@
 #include "parton.h"
 #include "prng.h"
 
-// event class
-// built to contain the partons and the dxs as one accesible object
-// in future, can use to store thrust, log10y23 to parallelise those
+/**
+ * the event class
+ * ---------------
+ *
+ * this is the backbone of the program. an event contains the differential cross
+ * section calculated from the me, the hard partons and the showered partons.
+ * it also contains the shower parameters which are constantly updated during
+ * the showering process. the event also contains the analysis variables, which
+ * are calculated after the showering process is complete.
+ */
+
 class event {
  private:
+  /**
+   * Hold the Details of the Event, an Event Record
+   */
+
   // random seed ---------------------------------------------------------------
 
   unsigned long seed = 0;
@@ -170,8 +182,10 @@ class event {
 
   // member functions ----------------------------------------------------------
 
-  // validation of result data
   bool validate() {
+    /**
+     * validate the event - check momentum and colour conservation
+     */
     vec4 psum = vec4();
 
     // n colours = n partons - 1
@@ -213,8 +227,10 @@ class event {
     return pcheck && ccheck;
   }
 
-  // print event information
   void print_info() const {
+    /**
+     * print the event information
+     */
     std::cout << "event information:\n";
     std::cout << "dxs: " << get_dxs() << "\n";
     std::cout << "number of emissions: " << get_emissions() << "\n";

@@ -8,6 +8,16 @@
 
 #include "base.h"
 
+/**
+ * binning and histogramming
+ * -------------------------
+ *
+ * this file contains tools needed for binning and histogramming data. the data
+ * is binned and then stored as a yoda file[1]
+ *
+ * yoda: https://yoda.hepforge.org/
+ */
+
 // bin1d class
 class bin1d {
  public:
