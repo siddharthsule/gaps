@@ -42,7 +42,7 @@ double matrix::me2(int fl, double s, double t) {
 // generate a point
 void matrix::generate_lo_point(event &ev) {
   // Flavour
-  int fl = static_cast<int>(ev.gen_random()) % 5 + 1;
+  int fl = static_cast<int>(ev.gen_random() * 5) + 1;
 
   vec4 pa, pb, p1, p2;
   double p0;
