@@ -157,9 +157,6 @@ __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
     ev.set_end_shower(true);
     atomicAdd(d_completed, 1);  // increment the number of completed events
 
-    if (idx == 0) {
-      printf("Event %d has ended\n", idx);
-    }
     return;
   }
 }
