@@ -1,5 +1,9 @@
 #include "shower.cuh"
 
+// Needed for Checking Time Taken for Cycles
+// #include <chrono>
+// #include <fstream>
+
 // need to be here to avoid multiple definitions
 #include "colours.cuh"
 #include "kinematics.cuh"
@@ -329,6 +333,9 @@ void run_shower(thrust::device_vector<event> &d_events) {
   // store the number of finished events per cycle
   std::vector<int> completed_per_cycle;
 
+  // store the time taken for each cycle
+  // std::vector<double> time_per_cycle;
+
   // use a pointer to the device events
   event *d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
@@ -344,8 +351,16 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
   int completed = 0;
   int cycle = 0;
+  // auto start = std::chrono::high_resolution_clock::now();
+  // auto end = std::chrono::high_resolution_clock::now();
+  // double diff = 0.;
+
   while (completed < n) {
     // run all the kernels here...
+
+    // start the clock
+    // start = std::chrono::high_resolution_clock::now();
+
     // -------------------------------------------------------------------------
     // select the winner kernel
 
@@ -388,6 +403,11 @@ void run_shower(thrust::device_vector<event> &d_events) {
     cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
     cycle++;
 
+    // end the clock
+    // end = std::chrono::high_resolution_clock::now();
+    // diff = std::chrono::duration<double>(end - start).count();
+    // time_per_cycle.push_back(diff);
+
     // until paper is published, we will use this
     completed_per_cycle.push_back(completed);
 
@@ -424,6 +444,11 @@ void run_shower(thrust::device_vector<event> &d_events) {
   for (auto &i : completed_per_cycle) {
     file << i << std::endl;
   }
+
+  // for (int i = 0; i < cycle; i++) {
+  //   file << i << ", " << completed_per_cycle[i] << ", " << time_per_cycle[i]
+  //        << std::endl;
+  // }
 
   // ---------------------------------------------------------------------------
   // clean up device memory
