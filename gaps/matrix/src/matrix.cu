@@ -64,7 +64,7 @@ __global__ void lo_point_kernel(matrix *matrix, event *events, int n) {
 
   event &ev = events[idx];
 
-  int fl = static_cast<int>(ev.gen_random()) % 5 + 1;
+  int fl = static_cast<int>(ev.gen_random() * 5) + 1;
 
   double ct = 2. * ev.gen_random() - 1.;
   double st = sqrt(1. - ct * ct);
