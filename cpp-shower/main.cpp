@@ -15,16 +15,16 @@
 #include "observables.h"
 
 /**
- * GAPS: C++ Shower for Comparison
+ * GAPS: CPU Shower for Comparison
  * ------------------------------------
  *
  * This program is a translation of S. Höche's "Introduction to Parton Showers"
  * Python tutorial[1], with added functionality for parallelisation, a Event
  * class and event shape analyses.
  *
- * The purpose of this program is to compare the performance of the C++ and
- * CUDA versions of the shower, and to compare the performance of the C++ with
- * parallelisation and CUDA.
+ * The purpose of this program is to compare the performance of the CPU and
+ * GPU versions of the shower, and to compare the performance of the CPU with
+ * parallelisation and GPU.
  *
  * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
  */
@@ -36,7 +36,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   // give some information about the simulation
 
   std::cout << "-------------------------------------------------" << std::endl;
-  std::cout << "|        GAPS: C++ Shower for Comparison        |" << std::endl;
+  std::cout << "|        GAPS: CPU Shower for Comparison        |" << std::endl;
   std::cout << "-------------------------------------------------" << std::endl;
   std::cout << "Process: e+ e- --> q qbar" << std::endl;
   std::cout << "Number of Events: " << n << std::endl;
@@ -57,7 +57,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // matrix element generation
 
-  std::cout << "Generating Matrix Elements (C++)..." << std::endl;
+  std::cout << "Generating Matrix Elements (CPU)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
   matrix xs(asmz, e);
@@ -72,7 +72,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // showering
 
-  std::cout << "Showering Partons (C++)..." << std::endl;
+  std::cout << "Showering Partons (CPU)..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
   shower sh;
@@ -87,7 +87,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   // ---------------------------------------------------------------------------
   // analysis
 
-  std::cout << "Analysing Events (C++)..." << std::endl;
+  std::cout << "Analysing Events (CPU)..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
   // remove existing file

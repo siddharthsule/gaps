@@ -32,10 +32,10 @@ This should build the program and generate 10000 events on the GPU. More customi
 # Simulate different numbers of events and build the code using multiple CPU cores
 ./rungaps -n nevents -c ncores
 
-# Run C++ Simulation
+# Run CPU Simulation
 ./rungaps -n nevents -c ncores -r cpp
 
-# Run the same number of events on C++ and CUDA and compare times
+# Run the same number of events on CPU and GPU and compare times
 ./rungaps -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in the paper

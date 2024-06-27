@@ -30,7 +30,7 @@ speedup = pd.concat([speedup0, speedup1], axis=1)
 
 # Name the columns
 speedup.columns = ['Old Speedup', 'New Speedup',
-                   'Cpp Old/New (%)', 'CUDA Old/New (%)']
+                   'CPU Old/New (%)', 'GPU Old/New (%)']
 
 # Print the results to 3 decimal places
 print(speedup.round(3))

@@ -89,7 +89,7 @@ class bin2d {
  *
  * unfortunately, std::string is not a feature in cuda, so we have to provide
  * the name additinally whern writing to file. this is the only difference
- * between the cuda and c++ versions of the code.
+ * between the GPU and CPU versions of the code.
  */
 // histo1d class
 class histo1d {

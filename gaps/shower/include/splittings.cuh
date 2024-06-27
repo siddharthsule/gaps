@@ -9,7 +9,7 @@
  *
  * this is a safer and more straightforward way to implement the splitting
  * functions for the shower. although the class-based approach is good for
- * c++, in cuda many issues arise that mean that oop might not always be the
+ * CPU, in cuda many issues arise that mean that oop might not always be the
  * best strategy in coding. as a simpler approach, we will use switch-case
  * statements to select the correct splitting function.
  *

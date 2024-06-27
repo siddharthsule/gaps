@@ -2,7 +2,7 @@
 
 The code simulates just one experiment, so this should take a little time.
 
-The file `rungaps` can be used to build and operate both the C++ and CUDA generators. It has been coded with all the routines (including the one for paper results).
+The file `rungaps` can be used to build and operate both the CPU and GPU generators. It has been coded with all the routines (including the one for paper results).
 
 To run GAPS, you will need the following:
 
@@ -52,10 +52,10 @@ Then you have free reign over what you need. Like [README.md](../../README.md), 
 # Simulate different numbers of events and build the code using multiple CPU cores
 ./rungaps -n nevents -c ncores
 
-# Run C++ Simulation
+# Run CPU Simulation
 ./rungaps -n nevents -c ncores -r cpp
 
-# Run the same number of events on C++ and CUDA and compare times
+# Run the same number of events on CPU and GPU and compare times
 ./rungaps -n nevents -c ncores -r compare
 
 # Run a multitude of number of events 100 times, as seen in the paper

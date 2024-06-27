@@ -27,7 +27,7 @@ void analysis::analyze(event& ev) {
    * while the dalitz analysis also benefits from the gpu parallelisation, the
    * writing of the data to file severely limits the performance, as instead of
    * the usual 100 bins, we have 100^2 = 1000 bins. this takes around 0.04s,
-   * which is minute in the c++ case, but is in fact 40% of the total analysis
+   * which is minute in the CPU case, but is in fact 40% of the total analysis
    * time! so for our tests, we keep this off, to keep our comparisons fair,
    * and relvant to the actual gpu effect.
    *

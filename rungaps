@@ -4,13 +4,13 @@
 
 # GAPS - Run Script
 # -----------------
-# This script is used to compile and run the GAPS and C++ Shower codes. It
+# This script is used to compile and run the GAPS and CPU Shower codes. It
 # provides a number of options to control the number of events, the number of
 # cores to use, and the type of run to perform. The run types are:
 #   - gaps: Run the GAPS simulation
-#   - cpp: Run the C++ Shower simulation
-#   - compare: Run both the GAPS and C++ Shower and compare the results
-#   - full: Run both the GAPS and C++ Shower for a range of event numbers
+#   - cpp: Run the CPU Shower simulation
+#   - compare: Run both the GAPS and CPU Shower and compare the results
+#   - full: Run both the GAPS and CPU Shower for a range of event numbers
 
 # ------------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ import glob
 # ------------------------------------------------------------------------------
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description='Run GAPS or C++ Shower')
+parser = argparse.ArgumentParser(description='Run GPU or CPU Shower')
 parser.add_argument('-n', '--nevents', type=int, default=10000,
                     help='set the number of events (default: 10000)')
 parser.add_argument('-e', '--energy', type=float, default=91.2,
@@ -49,7 +49,7 @@ def compile(dir):
     os.chdir('../..')
 
 # ------------------------------------------------------------------------------
-# Run GAPS or C++ Shower
+# Run GPU or CPU Shower
 
 
 def run(runtype, events, energy):
@@ -90,9 +90,9 @@ if args.runtype == 'full':
     for n in neventsarray:
         # Run and store the output in a log file
         for i in range(1, 101):
-            print(f"Running GAPS with {n} events")
+            print(f"Running GPU Shower with {n} events")
             subprocess.run(['./gaps/bin/gaps', str(n), str(args.energy)])
-            print(f"Running C++ Shower with {n} events")
+            print(f"Running CPU Shower with {n} events")
             subprocess.run(
                 ['./cpp-shower/bin/cpp-shower', str(n), str(args.energy)])
 

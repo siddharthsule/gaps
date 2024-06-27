@@ -8,7 +8,7 @@
 #include "jetrates.h"
 
 /**
- * slight difference between c++ and cuda codes
+ * slight difference between CPU and GPU codes
  * --------------------------------------------
  *
  * here, we don't need analyse and finalize functions to be outside the class.

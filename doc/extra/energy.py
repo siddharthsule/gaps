@@ -67,8 +67,8 @@ print("\n")
 p = np.zeros((2, 2, 2))
 
 # Define the labels for printing
-labels = ["CUDA Matrix Element Gradient", "CUDA Parton Shower Gradient",
-          "CUDA Observables Gradient", "CUDA Total Gradient"]
+labels = ["GPU Matrix Element Gradient", "GPU Parton Shower Gradient",
+          "GPU Observables Gradient", "GPU Total Gradient"]
 
 # Loop over the columns - to prevent lots of repeated statements
 """
