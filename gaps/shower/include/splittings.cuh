@@ -232,8 +232,9 @@ __device__ bool validateSplitting(int ij, int sf) {
     return false;
   }
 
-  // Skip if the flavor of ij is different from the flavor of the sf
-  if ((ij != 21 && abs(ij) != fourthDigit) || (ij == 21 && fourthDigit != 0)) {
+  // q->qg case: Skip if the flavor of ij is different from the flavor of the sf
+  // g->gg and g->qq case: No need to check the flavor
+  if ((ij != 21 && abs(ij) != fourthDigit)) {
     return false;
   }
 
