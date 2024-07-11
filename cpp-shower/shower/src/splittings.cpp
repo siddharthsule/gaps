@@ -208,9 +208,9 @@ bool shower::validate_splitting(int ij, int sf) {
     return false;
   }
 
-  // skip if the flavor of ij is different from the flavor of the sf
-  if ((ij != 21 && abs(ij) != fourth_digit) ||
-      (ij == 21 && fourth_digit != 0)) {
+  // q->qg case: Skip if the flavor of ij is different from the flavor of the sf
+  // g->gg and g->qq case: No need to check the flavor
+  if ((ij != 21 && abs(ij) != fourth_digit)) {
     return false;
   }
 
