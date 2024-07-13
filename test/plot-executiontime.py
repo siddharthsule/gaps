@@ -60,7 +60,7 @@ cpp_cud_ratio = (cpp / cud)
 cpp_cud_ratio_df = pd.DataFrame(cpp_cud_ratio, index=nev, columns=columns_lin)
 
 # Print the DataFrame
-print("C++ / CUDA Ratio for different Number of Events:")
+print("CPU / GPU Ratio for different Number of Events:")
 print(cpp_cud_ratio_df)
 print("\n")
 
@@ -68,8 +68,8 @@ print("\n")
 p = np.zeros((2, 2, 2))
 
 # Define the labels for printing
-labels = ["CUDA Matrix Element Gradient", "CUDA Parton Shower Gradient",
-          "CUDA Observables Gradient", "CUDA Total Gradient"]
+labels = ["GPU Matrix Element Gradient", "GPU Parton Shower Gradient",
+          "GPU Observables Gradient", "GPU Total Gradient"]
 
 # Loop over the columns - to prevent lots of repeated statements
 """
@@ -91,7 +91,7 @@ for i in range(4):
     # Print the results
     print(labels[i], ":", round(p1[0], 3), "±", round(np.sqrt(c1[0, 0]), 3))
 
-#print(p)
+# print(p)
 
 # Create a new figure with a 4x2 grid of subplots
 fig, axs = plt.subplots(2, 2, figsize=(10, 6.4))
@@ -125,10 +125,21 @@ for i in range(2):
         ax.set_title(columns[i][j])
         ax.grid(True)
 
-        # Create a list of handles and labels manually
-        handles = [cpp_errorbar, cud_errorbar, fit_plot[0]]
-        labels = ['C++', 'CUDA', "Linear Fit, Gradient = " +
-                  str(round(p[i, j, 0], 2))]
+        # Add a vertical line
+        ax.axvline(x=5120, color='C2', linestyle='--')
+
+        # Create a proxy artist for the axvline to use in the legend
+        v100_gpu_cores_line = mpl.lines.Line2D(
+            [], [], color='C2', label="V100 GPU Cores")
+
+        # Create a list of handles and labels manually, including the proxy artist
+        handles = [cpp_errorbar, cud_errorbar,
+                   v100_gpu_cores_line, fit_plot[0]]
+        labels = ['CPU', 'GPU',  "V100 GPU Cores",
+                  "Linear Fit, Gradient = " + str(round(p[i, j, 0], 2))]
+
+        # Add the legend with the updated handles and labels
+        ax.legend(handles, labels)
 
         ax.legend(handles, labels)
 
