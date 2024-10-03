@@ -1,6 +1,6 @@
 # GAPS: a GPU-Amplified Parton Shower
 
-> **Version 1.1.0**: Some extra features added on demand, folders restructured.
+> **Version 1.2.0**: Same PRNG, leading to Identical Results! Variables renamed.
 
 Code for "An Algorithm to Parallelise Parton Showers on a GPU" [[arxiv:2403.08692](https://arxiv.org/abs/2403.08692)]
 
@@ -50,7 +50,7 @@ rivet-mkhtml my-output.yoda:"Results" -s --mc-errs -c plots.conf
 
 ## Modifying Parameters and Going Further
 
-**New**: You can now adjust the Centre of Mass Energy using the ```-e``` flag
+You can now adjust the Centre of Mass Energy using the ```-e``` flag
 
 To focus on the computational aspects and make it simple to replicate the results in the paper, we don't allow direct access to the physics parameters (yet!). For now, please use the ```base.cuh``` file to adjust parameters like $\alpha_s(m_Z)$, $t_{C}$ and $n_{Bins}$.
 
