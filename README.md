@@ -2,7 +2,7 @@
 
 > **Version 1.2.0**: Same PRNG, leading to Identical Results! Variables renamed.
 
-Code for "An Algorithm to Parallelise Parton Showers on a GPU" [[arxiv:2403.08692](https://arxiv.org/abs/2403.08692)]
+Codebase for [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
 
 The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be written to run in parallel on a GPU. The code runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Höche's Tutorial on Parton Showers [[arxiv:1411.4085](https://arxiv.org/abs/1411.4085)].
 
@@ -14,7 +14,7 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 
 ## Requirements
 
-You will need an NVIDIA GPU, desgined for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++, Python and the NVIDIA Development Toolkit, which contains the NVCC compiler.
+You will need an NVIDIA GPU, designed for data centres (this code is verified to run on the NVIDIA Tesla V100 and A100 Devices). To build the code, you will need CMake, G++, Python and the NVIDIA Development Toolkit, which contains the NVCC compiler.
 
 ## Running the Code
 
