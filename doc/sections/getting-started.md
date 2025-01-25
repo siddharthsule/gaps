@@ -62,4 +62,4 @@ Then you have free reign over what you need. Like [README.md](../../README.md), 
 ./rungaps -c ncores -r full
 ```
 
-And that's all there is to it! In upcoming versions, we'll add features like increasing the number of events, different centres of mass energies, new analyses, and potentially some matching!
+And that's all there is to it! In upcoming versions, we'll add features like increasing the number of events, different centres of mass energies, new analyses, and potentially some matching.
