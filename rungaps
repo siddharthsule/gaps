@@ -21,6 +21,16 @@ import subprocess
 import glob
 
 # ------------------------------------------------------------------------------
+# Emission Tracking with CodeCarbon
+
+codecarbon_available = False
+try:
+    from codecarbon import OfflineEmissionsTracker
+    codecarbon_available = True
+except ImportError:
+    codecarbon_available = False
+
+# ------------------------------------------------------------------------------
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Run GPU or CPU Shower')
@@ -67,10 +77,33 @@ if args.runtype in ['cpp', 'compare', 'full']:
     compile('cpp-shower')
 
 if args.runtype in ['gaps', 'compare']:
-    run('gaps', args.nevents, args.energy)
+    if codecarbon_available:
+        tracker = OfflineEmissionsTracker(
+            country_iso_code="GBR",
+            output_file="gpu-emissions.dat",
+            measure_power_secs=5,
+            tracking_mode="process")
+        tracker.start()
+        run('gaps', args.nevents, args.energy)  
+        tracker.stop()
+    else:
+        run('gaps', args.nevents, args.energy)
+
 
 if args.runtype in ['cpp', 'compare']:
-    run('cpp-shower', args.nevents, args.energy)
+    if codecarbon_available:
+        tracker = OfflineEmissionsTracker(
+            country_iso_code="GBR",
+            output_file="cpu-emissions.dat",
+            measure_power_secs=5,
+            tracking_mode="process",
+            # Used to avoid tracking gpus (unless there is a 1000th gpu!)
+            gpu_ids="1000")
+        tracker.start()
+        run('cpp-shower', args.nevents, args.energy)
+        tracker.stop()
+    else:
+        run('cpp-shower', args.nevents, args.energy)
 
 if args.runtype == 'full':
     # Remove previous results and make folder
