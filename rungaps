@@ -80,7 +80,7 @@ if args.runtype in ['gaps', 'compare']:
     if codecarbon_available:
         tracker = OfflineEmissionsTracker(
             country_iso_code="GBR",
-            output_file="gpu-emissions.dat",
+            output_file="gaps-emissions.dat",
             measure_power_secs=5,
             tracking_mode="process")
         tracker.start()
@@ -94,7 +94,7 @@ if args.runtype in ['cpp', 'compare']:
     if codecarbon_available:
         tracker = OfflineEmissionsTracker(
             country_iso_code="GBR",
-            output_file="cpu-emissions.dat",
+            output_file="cpp-emissions.dat",
             measure_power_secs=5,
             tracking_mode="process",
             # Used to avoid tracking gpus (unless there is a 1000th gpu!)
