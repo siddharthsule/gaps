@@ -38,8 +38,6 @@ parser.add_argument('-n', '--nevents', type=int, default=10000,
                     help='set the number of events (default: 10000)')
 parser.add_argument('-e', '--energy', type=float, default=91.2,
                     help='set the CoM energy of the system (default: 91.2)')
-parser.add_argument('-c', '--cores', type=int, default=1,
-                    help='set the number of cores (default: 1)')
 parser.add_argument('-r', '--runtype', type=str, default='gaps',
                     help='set the run type (default: gaps, options: gaps, cpp, compare, full)')
 
@@ -55,7 +53,7 @@ def compile(dir):
     os.makedirs('build', exist_ok=True)
     os.chdir('build')
     subprocess.run(['cmake', '..'])
-    subprocess.run(['make', '-j', str(args.cores)])
+    subprocess.run(['make', '-j'])
     os.chdir('../..')
 
 # ------------------------------------------------------------------------------
