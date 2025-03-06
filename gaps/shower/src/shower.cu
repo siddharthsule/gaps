@@ -288,34 +288,27 @@ __global__ void do_splitting(event *events, bool *accept_emission, int n) {
 
 // -----------------------------------------------------------------------------
 
-/*
-__global__ void count_bools(event *events, int *true_count, bool
-*accept_emission, int *false_count, int n) { int idx = threadIdx.x +
-blockIdx.x * blockDim.x; if (idx >= n) { return;
+struct is_not_end_shower {
+  /**
+   * @brief Function object to check if the shower has ended
+   *
+   * @param ev The event to check
+   * @return true if the shower has not ended
+   */
+  __device__ bool operator()(const event &ev) const {
+    return !ev.get_end_shower();
   }
-
-  event &ev = events[idx];
-
-  if (ev.get_end_shower()) {
-    return;
-  }
-
-  if (!accept_emission[idx]){
-    atomicAdd(true_count, 1);
-  } else {
-    atomicAdd(false_count, 1);
-  }
-}
-*/
+};
 
 // -----------------------------------------------------------------------------
 
-void run_shower(thrust::device_vector<event> &d_events) {
+void run_shower(thrust::device_vector<event> &dv_events) {
   // number of events - can get from d_events.size()
-  int n = d_events.size();
+  event *d_events = thrust::raw_pointer_cast(dv_events.data());
+  int n_events = dv_events.size();
 
-  int threads = 256;
-  int blocks = (n + threads - 1) / threads;
+  int threads = 128;
+  int blocks = (n_events + threads - 1) / threads;
 
   // set up the device alpha_s
   alpha_s *d_as;
@@ -336,24 +329,19 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
   // as(t) and veto
   double *d_asval;
-  cudaMalloc(&d_asval, n * sizeof(double));
+  cudaMalloc(&d_asval, n_events * sizeof(double));
   bool *d_accept_emission;
-  cudaMalloc(&d_accept_emission, n * sizeof(bool));
+  cudaMalloc(&d_accept_emission, n_events * sizeof(bool));
 
   // store the number of finished events per cycle
   std::vector<int> completed_per_cycle;
 
-  // store the time taken for each cycle
-  // std::vector<double> time_per_cycle;
-
-  // use a pointer to the device events
-  event *d_events_ptr = thrust::raw_pointer_cast(d_events.data());
 
   // ---------------------------------------------------------------------------
   // prepare the shower
 
   debug_msg("running @prep_shower");
-  prep_shower<<<blocks, threads>>>(d_events_ptr, n);
+  prep_shower<<<blocks, threads>>>(d_events, n_events);
   sync_gpu_and_check("prep_shower");
 
   // ---------------------------------------------------------------------------
@@ -365,7 +353,12 @@ void run_shower(thrust::device_vector<event> &d_events) {
   // auto end = std::chrono::high_resolution_clock::now();
   // double diff = 0.;
 
-  while (completed < n) {
+  // (Varying) kernel size and partition factor
+  int n = n_events;
+  int p = 1;
+  bool do_partition = true;
+
+  while (completed < n_events) {
     // run all the kernels here...
 
     // start the clock
@@ -375,14 +368,14 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // select the winner kernel
 
     debug_msg("running @select_winner_split_func");
-    select_winner_split_func<<<blocks, threads>>>(d_events_ptr, n);
+    select_winner_split_func<<<blocks, threads>>>(d_events, n);
     sync_gpu_and_check("select_winner_split_func");
 
     // -------------------------------------------------------------------------
     // check cutoff
 
     debug_msg("running @check_cutoff");
-    check_cutoff<<<blocks, threads>>>(d_events_ptr, d_completed, t_c, 
+    check_cutoff<<<blocks, threads>>>(d_events, d_completed, t_c, 
                                             d_reached_max_partons, n);
     sync_gpu_and_check("check_cutoff");
 
@@ -390,14 +383,14 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // calculate alpha_s for veto algorithm
 
     debug_msg("running @as_shower_kernel");
-    as_shower_kernel<<<blocks, threads>>>(d_as, d_events_ptr, d_asval, n);
+    as_shower_kernel<<<blocks, threads>>>(d_as, d_events, d_asval, n);
     sync_gpu_and_check("as_shower_kernel");
 
     // -------------------------------------------------------------------------
     // veto algorithm
 
     debug_msg("running @veto_alg");
-    veto_alg<<<blocks, threads>>>(d_events_ptr, d_asval, d_accept_emission,
+    veto_alg<<<blocks, threads>>>(d_events, d_asval, d_accept_emission,
                                        n);
     sync_gpu_and_check("veto_alg");
 
@@ -405,7 +398,7 @@ void run_shower(thrust::device_vector<event> &d_events) {
     // splitting algorithm
 
     debug_msg("running @do_splitting");
-    do_splitting<<<blocks, threads>>>(d_events_ptr, d_accept_emission, n);
+    do_splitting<<<blocks, threads>>>(d_events, d_accept_emission, n);
     sync_gpu_and_check("do_splitting");
 
     // -------------------------------------------------------------------------
@@ -421,34 +414,35 @@ void run_shower(thrust::device_vector<event> &d_events) {
 
     // until paper is published, we will use this
     completed_per_cycle.push_back(completed);
+    std::cerr << "\rCompleted Events: " << completed << "/" << n_events
+    << std::flush;
 
     // -------------------------------------------------------------------------
-    // print number of accepted / vetoed events - for a. v.
+   
+    // Partition the events based on completion at 50%, 75%, 87.5%, etc.
+    if (do_partition &&
+        completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
+      if (static_cast<int>(n_events * (1 / pow(2, p))) > 10) {
+        std::cout << std::endl;
+        std::cout << "partition at " << completed << "/" << n_events
+                  << std::endl;
 
-    /*
-    // true means that the event is vetoed
-    // false means that the event is accepted
+        // Partition only the first n elements
+        // Prevents partitioning of completed events
+        // using n ensures all incomplete events are
+        // accounted for
+        thrust::partition(dv_events.begin(), dv_events.begin() + n,
+                          is_not_end_shower());
 
-    int *d_true_count, *d_false_count;
-    cudaMalloc(&d_true_count, sizeof(int));
-    cudaMalloc(&d_false_count, sizeof(int));
-    cudaMemset(d_true_count, 0, sizeof(int));
-    cudaMemset(d_false_count, 0, sizeof(int));
+        // Update n to reflect the number of incomplete events
+        n = n_events - completed;
 
-    debug_msg("running @count_bools");
-    count_bools<<<blocks, threads>>>(d_events_ptr, d_accept_emission,
-    d_true_count, d_false_count, n); sync_gpu_and_check("count_bools");
-
-    int h_true_count(0), h_false_count(0);  // number of vetoed events
-    cudaMemcpy(&h_true_count, d_true_count, sizeof(int),
-    cudaMemcpyDeviceToHost); cudaMemcpy(&h_false_count, d_false_count,
-    sizeof(int), cudaMemcpyDeviceToHost);
-
-    std::cout << cycle << ", " << n - completed << ", " << h_true_count << ", "
-              << h_false_count << std::endl;
-    */
+        // Increment the partitioning step
+        p++;
+      }
+    }
   }
-
+  std::cerr << std::endl;
   // ---------------------------------------------------------------------------
   // write completed_per_cycle to file
   std::ofstream file("gaps-cycles.dat");
