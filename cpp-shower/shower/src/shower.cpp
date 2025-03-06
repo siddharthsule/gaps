@@ -167,5 +167,10 @@ void shower::run(event& ev) {
 
   while (ev.get_shower_t() > t_c) {
     generate_splitting(ev);
+
+    if (ev.get_size() == max_partons) {
+      printf("Maximum number of partons reached\n");
+      break;
+    }
   }
 }

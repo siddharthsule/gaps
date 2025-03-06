@@ -31,7 +31,7 @@ __global__ void select_winner_split_func(event *events, int n);
 
 // check the cutoff
 __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
-                             int n);
+                             int *d_reached_max_partons, int n);
 
 // veto algorithm
 __global__ void veto_alg(event *events, double *asval, bool *accept_emission,
