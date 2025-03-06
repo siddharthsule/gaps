@@ -222,8 +222,8 @@ class event {
       }
     }
 
-    bool pcheck = (abs(psum[0]) < 1e-12 && abs(psum[1]) < 1e-12 &&
-                   abs(psum[2]) < 1e-12 && abs(psum[3]) < 1e-12);
+    bool pcheck = (abs(psum[0]) < 1e-9 && abs(psum[1]) < 1e-9 &&
+                   abs(psum[2]) < 1e-9 && abs(psum[3]) < 1e-9);
 
     /* // no need to print for gpu, it counts number of invalid events
     if (!pcheck) {

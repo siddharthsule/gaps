@@ -24,11 +24,11 @@ import glob
 # Emission Tracking with CodeCarbon
 
 codecarbon_available = False
-try:
-    from codecarbon import OfflineEmissionsTracker
-    codecarbon_available = True
-except ImportError:
-    codecarbon_available = False
+# try:
+#     from codecarbon import OfflineEmissionsTracker
+#     codecarbon_available = True
+# except ImportError:
+#     codecarbon_available = False
 
 # ------------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ if args.runtype == 'cleanup':
 # Check for updates on GitLab and Notify User
 
 # IF YOU DON'T WANT UPDATES: SET TO FALSE
-check_for_updates = True
+check_for_updates = False
 
 if check_for_updates:
 

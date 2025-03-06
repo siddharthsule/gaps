@@ -42,7 +42,7 @@ const unsigned long lcg_m = 4294967296;
 //  50 works for all, but observables calc is slow
 //  100 works for me + ps, but not for observables
 //  30 is more than enough to do e+e- at 91.2 GeV
-const int max_partons = 30;
+const int max_partons = 100;
 
 // lep 91.2 settings
 const double mz = 91.1876;
@@ -53,7 +53,7 @@ const double t_c = 1.;
 const double asmax = 0.440886;
 
 // number of histogram bins: common for all plots (for now...)
-const int n_bins = 100;
+const int n_bins = 1000;
 const int n_bins2d = 100;  // nx_n grid
 
 // maximum number of events, beyond which program will be done in batches
