@@ -20,172 +20,28 @@ import shutil
 import subprocess
 import glob
 
-# ------------------------------------------------------------------------------
-# Emission Tracking with CodeCarbon
-
-codecarbon_available = False
-# try:
-#     from codecarbon import OfflineEmissionsTracker
-#     codecarbon_available = True
-# except ImportError:
-#     codecarbon_available = False
-
-# ------------------------------------------------------------------------------
-
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Run GPU or CPU Shower')
 parser.add_argument('-n', '--nevents', type=int, default=10000,
                     help='set the number of events (default: 10000)')
 parser.add_argument('-e', '--energy', type=float, default=91.2,
                     help='set the CoM energy of the system (default: 91.2)')
-parser.add_argument('-r', '--runtype', type=str, default='gaps',
-                    help='set the run type (default: gaps, options: gaps, cpp, compare, full)')
-
 args = parser.parse_args()
 
-# ------------------------------------------------------------------------------
 # Compile code
+os.chdir('gaps')
+os.makedirs('build', exist_ok=True)
+os.chdir('build')
+subprocess.run(['cmake', '..'])
+subprocess.run(['make', '-j'])
+os.chdir('../..')
 
+# Delete old Output
+if os.path.exists('gaps-output'):
+    shutil.rmtree('gaps-output')
 
-def compile(dir):
-    print(f'Compiling {dir}')
-    os.chdir(dir)
-    os.makedirs('build', exist_ok=True)
-    os.chdir('build')
-    subprocess.run(['cmake', '..'])
-    subprocess.run(['make', '-j'])
-    os.chdir('../..')
-
-# ------------------------------------------------------------------------------
-# Run GPU or CPU Shower
-
-
-def run(runtype, events, energy):
-    print(f'Running {runtype}')
-    subprocess.run([f'./{runtype}/bin/{runtype}', str(events), str(energy)])
-
-
-# ------------------------------------------------------------------------------
-# Compile and run based on runtype
-
-if args.runtype in ['gaps', 'compare', 'full']:
-    compile('gaps')
-
-if args.runtype in ['cpp', 'compare', 'full']:
-    compile('cpp-shower')
-
-if args.runtype in ['gaps', 'compare']:
-    if codecarbon_available:
-        tracker = OfflineEmissionsTracker(
-            country_iso_code="GBR",
-            output_file="gaps-emissions.dat",
-            measure_power_secs=5,
-            tracking_mode="process")
-        tracker.start()
-        run('gaps', args.nevents, args.energy)  
-        tracker.stop()
-    else:
-        run('gaps', args.nevents, args.energy)
-
-
-if args.runtype in ['cpp', 'compare']:
-    if codecarbon_available:
-        tracker = OfflineEmissionsTracker(
-            country_iso_code="GBR",
-            output_file="cpp-emissions.dat",
-            measure_power_secs=5,
-            tracking_mode="process",
-            # Used to avoid tracking gpus (unless there is a 1000th gpu!)
-            gpu_ids="1000")
-        tracker.start()
-        run('cpp-shower', args.nevents, args.energy)
-        tracker.stop()
-    else:
-        run('cpp-shower', args.nevents, args.energy)
-
-if args.runtype == 'full':
-    # Remove previous results and make folder
-    if os.path.exists('results'):
-        shutil.rmtree('results')
-    os.makedirs('results', exist_ok=True)
-
-    # Clear previous log files
-    if os.path.exists('cpp-time.dat'):
-        os.remove('cpp-time.dat')
-    if os.path.exists('gaps-time.dat'):
-        os.remove('gaps-time.dat')
-
-    # Run the comparison 100 times, for different number of events
-    neventsarray = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000,
-                    5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
-    for n in neventsarray:
-        # Run and store the output in a log file
-        for i in range(1, 101):
-            print(f"Running GPU Shower with {n} events")
-            subprocess.run(['./gaps/bin/gaps', str(n), str(args.energy)])
-            print(f"Running CPU Shower with {n} events")
-            subprocess.run(
-                ['./cpp-shower/bin/cpp-shower', str(n), str(args.energy)])
-
-    # Move the log files to the results directory
-    shutil.move('cpp-time.dat', 'results/')
-    shutil.move('gaps-time.dat', 'results/')
-    shutil.move('cpp.yoda', 'results/')
-    shutil.move('gaps.yoda', 'results/')
-
-# ------------------------------------------------------------------------------
-# Clean up of Repository
-
-if args.runtype == 'cleanup':
-
-    extensions = [".yoda", ".pdf", ".png", ".dat",
-                  ".log", ".nsys-rep", ".sqlite"]
-
-    exceptions = ["test/SH-Tutorial.yoda",
-                  "doc/sections/veto.png",
-                  "doc/sections/paraveto.png",
-                  "doc/sections/structure.png"]
-
-    # Remove all files with the given extensions
-    for ext in extensions:
-        for file in glob.glob(f"**/*{ext}", recursive=True):
-            if any(exception in file for exception in exceptions):
-                continue
-            print(f"Removing {file}")
-            os.remove(file)
-
-    folders = ["rivet-plots", "results-times", "results-events"]
-
-    # Remove all directories
-    for folder in folders:
-        for dirpath, dirnames, filenames in os.walk('.'):
-            if folder in dirnames:
-                if any(exception in dirpath for exception in exceptions):
-                    continue
-                print(f"Removing {os.path.join(dirpath, folder)}")
-                shutil.rmtree(os.path.join(dirpath, folder))
-
-    # Note: Not removing bin and build directories!
-
-# ------------------------------------------------------------------------------
-# Check for updates on GitLab and Notify User
-
-# IF YOU DON'T WANT UPDATES: SET TO FALSE
-check_for_updates = False
-
-if check_for_updates:
-
-    try:
-
-        # Fetch updates from the remote repository
-        subprocess.run(['git', 'fetch'])
-
-        # Check the status of the current branch
-        status = subprocess.run(['git', 'status'], capture_output=True)
-
-        # Print the status message if the branch is behind the remote repository
-        if "Your branch is behind" in status.stdout.decode('utf-8'):
-            print("NOTE: Updates are available on the remote repository!")
-
-    except Exception as e:
-        print("Error: Could not fetch updates from the remote repository. Please check your internet connection.")
+# Run GAPS
+os.makedirs('gaps-output', exist_ok=True)
+os.chdir('gaps-output')
+subprocess.run([f'./../gaps/bin/gaps', str(args.nevents), str(args.energy)])
+os.chdir('..')
