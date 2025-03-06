@@ -302,7 +302,7 @@ struct is_not_end_shower {
 
 // -----------------------------------------------------------------------------
 
-void run_shower(thrust::device_vector<event> &dv_events) {
+void run_shower(thrust::device_vector<event> &dv_events, bool do_partition) {
   // number of events - can get from d_events.size()
   event *d_events = thrust::raw_pointer_cast(dv_events.data());
   int n_events = dv_events.size();
@@ -356,7 +356,6 @@ void run_shower(thrust::device_vector<event> &dv_events) {
   // (Varying) kernel size and partition factor
   int n = n_events;
   int p = 1;
-  bool do_partition = true;
 
   while (completed < n_events) {
     // run all the kernels here...

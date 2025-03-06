@@ -84,7 +84,9 @@ void run_generator(const int& n, const double& e, const std::string& filename,
   std::cout << "Showering partons..." << std::endl;
   start = std::chrono::high_resolution_clock::now();
 
-  run_shower(d_events);
+  // do partitioning of event record dataset if high energy
+  bool do_partition = e > 1000.;
+  run_shower(d_events, do_partition);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_sh = end - start;

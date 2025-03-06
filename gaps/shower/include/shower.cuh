@@ -46,6 +46,6 @@ __device__ void make_kinematics(vec4 *kinematics, const double z,
                                 const vec4 pijt, const vec4 pkt);
 
 // all tasks wrapped into a function
-void run_shower(thrust::device_vector<event> &d_events);
+void run_shower(thrust::device_vector<event> &d_events, bool do_partition);
 
 #endif  // shower_cuh_
