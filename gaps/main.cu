@@ -32,7 +32,7 @@
 // -----------------------------------------------------------------------------
 // kernel to set the seed for the random number generator
 
-__global__ void set_seed_kernel(event* events, int n) {
+__global__ void set_seed_kernel(event* events, int n, int offset) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (idx >= n) {
@@ -40,11 +40,12 @@ __global__ void set_seed_kernel(event* events, int n) {
   }
 
   event& ev = events[idx];
-  ev.set_seed(idx);
+  ev.set_seed(idx + offset);
   double dummy = ev.gen_random();
 }
 
-void run_generator(const int& n, const double& e, const std::string& filename) {
+void run_generator(const int& n, const double& e, const std::string& filename,
+                   int offset = 0) {
   // ---------------------------------------------------------------------------
   // Give some information about the simulation
 
@@ -64,7 +65,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
 
   // set the seed
   set_seed_kernel<<<(n + 255) / 256, 256>>>(
-      thrust::raw_pointer_cast(d_events.data()), n);
+      thrust::raw_pointer_cast(d_events.data()), n, offset);
 
   // ---------------------------------------------------------------------------
   // me generation
@@ -163,16 +164,24 @@ int main(int argc, char* argv[]) {
     std::cout << "Number of Batches: " << n_batches << std::endl;
     std::cout << "Size of Remainder: " << n_remainder << std::endl;
 
+    // offset the event number and seed
+    int offset = 0;
+
     // run in batches
     for (int i = 0; i < n_batches; i++) {
+      // run the generator
       std::string filename = "gaps-" + std::to_string(i) + ".yoda";
-      run_generator(max_events, e, filename);
+      run_generator(max_events, e, filename, offset);
+
+      // increment the offset
+      offset += max_events;
     }
 
     // run remainder
     if (n_remainder > 0) {
+      // run the generator, offset should be correct based on previous runs
       std::string filename = "gaps-" + std::to_string(n_batches) + ".yoda";
-      run_generator(n_remainder, e, filename);
+      run_generator(n_remainder, e, filename, offset);
     }
   } else {
     run_generator(n, e, "gaps.yoda");

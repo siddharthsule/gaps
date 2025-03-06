@@ -31,7 +31,8 @@
 
 // -----------------------------------------------------------------------------
 
-void run_generator(const int& n, const double& e, const std::string& filename) {
+void run_generator(const int& n, const double& e, const std::string& filename,
+                   int offset = 0) {
   // ---------------------------------------------------------------------------
   // give some information about the simulation
 
@@ -50,7 +51,7 @@ void run_generator(const int& n, const double& e, const std::string& filename) {
   std::vector<event> events(n);  // Create n events
 
   for (int i = 0; i < n; i++) {
-    events[i].set_seed(i);                  // Set the seed
+    events[i].set_seed(i + offset);         // Set the seed
     double dummy = events[i].gen_random();  // Generate the first random number
   }
 
@@ -145,8 +146,37 @@ int main(int argc, char* argv[]) {
 
   // if more than max_events, run in batches
   if (n > max_events) {
+    std::cout << "-------------------------------------------------"
+              << std::endl;
     std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
-    return 1;
+    std::cout << "Running in batches..." << std::endl;
+    std::cout << "Please use rivet-merge to combine runs" << std::endl;
+
+    // split into batches
+    int n_batches = n / max_events;
+    int n_remainder = n % max_events;
+    std::cout << "Number of Batches: " << n_batches << std::endl;
+    std::cout << "Size of Remainder: " << n_remainder << std::endl;
+
+    // offset the event number and seed
+    int offset = 0;
+
+    // run in batches
+    for (int i = 0; i < n_batches; i++) {
+      // run the generator
+      std::string filename = "cpp-" + std::to_string(i) + ".yoda";
+      run_generator(max_events, e, filename, offset);
+
+      // increment the offset
+      offset += max_events;
+    }
+
+    // run remainder
+    if (n_remainder > 0) {
+      // run the generator, offset should be correct based on previous runs
+      std::string filename = "cpp-" + std::to_string(n_batches) + ".yoda";
+      run_generator(n_remainder, e, filename, offset);
+    }
   } else {
     run_generator(n, e, "cpp.yoda");
   }
