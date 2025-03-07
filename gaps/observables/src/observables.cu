@@ -34,16 +34,16 @@ __global__ void fill_histos(analysis* an, event* events, int n) {
 
   event& ev = events[idx];
 
-  an->hists[0].fill(ev.get_y23(), ev.get_dxs());
-  an->hists[1].fill(ev.get_y34(), ev.get_dxs());
-  an->hists[2].fill(ev.get_y45(), ev.get_dxs());
-  an->hists[3].fill(ev.get_y56(), ev.get_dxs());
-  an->hists[4].fill(ev.get_thr(), ev.get_dxs());
-  an->hists[5].fill(ev.get_thr(), ev.get_dxs());
-  an->hists[6].fill(ev.get_hjm(), ev.get_dxs());
-  an->hists[7].fill(ev.get_ljm(), ev.get_dxs());
-  an->hists[8].fill(ev.get_wjb(), ev.get_dxs());
-  an->hists[9].fill(ev.get_njb(), ev.get_dxs());
+  // an->hists[0].fill(ev.get_y23(), ev.get_dxs());
+  // an->hists[1].fill(ev.get_y34(), ev.get_dxs());
+  // an->hists[2].fill(ev.get_y45(), ev.get_dxs());
+  // an->hists[3].fill(ev.get_y56(), ev.get_dxs());
+  an->hists[0].fill(ev.get_thr(), ev.get_dxs());
+  an->hists[1].fill(ev.get_thr(), ev.get_dxs());
+  // an->hists[6].fill(ev.get_hjm(), ev.get_dxs());
+  // an->hists[7].fill(ev.get_ljm(), ev.get_dxs());
+  // an->hists[8].fill(ev.get_wjb(), ev.get_dxs());
+  // an->hists[9].fill(ev.get_njb(), ev.get_dxs());
 
   // dalitz plot is off
   // an->dalitz.fill(ev.get_dalitz(0), ev.get_dalitz(1), ev.get_dxs());
@@ -94,15 +94,15 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
     std::cout << "number of invalid events: " << h_invalid << "\n";
   }
 
-  // calculare the observables
-  do_cluster<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
-  sync_gpu_and_check("do_cluster");
+  // // calculare the observables
+  // do_cluster<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  // sync_gpu_and_check("do_cluster");
 
   calculate_thr<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
   sync_gpu_and_check("calculate_thr");
 
-  calculate_jet_m_br<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
-  sync_gpu_and_check("calculate_jet_m_br");
+  // calculate_jet_m_br<<<(n + 255) / 256, 256>>>(d_events_ptr, n);
+  // sync_gpu_and_check("calculate_jet_m_br");
 
   /**
    * why is the dalitz plot off?
@@ -140,16 +140,16 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
   std::remove(filename.c_str());
 
   // write the histograms to file
-  write(h_an->hists[0], "/gaps/log10y23\n", filename);
-  write(h_an->hists[1], "/gaps/log10y34\n", filename);
-  write(h_an->hists[2], "/gaps/log10y45\n", filename);
-  write(h_an->hists[3], "/gaps/log10y56\n", filename);
-  write(h_an->hists[4], "/gaps/tvalue\n", filename);
-  write(h_an->hists[5], "/gaps/tzoomd\n", filename);
-  write(h_an->hists[6], "/gaps/hjm\n", filename);
-  write(h_an->hists[7], "/gaps/ljm\n", filename);
-  write(h_an->hists[8], "/gaps/wjb\n", filename);
-  write(h_an->hists[9], "/gaps/njb\n", filename);
+  // write(h_an->hists[0], "/gaps/log10y23\n", filename);
+  // write(h_an->hists[1], "/gaps/log10y34\n", filename);
+  // write(h_an->hists[2], "/gaps/log10y45\n", filename);
+  // write(h_an->hists[3], "/gaps/log10y56\n", filename);
+  write(h_an->hists[0], "/gaps/tvalue\n", filename);
+  write(h_an->hists[1], "/gaps/tzoomd\n", filename);
+  // write(h_an->hists[6], "/gaps/hjm\n", filename);
+  // write(h_an->hists[7], "/gaps/ljm\n", filename);
+  // write(h_an->hists[8], "/gaps/wjb\n", filename);
+  // write(h_an->hists[9], "/gaps/njb\n", filename);
 
   // dalitz plot is off
   // write(h_an->dalitz, "/gaps/dalitz\n", filename);

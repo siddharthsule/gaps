@@ -25,7 +25,7 @@
 class analysis {
  public:
   // similar to histo1d in c++/rivet, just split into host / device components
-  histo1d hists[10];
+  histo1d hists[2];
   histo2d dalitz;
 
   double wtot;  // scale by weight for 1/sigma d(sigma)/d observable
@@ -33,18 +33,18 @@ class analysis {
 
   // can't have strings as device variables, in future could use char*
   __host__ __device__ analysis() : wtot(0.), ntot(0.) {
-    hists[0] = histo1d(-4.3, -0.3);  // /gaps/log10y23
-    hists[1] = histo1d(-4.3, -0.3);  // /gaps/log10y34
-    hists[2] = histo1d(-4.3, -0.3);  // /gaps/log10y45
-    hists[3] = histo1d(-4.3, -0.3);  // /gaps/log10y56
-    hists[4] = histo1d(0., 0.5);     // "/gaps/tvalue"
-    hists[5] = histo1d(0., 0.1);     // "/gaps/tzoomd"
-    hists[6] = histo1d(0., 1.);      // "/gaps/hjm"
-    hists[7] = histo1d(0., 0.5);     // "/gaps/ljm"
-    hists[8] = histo1d(0., 0.5);     // "/gaps/wjb"
-    hists[9] = histo1d(0., 0.2);     // "/gaps/njb"
+    // hists[0] = histo1d(-4.3, -0.3);  // /gaps/log10y23
+    // hists[1] = histo1d(-4.3, -0.3);  // /gaps/log10y34
+    // hists[2] = histo1d(-4.3, -0.3);  // /gaps/log10y45
+    // hists[3] = histo1d(-4.3, -0.3);  // /gaps/log10y56
+    hists[0] = histo1d(0., 0.5);     // "/gaps/tvalue"
+    hists[1] = histo1d(0., 0.1);     // "/gaps/tzoomd"
+    // hists[6] = histo1d(0., 1.);      // "/gaps/hjm"
+    // hists[7] = histo1d(0., 0.5);     // "/gaps/ljm"
+    // hists[8] = histo1d(0., 0.5);     // "/gaps/wjb"
+    // hists[9] = histo1d(0., 0.2);     // "/gaps/njb"
 
-    dalitz = histo2d(0., 1., 0., 1.);  // '/gaps/dalitz"
+    // dalitz = histo2d(0., 1., 0., 1.);  // '/gaps/dalitz"
   }
 };
 
