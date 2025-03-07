@@ -38,7 +38,7 @@ class analysis {
     hists[2] = histo1d(-4.3, -0.3);  // /gaps/log10y45
     hists[3] = histo1d(-4.3, -0.3);  // /gaps/log10y56
     hists[4] = histo1d(0., 0.5);     // "/gaps/tvalue"
-    hists[5] = histo1d(0., 0.5);     // "/gaps/tzoomd"
+    hists[5] = histo1d(0., 0.1);     // "/gaps/tzoomd"
     hists[6] = histo1d(0., 1.);      // "/gaps/hjm"
     hists[7] = histo1d(0., 0.5);     // "/gaps/ljm"
     hists[8] = histo1d(0., 0.5);     // "/gaps/wjb"
