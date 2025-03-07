@@ -130,7 +130,7 @@ void do_analysis(thrust::device_vector<event>& d_events, std::string filename) {
 
   // normalize the histograms
   for (auto& hist : h_an->hists) {
-    hist.scale_w(1. / h_an->ntot);
+    hist.scale_w(1. / h_an->wtot);
   }
 
   // dalitz plot is off
