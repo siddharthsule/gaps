@@ -445,8 +445,8 @@ void run_shower(thrust::device_vector<event> &dv_events, bool do_partition) {
     if (do_partition &&
         completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
       if (static_cast<int>(n_events * (1 / pow(2, p))) > 10) {
-        std::cout << std::endl;
-        std::cout << "partition at " << completed << "/" << n_events
+        std::cerr << std::endl;
+        std::cerr << "partition at " << completed << "/" << n_events
                   << std::endl;
 
         // Partition only the first n elements
