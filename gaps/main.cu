@@ -109,13 +109,9 @@ void run_generator(const int& n, const double& e, const std::string& filename,
   d_events.clear();
   d_events.shrink_to_fit();
 
-  /**
-   * maybe in the future, to allow > 10^6 events, we can split the large number
-   * into smaller batches. right now, we write events to file directly from the
-   * do... functions, so the code is not ready for this.
-   */
+  // reset the device to free all allocated memory
+  cudaDeviceReset();
 
-  // ---------------------------------------------------------------------------
   // results
 
   double diff = diff_me.count() + diff_sh.count() + diff_an.count();
