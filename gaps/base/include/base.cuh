@@ -42,7 +42,7 @@ const unsigned long lcg_m = 4294967296;
 //  50 works for all, but observables calc is slow
 //  100 works for me + ps, but not for observables
 //  30 is more than enough to do e+e- at 91.2 GeV
-const int max_partons = 100;
+const int max_partons = 200;
 
 // lep 91.2 settings
 const double mz = 91.1876;
