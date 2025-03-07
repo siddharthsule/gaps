@@ -91,11 +91,34 @@ __global__ void select_winner_split_func(event *events, int n) {
       // phase space limits
       double zp = 0.5 * (1. + sqrt(1. - 4. * t_c / m2));
 
+      // generate the splitting function code:
+      int sf_codes[6] = {-1, -1, -1, -1, -1, -1};
+      if (ev.get_parton(ij).get_pid() != 21) {
+        // quark
+        if (ev.get_parton(ij).get_pid() > 0) {
+          sf_codes[0] = ev.get_parton(ij).get_pid();
+        }
+        // antiquark
+        else {
+          // -1 -> 11, -2 -> 12, -3 -> 13, -4 -> 14, -5 -> 15
+          sf_codes[0] = -ev.get_parton(ij).get_pid() + 10;
+        }
+      }
+      // gluon
+      else {
+        sf_codes[0] = 200;
+        sf_codes[1] = 301;
+        sf_codes[2] = 302;
+        sf_codes[3] = 303;
+        sf_codes[4] = 304;
+        sf_codes[5] = 305;
+      }
+
       // codes instead of object oriented approach!
       for (int sf : sf_codes) {
         // check if the splitting function is valid for the current partons
-        if (!validate_splitting(ev.get_parton(ij).get_pid(), sf)) {
-          continue;
+        if (sf == -1) {
+          break;
         }
 
         // calculate the evolution variable
