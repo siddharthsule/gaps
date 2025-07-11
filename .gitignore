@@ -5,15 +5,24 @@ build/
 # Rivet and Yoda files
 rivet-plots/
 *.yoda
+yoda-files/
+cpu-yodas/
+gpu-yodas/
+yoda-files.tar.gz
+yoda-files.zip
+cpu-yodas.zip
+gpu-yodas.zip
 
 # Shower Time Measuremnts
 *.dat
 
 # VS Code Settings
+.venv/
 .vscode/
 
 # Any Temporary Results
 results-*/
+gaps.out
 
 # Plots
 test/*.pdf
@@ -22,10 +31,20 @@ doc/extra/*.pdf
 doc/extra/*.png
 doc/extra/*-time.dat
 
-# LHAPDF Path - Exclusive to setups
-lhapdf_path.txt
-
 # Any Profiling Results
 *.nsys-rep
 *.sqlite
 profile.log
+powermetrics_log.txt
+gmon.out
+analysis.log
+
+# Python Cache
+__pycache__/
+
+# ------------------------------------------------------------------------------
+# Exceptions!!!
+
+# SH Tutorial Yoda Files
+!test/SH-Tutorial.yoda
+!test/SH-Tutorial-NLO.yoda

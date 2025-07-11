@@ -4,28 +4,28 @@ import matplotlib.pyplot as plt
 # from scipy.stats import iqr
 
 # Load the data
-cpp0 = pd.read_csv('cpp-time-0.dat')
-cud0 = pd.read_csv('gaps-time-0.dat')
-cpp1 = pd.read_csv('cpp-time-1.dat')
-cud1 = pd.read_csv('gaps-time-1.dat')
+cpu0 = pd.read_csv('cpu-time-0.dat')
+cud0 = pd.read_csv('gpu-time-0.dat')
+cpu1 = pd.read_csv('cpu-time-1.dat')
+cud1 = pd.read_csv('gpu-time-1.dat')
 
 # Name the Columns Matrix, Shower, Observables, and Total
-cpp0.columns = ['Matrix', 'Shower', 'Observables', 'Total']
+cpu0.columns = ['Matrix', 'Shower', 'Observables', 'Total']
 cud0.columns = ['Matrix', 'Shower', 'Observables', 'Total']
-cpp1.columns = ['Matrix', 'Shower', 'Observables', 'Total']
+cpu1.columns = ['Matrix', 'Shower', 'Observables', 'Total']
 cud1.columns = ['Matrix', 'Shower', 'Observables', 'Total']
 
-# Get the median speedup between cpp and cud for the two versions
-speedup0 = cpp0.median() / cud0.median()
-speedup1 = cpp1.median() / cud1.median()
+# Get the median speedup between cpu and cud for the two versions
+speedup0 = cpu0.median() / cud0.median()
+speedup1 = cpu1.median() / cud1.median()
 
-# Get the median speedup between the two versions for cpp and cud
-speedup_cpp = cpp0.median() / cpp1.median() * 100
+# Get the median speedup between the two versions for cpu and cud
+speedup_cpu = cpu0.median() / cpu1.median() * 100
 speedup_cud = cud0.median() / cud1.median() * 100
 
 # Concatenate all results
 speedup0 = pd.concat([speedup0, speedup1], axis=1)
-speedup1 = pd.concat([speedup_cpp, speedup_cud], axis=1)
+speedup1 = pd.concat([speedup_cpu, speedup_cud], axis=1)
 speedup = pd.concat([speedup0, speedup1], axis=1)
 
 # Name the columns

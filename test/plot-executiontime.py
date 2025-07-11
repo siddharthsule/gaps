@@ -17,51 +17,51 @@ nreps = 100
 dir_to_results = "../results-times/"
 
 # import data
-cpp_full = np.genfromtxt(dir_to_results + "cpp-time.dat", delimiter=',')
-cud_full = np.genfromtxt(dir_to_results + "gaps-time.dat", delimiter=',')
+cpu_full = np.genfromtxt(dir_to_results + "cpu-time.dat", delimiter=',')
+gpu_full = np.genfromtxt(dir_to_results + "gaps-time.dat", delimiter=',')
 
 # Calculate the average and standard deviation for all repetitions
-cpp_median = np.zeros((len(nev), 4))
-cud_median = np.zeros((len(nev), 4))
+cpu_median = np.zeros((len(nev), 4))
+gpu_median = np.zeros((len(nev), 4))
 
-cpp_iqr = np.zeros((len(nev), 4))
-cud_iqr = np.zeros((len(nev), 4))
+cpu_iqr = np.zeros((len(nev), 4))
+gpu_iqr = np.zeros((len(nev), 4))
 
 for i in range(len(nev)):
 
     """
     # To Check if there are any outliers
     if nev[i] == 5000:
-        print(cud_full[i*nreps:i*nreps+nreps])
+        print(gpu_full[i*nreps:i*nreps+nreps])
 
         fig, ax = plt.subplots()
-        ax.hist(cud_full[i*nreps:i*nreps+nreps, 0], bins=50)
+        ax.hist(gpu_full[i*nreps:i*nreps+nreps, 0], bins=50)
         fig.savefig("histo.pdf")
     """
 
-    cpp_median[i] = np.median(cpp_full[i*nreps:i*nreps+nreps], axis=0)
-    cud_median[i] = np.median(cud_full[i*nreps:i*nreps+nreps], axis=0)
+    cpu_median[i] = np.median(cpu_full[i*nreps:i*nreps+nreps], axis=0)
+    gpu_median[i] = np.median(gpu_full[i*nreps:i*nreps+nreps], axis=0)
 
-    cpp_iqr[i] = iqr(cpp_full[i*nreps:i*nreps+nreps], axis=0)
-    cud_iqr[i] = iqr(cud_full[i*nreps:i*nreps+nreps], axis=0)
+    cpu_iqr[i] = iqr(cpu_full[i*nreps:i*nreps+nreps], axis=0)
+    gpu_iqr[i] = iqr(gpu_full[i*nreps:i*nreps+nreps], axis=0)
 
-cpp = cpp_median
-cud = cud_median
+cpu = cpu_median
+gpu = gpu_median
 
 # Convert the arrays to pandas DataFrames for easier printing
 columns_lin = ['Matrix  Element', 'Parton  Shower', 'Observables', 'Total']
-cpp_df = pd.DataFrame(cpp, index=nev, columns=columns_lin)
-cud_df = pd.DataFrame(cud, index=nev, columns=columns_lin)
+cpu_df = pd.DataFrame(cpu, index=nev, columns=columns_lin)
+gpu_df = pd.DataFrame(gpu, index=nev, columns=columns_lin)
 
 # Calculate the ratios and convert to integer
-cpp_cud_ratio = (cpp / cud)
+cpu_gpu_ratio = (cpu / gpu)
 
 # Convert the ratio arrays to DataFrame
-cpp_cud_ratio_df = pd.DataFrame(cpp_cud_ratio, index=nev, columns=columns_lin)
+cpu_gpu_ratio_df = pd.DataFrame(cpu_gpu_ratio, index=nev, columns=columns_lin)
 
 # Print the DataFrame
 print("CPU / GPU Ratio for different Number of Events:")
-print(cpp_cud_ratio_df)
+print(cpu_gpu_ratio_df)
 print("\n")
 
 # Initialize p as a 3D array
@@ -83,7 +83,7 @@ Kept it here because I thought it was a neat way of doing loops!
 for i in range(4):
 
     # Linea Fit
-    p1, c1 = np.polyfit(np.log(nev[14:]), np.log(cud[14:, i]), 1, cov=True)
+    p1, c1 = np.polyfit(np.log(nev[14:]), np.log(gpu[14:, i]), 1, cov=True)
 
     # Linear Fit
     p[i//2, i % 2, :] = p1
@@ -109,12 +109,12 @@ x = np.linspace(40000, 1300000, 1000)
 for i in range(2):
     for j in range(2):
         ax = axs[i, j]
-        cpp_errorbar = ax.errorbar(
-            nev, cpp[:, 2*i + j], yerr=cpp_iqr[:, 2*i + j], fmt='o', color='C0')
-        cud_errorbar = ax.errorbar(
-            nev, cud[:, 2*i + j], yerr=cud_iqr[:, 2*i + j], fmt='o', color='C2')
-        cpp_plot = ax.plot(nev, cpp[:, 2*i + j], color='C0', alpha=0.3)
-        cud_plot = ax.plot(nev, cud[:, 2*i + j], color='C2', alpha=0.3)
+        cpu_errorbar = ax.errorbar(
+            nev, cpu[:, 2*i + j], yerr=cpu_iqr[:, 2*i + j], fmt='o', color='C0')
+        gpu_errorbar = ax.errorbar(
+            nev, gpu[:, 2*i + j], yerr=gpu_iqr[:, 2*i + j], fmt='o', color='C2')
+        cpu_plot = ax.plot(nev, cpu[:, 2*i + j], color='C0', alpha=0.3)
+        gpu_plot = ax.plot(nev, gpu[:, 2*i + j], color='C2', alpha=0.3)
         fit_plot = ax.plot(x, np.exp(p[i, j, 1]) * x**p[i, j, 0], color='C1',
                            linestyle='--')
 
@@ -133,7 +133,7 @@ for i in range(2):
             [], [], color='C2', label="V100 GPU Cores")
 
         # Create a list of handles and labels manually, including the proxy artist
-        handles = [cpp_errorbar, cud_errorbar,
+        handles = [cpu_errorbar, gpu_errorbar,
                    v100_gpu_cores_line, fit_plot[0]]
         labels = ['CPU', 'GPU',  "V100 GPU Cores",
                   "Linear Fit, Gradient = " + str(round(p[i, j, 0], 2))]

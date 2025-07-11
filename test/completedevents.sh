@@ -13,7 +13,7 @@ for i in 1000 10000 100000
 do
     echo "Running for $i events"
     # Run the algorithm
-    ./bin/gaps $i
+    ./rungaps -n $i
     mv gaps-cycles.dat results/gaps-cycles-$i.dat
 done
 

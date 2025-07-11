@@ -28,14 +28,14 @@ int main(void) {
   }
 
   // Copy data from host to device
-  cudaMemcpy(d_x, x, N * sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_y, y, N * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_x, h_x, N * sizeof(float), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_y, h_y, N * sizeof(float), cudaMemcpyHostToDevice);
 
   // Perform SAXPY on 1M elements
   saxpy<<<(N + 255) / 256, 256>>>(N, 2.0f, d_x, d_y);
 
   // Copy data from device to host
-  cudaMemcpy(y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost);
+  cudaMemcpy(h_y, d_y, N * sizeof(float), cudaMemcpyDeviceToHost);
 
   // Cleanup
   cudaFree(d_x);

@@ -17,7 +17,13 @@ for n in nev:
 
     filename = "../results-events/gaps-cycles-" + str(n)
 
-    temp = np.genfromtxt(filename + ".dat", delimiter='\n')
+    temp = np.genfromtxt(filename + ".dat", delimiter=',')
+
+    # If there are two columns (GAPS 1.3 onwards), keep only the second one
+    if temp.ndim > 1:
+        temp = temp[:, 1]  # Use the second column
+        temp = n - temp # Swap to remaining events
+
     temp /= n  # Divide by number of events
 
     comp = np.zeros((200))

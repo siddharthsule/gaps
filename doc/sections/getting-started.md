@@ -4,62 +4,56 @@ The code simulates just one experiment, so this should take a little time.
 
 The file `rungaps` can be used to build and operate both the CPU and GPU generators. It has been coded with all the routines (including the one for paper results).
 
-To run GAPS, you will need the following:
-
-- An NVIDIA V100, A100 or above: These are the only GPUs with the required features
-- CMake: To create the makefile
-- NVCC and GCC: to build the two generators
-- Python: To make plots of the results
-
-Simply execute the command:
-
-```bash
-./rungaps
-```
-
 NB: If you get a permission denied error, please run ```chmod +x rungaps```.
 
 This should build the program and generate 10000 events on the GPU. The output should look something like this:
 
 ```bash
--------------------------------------------------
-| GAPS: a GPU-Amplified Parton Shower |
--------------------------------------------------
-Process: e+ e- --> q qbar
-Number of Events: 10000
+--------------------------------------------------------
+  ##########      ######     ###########    ##########  
+ ##        ##    ##    ##    ##        ##  ##        ## 
+ ##             ##      ##   ##        ##  ##           
+ ##    ######  ##        ##  ###########    ##########  
+ ##        ##  ############  ##                      ## 
+ ##        ##  ##        ##  ##            ##        ## 
+  ##########   ##        ##  ##             ##########  
+                                                        
+          a GPU-Amplified Parton Shower, v1.3.0         
+--------------------------------------------------------
+Process: LEP, E_cms: 91.2 GeV
 
+             e+ \                       / q
+                 \                     /
+                  \        Z/γ        /
+                   /\/\/\/\/\/\/\/\/\/
+                  /                   \
+                 /                     \
+             e- /                       \ qbar
+    
+Number of Events: 10000
+Running GPU only
+--------------------------------------------------------
+Compiling gpu-shower
+Running gpu-shower...
 Initialising...
-Generating Matrix Elements...
-Showering Partons...
-Analysing Events...
+ - Using 40 blocks and 256 threads per block.
+
+Generating matrix elements...
+Showering partons...
+Completed Events: 10000/10000
+Analysing events...
 
 EVENT GENERATION COMPLETE
 
-ME Time: 0.000666688 s
-Sh Time: 0.0235208 s
-An Time: 0.00896093 s
+ME Time: 0.000327246 s
+Sh Time: 0.0425515 s
+An Time: 0.0215414 s
 
-Total Time: 0.0331484 s
+Total Time: 0.0644201 s
 
-Histograms written to gaps.yoda
-Timing data written to gaps-time.dat
+Histograms written to gpu.yoda
+Timing data written to gpu-time.dat
 ------------------------------------------------
 ```
 
-Then you have free reign over what you need. Like [README.md](../../README.md), here are all the possible ways you can run gaps:
-
-```bash
-# Simulate different numbers of events and build the code using multiple CPU cores
-./rungaps -n nevents -c ncores
-
-# Run CPU Simulation
-./rungaps -n nevents -c ncores -r cpp
-
-# Run the same number of events on CPU and GPU and compare times
-./rungaps -n nevents -c ncores -r compare
-
-# Run a multitude of number of events 100 times, as seen in the paper
-./rungaps -c ncores -r full
-```
-
-And that's all there is to it! In upcoming versions, we'll add features like increasing the number of events, different centres of mass energies, new analyses, and potentially some matching.
+Then you have free reign over what you need, just see [README.md](../../README.md) for the options. And that's all there is to it!

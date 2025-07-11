@@ -18,8 +18,8 @@ if args.runtype == 'energy':
     os.makedirs('results', exist_ok=True)
 
     # Clear previous log files
-    if os.path.exists('gaps-time.dat'):
-        os.remove('gaps-time.dat')
+    if os.path.exists('gpu-time.dat'):
+        os.remove('gpu-time.dat')
 
     # Run the comparison 100 times, for different number of events
     energyarray = [100., 200., 500., 1000.,
@@ -28,18 +28,18 @@ if args.runtype == 'energy':
         # Run and store the output in a log file
         for i in range(1, 11):
             print(f"Running GAPS with E = {e} GeV")
-            subprocess.run(['./gaps/bin/gaps', str(args.nevents), str(e)])
+            subprocess.run(['./gpu/bin/gpu', str(args.nevents), str(e)])
 
     # Move the log files to the results directory
-    shutil.move('gaps-time.dat', 'results/')
-    shutil.move('gaps.yoda', 'results/')
+    shutil.move('gpu-time.dat', 'results/')
+    shutil.move('gpu.yoda', 'results/')
 """
 
 # Params
 nreps = 10
 
 # import data
-full = np.genfromtxt("gaps-time-energies.dat", delimiter=',')
+full = np.genfromtxt("gpu-time-energies.dat", delimiter=',')
 
 print(full)
 

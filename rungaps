@@ -2,23 +2,33 @@
 
 # ------------------------------------------------------------------------------
 
-# GAPS - Run Script
-# -----------------
-# This script is used to compile and run the GAPS and CPU Shower codes. It
-# provides a number of options to control the number of events, the number of
-# cores to use, and the type of run to perform. The run types are:
-#   - gaps: Run the GAPS simulation
-#   - cpp: Run the CPU Shower simulation
-#   - compare: Run both the GAPS and CPU Shower and compare the results
-#   - full: Run both the GAPS and CPU Shower for a range of event numbers
+"""
+GAPS - Run Script
+-----------------
+This script is used to compile and run the GPU and CPU Shower codes. It
+provides a number of options to control the number of events, the number of
+cores to use, and the type of run to perform. The run types are:
+    - gpu: Run the GPU simulation
+    - cpu: Run the CPU Shower simulation
+    - compare: Run both the GPU and CPU Shower and compare the results
+    - full: Run both the GPU and CPU Shower for a range of event numbers
+"""
 
 # ------------------------------------------------------------------------------
+# Modules
 
 import argparse
 import os
 import shutil
 import subprocess
-import glob
+
+# ------------------------------------------------------------------------------
+# Functions
+
+from gaps.interface.logo import print_logo
+from gaps.interface.compile import compile_code
+from gaps.interface.run import run
+
 
 # ------------------------------------------------------------------------------
 # Emission Tracking with CodeCarbon
@@ -30,162 +40,235 @@ try:
 except ImportError:
     codecarbon_available = False
 
-# ------------------------------------------------------------------------------
-
-# Set up argument parser
-parser = argparse.ArgumentParser(description='Run GPU or CPU Shower')
-parser.add_argument('-n', '--nevents', type=int, default=10000,
-                    help='set the number of events (default: 10000)')
-parser.add_argument('-e', '--energy', type=float, default=91.2,
-                    help='set the CoM energy of the system (default: 91.2)')
-parser.add_argument('-r', '--runtype', type=str, default='gaps',
-                    help='set the run type (default: gaps, options: gaps, cpp, compare, full)')
-
-args = parser.parse_args()
 
 # ------------------------------------------------------------------------------
-# Compile code
+# Parse the Arguments
 
+def parse_arguments():
+    # Set up argument parser
+    p = argparse.ArgumentParser(description='Run GPU or CPU Shower')
 
-def compile(dir):
-    print(f'Compiling {dir}')
-    os.chdir(dir)
-    os.makedirs('build', exist_ok=True)
-    os.chdir('build')
-    subprocess.run(['cmake', '..'])
-    subprocess.run(['make', '-j'])
-    os.chdir('../..')
+    # Run type
+    p.add_argument('-r', '--runtype',
+                   type=str,
+                   default='gpu',
+                   choices=['gpu', 'cpu', 'compare', 'full'],
+                   help='choose run type (default: gpu)')
 
-# ------------------------------------------------------------------------------
-# Run GPU or CPU Shower
+    # Process and Parameters
+    p.add_argument('-p', '--process',
+                   type=str,
+                   choices=['LEP', 'LHC'],
+                   default='LEP',
+                   help='set the process (default: LEP)')
 
+    p.add_argument('-nlo', '--nlo',
+                   action='store_true',
+                   help='enable NLO corrections (default: False)')
 
-def run(runtype, events, energy):
-    print(f'Running {runtype}')
-    subprocess.run([f'./{runtype}/bin/{runtype}', str(events), str(energy)])
+    p.add_argument('-e', '--root_s',
+                   type=float,
+                   help='set the Centre of Mass Energy, sqrt(s)')
 
+    # Shower Parameters
+    p.add_argument('-asmz', '--asmz',
+                   type=float,
+                   default=0.118,
+                   help='set the strong coupling asmz (default: 0.118)')
 
-# ------------------------------------------------------------------------------
-# Compile and run based on runtype
+    p.add_argument('-t_c', '--t_c',
+                   type=float,
+                   default=1.0,
+                   help='set the shower cutoff in GeV (default: 1.0 GeV)')
 
-if args.runtype in ['gaps', 'compare', 'full']:
-    compile('gaps')
+    p.add_argument('-n_em_max', '--n_emissions_max',
+                   type=int,
+                   default=1000,
+                   help='set the maximum number of emissions (default: 1000)')
 
-if args.runtype in ['cpp', 'compare', 'full']:
-    compile('cpp-shower')
+    # Run options
+    p.add_argument('-n', '--nevents',
+                   type=int,
+                   default=10000,
+                   help='set the number of events (default: 10000)')
 
-if args.runtype in ['gaps', 'compare']:
-    if codecarbon_available:
-        tracker = OfflineEmissionsTracker(
-            country_iso_code="GBR",
-            output_file="gaps-emissions.dat",
-            measure_power_secs=5,
-            tracking_mode="process")
-        tracker.start()
-        run('gaps', args.nevents, args.energy)  
-        tracker.stop()
-    else:
-        run('gaps', args.nevents, args.energy)
+    # Profiling
+    p.add_argument('-nsys', '--nsysprofile',
+                   action='store_true',
+                   help='enable nsys profiling')
 
+    p.add_argument('-codecarbon', '--codecarbon',
+                   action='store_true',
+                   help='enable codecarbon emissions tracking')
 
-if args.runtype in ['cpp', 'compare']:
-    if codecarbon_available:
-        tracker = OfflineEmissionsTracker(
-            country_iso_code="GBR",
-            output_file="cpp-emissions.dat",
-            measure_power_secs=5,
-            tracking_mode="process",
-            # Used to avoid tracking gpus (unless there is a 1000th gpu!)
-            gpu_ids="1000")
-        tracker.start()
-        run('cpp-shower', args.nevents, args.energy)
-        tracker.stop()
-    else:
-        run('cpp-shower', args.nevents, args.energy)
+    p.add_argument('-gprof', '--gprof',
+                   action='store_true',
+                   help='Enable gprof profiling for CPU Shower')
 
-if args.runtype == 'full':
-    # Remove previous results and make folder
-    if os.path.exists('results'):
-        shutil.rmtree('results')
-    os.makedirs('results', exist_ok=True)
+    # GPU and GPU Tuning
+    p.add_argument('-t', '--threads',
+                   type=int,
+                   default=256,
+                   help='set the number of threads per block (default: 256)')
 
-    # Clear previous log files
-    if os.path.exists('cpp-time.dat'):
-        os.remove('cpp-time.dat')
-    if os.path.exists('gaps-time.dat'):
-        os.remove('gaps-time.dat')
-
-    # Run the comparison 100 times, for different number of events
-    neventsarray = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000,
-                    5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
-    for n in neventsarray:
-        # Run and store the output in a log file
-        for i in range(1, 101):
-            print(f"Running GPU Shower with {n} events")
-            subprocess.run(['./gaps/bin/gaps', str(n), str(args.energy)])
-            print(f"Running CPU Shower with {n} events")
-            subprocess.run(
-                ['./cpp-shower/bin/cpp-shower', str(n), str(args.energy)])
-
-    # Move the log files to the results directory
-    shutil.move('cpp-time.dat', 'results/')
-    shutil.move('gaps-time.dat', 'results/')
-    shutil.move('cpp.yoda', 'results/')
-    shutil.move('gaps.yoda', 'results/')
+    # Parse the arguments
+    args = p.parse_args()
+    return args
 
 # ------------------------------------------------------------------------------
-# Clean up of Repository
+# Adjust the root_s value based on the process - if not provided
 
-if args.runtype == 'cleanup':
 
-    extensions = [".yoda", ".pdf", ".png", ".dat",
-                  ".log", ".nsys-rep", ".sqlite"]
-
-    exceptions = ["test/SH-Tutorial.yoda",
-                  "doc/sections/veto.png",
-                  "doc/sections/paraveto.png",
-                  "doc/sections/structure.png"]
-
-    # Remove all files with the given extensions
-    for ext in extensions:
-        for file in glob.glob(f"**/*{ext}", recursive=True):
-            if any(exception in file for exception in exceptions):
-                continue
-            print(f"Removing {file}")
-            os.remove(file)
-
-    folders = ["rivet-plots", "results-times", "results-events"]
-
-    # Remove all directories
-    for folder in folders:
-        for dirpath, dirnames, filenames in os.walk('.'):
-            if folder in dirnames:
-                if any(exception in dirpath for exception in exceptions):
-                    continue
-                print(f"Removing {os.path.join(dirpath, folder)}")
-                shutil.rmtree(os.path.join(dirpath, folder))
-
-    # Note: Not removing bin and build directories!
+def adjust_root_s(args):
+    # Adjust root_s if not provided
+    if args.root_s is None:
+        if args.process == 'LEP':
+            args.root_s = 91.2
+        elif args.process == 'LHC':
+            args.root_s = 13000.0
 
 # ------------------------------------------------------------------------------
-# Check for updates on GitLab and Notify User
+# Compile and Run the Code
 
-# IF YOU DON'T WANT UPDATES: SET TO FALSE
-check_for_updates = True
 
-if check_for_updates:
+def compile_and_run(args):
 
-    try:
+    # --------------------------------------------------------------------------
+    # Compile the code
 
-        # Fetch updates from the remote repository
-        subprocess.run(['git', 'fetch'])
+    if args.runtype in ['gpu', 'compare', 'full']:
+        compile_ok = compile_code('gpu', args)
+        if not compile_ok:
+            print("GPU compilation failed. Exiting.")
+            return
 
-        # Check the status of the current branch
-        status = subprocess.run(['git', 'status'], capture_output=True)
+    if args.runtype in ['cpu', 'compare', 'full']:
+        compile_ok = compile_code('cpu', args)
+        if not compile_ok:
+            print("CPU compilation failed. Exiting.")
+            return
 
-        # Print the status message if the branch is behind the remote repository
-        if "Your branch is behind" in status.stdout.decode('utf-8'):
-            print("NOTE: Updates are available on the remote repository!")
+    # --------------------------------------------------------------------------
+    # Run the code
 
-    except Exception as e:
-        print("Error: Could not fetch updates from the remote repository. Please check your internet connection.")
+    if args.runtype in ['gpu', 'compare']:
+        if (codecarbon_available and args.codecarbon):
+            tracker = OfflineEmissionsTracker(
+                country_iso_code="GBR",
+                output_file="gpu-emissions.dat",
+                measure_power_secs=5,
+                tracking_mode="process")
+            tracker.start()
+            run('gpu', args)
+            tracker.stop()
+        else:
+            run('gpu', args)
+
+    if args.runtype in ['cpu', 'compare']:
+        if (codecarbon_available and args.codecarbon):
+            tracker = OfflineEmissionsTracker(
+                country_iso_code="GBR",
+                output_file="cpu-emissions.dat",
+                measure_power_secs=5,
+                tracking_mode="process",
+                # Used to avoid tracking gpus (unless there is a 1000th gpu!)
+                gpu_ids="1000")
+            tracker.start()
+            run('cpu', args)
+            tracker.stop()
+        else:
+            run('cpu', args)
+
+    # --------------------------------------------------------------------------
+    # Full Run - Compare Execution Times
+
+    if args.runtype == 'full':
+        # Remove previous results and make folder
+        if os.path.exists('results'):
+            shutil.rmtree('results')
+        os.makedirs('results', exist_ok=True)
+
+        # Clear previous log files
+        if os.path.exists('cpu-time.dat'):
+            os.remove('cpu-time.dat')
+        if os.path.exists('gpu-time.dat'):
+            os.remove('gpu-time.dat')
+        if os.path.exists('cpu-emissions.dat'):
+            os.remove('cpu-emissions.dat')
+        if os.path.exists('gpu-emissions.dat'):
+            os.remove('gpu-emissions.dat')
+
+        # Run the comparison 100 times, for different number of events
+        n_list = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000,
+                  5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
+        for n in n_list:
+
+            # for cpu, n=100000 and above take too long
+            # i.e. measurement of time taken is very precise for these.
+            # Can reduce the number of repetitions to save time.
+            nrepcpu = 10
+            nrepgpu = 10
+
+            # Run the gpu simulation
+            for i in range(nrepgpu):
+                args.nevents = n
+                print(f"Running GPU Shower with {n} events: " +
+                      str(i+1) + " of " + str(nrepgpu))
+                if codecarbon_available and args.codecarbon:
+                    # Set up codecarbon tracking if available
+                    tracker_gpu = OfflineEmissionsTracker(
+                        country_iso_code="GBR",
+                        output_file="gpu-emissions.dat",
+                        measure_power_secs=5,
+                        tracking_mode="process")
+                    tracker_gpu.start()
+                    run('gpu', args)
+                    tracker_gpu.stop()
+                else:
+                    run('gpu', args)
+
+            # Run the cpu simulation
+            for i in range(nrepcpu):
+                args.nevents = n
+                print(f"Running CPU Shower with {n} events" +
+                      str(i+1) + " of " + str(nrepcpu))
+                if codecarbon_available and args.codecarbon:
+                    tracker_cpu = OfflineEmissionsTracker(
+                        country_iso_code="GBR",
+                        output_file="cpu-emissions.dat",
+                        measure_power_secs=5,
+                        tracking_mode="process",
+                        # Used to avoid tracking gpus (unless there is a 1000th gpu!)
+                        gpu_ids="1000")
+                    tracker_cpu.start()
+                    run("cpu", args)
+                    tracker_cpu.stop()
+                else:
+                    run("cpu", args)
+
+        # Move the log files to the results directory
+        shutil.move('cpu-time.dat', 'results/')
+        shutil.move('gpu-time.dat', 'results/')
+        shutil.move('cpu.yoda', 'results/')
+        shutil.move('gpu.yoda', 'results/')
+
+
+# ------------------------------------------------------------------------------
+# Main Function
+
+
+def main():
+
+    # Get the arguments
+    args = parse_arguments()
+    adjust_root_s(args)
+
+    # Print the GAPS logo
+    print_logo(args)
+
+    # Compile and run the code
+    compile_and_run(args)
+
+
+if __name__ == "__main__":
+    main()
