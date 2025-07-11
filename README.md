@@ -15,7 +15,7 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 
 ## Requirements
 
-You will need an NVIDIA GPU, with CUDA Compatibility 7.0 [Guide](https://developer.nvidia.com/cuda-gpus). To build the code, you will need `cmake`, `g++`, `python` and NVIDIA's `nvcc` compiler.
+You will need an NVIDIA GPU, with CUDA Compatibility 7.0 [[Guide](https://developer.nvidia.com/cuda-gpus)]. To build the code, you will need `cmake`, `g++`, `python` and NVIDIA's `nvcc` compiler.
 
 ## Running the Code
 
