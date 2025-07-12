@@ -62,6 +62,8 @@ rivet-mkhtml --mc-errs -c test/plots.conf <yoda file>
 
 To learn more about the code and how it all works, see the [documentation](doc/README.md).
 
+**NLL Testers**: A run script has been attached for running the GPU code for $\alpha_s L = 0.2$. After following the instructions, the code should produce all the distributions for the different $(\alpha_s(m_Z), \sqrt{s})$ as `yoda` files.
+
 ***
 
 ### Sid Sule + Mike Seymour, July 2025
