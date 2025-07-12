@@ -45,6 +45,10 @@ class analysis {
     hists[7] = histo1d(0., 0.5, "/gaps/ljm\n");
     hists[8] = histo1d(0., 0.5, "/gaps/wjb\n");
     hists[9] = histo1d(0., 0.2, "/gaps/njb\n");
+
+    // Log Observables - for NLL Tests
+    // hists[4] = histo1d(-50., 0., "/gaps/tvalue");
+    // hists[8] = histo1d(-50., 0., "/gaps/wjb");
   }
 };
 
