@@ -45,11 +45,13 @@ def prepare_runparams(runtype, args):
     # Add the number of events
     params.append(str(args.nevents))
 
-    # Add Event Number Offset - will be adjusted in run_cpu_cluster
-    params.append('0')
+    # Add Event Number Offset (use args.offset if present, else 0)
+    params.append(str(getattr(args, 'offset', 0)))
 
-    # Add output filename
-    if runtype == 'cpu':
+    # Add output filename (use args.output if present, else default)
+    if hasattr(args, 'output'):
+        params.append(args.output)
+    elif runtype == 'cpu':
         params.append('cpu.yoda')
     elif runtype == 'gpu':
         params.append('gpu.yoda')
@@ -79,3 +81,54 @@ def run(runtype, args):
 
     # Run the command
     subprocess.run(command)
+
+
+def run_gpu_repeated(args, do_zip=True, zipname="gpu-yodas.zip"):
+    """
+    Mainly for NLL Tests, not part of the main GAPS workflow.
+    """
+
+    print(f'Running gpu-shower on repeat...')
+
+    n_events_total = args.nevents
+    batch_size = 1000000
+
+    n_batches = n_events_total // batch_size
+    remainder = n_events_total % batch_size
+
+    offset = 0
+    batch_outputs = []
+
+    for i in range(n_batches):
+        this_proc_events = batch_size
+        output_filename = f"gpu-{i+1}.yoda"
+        print(f"Running batch {i+1}/{n_batches + (1 if remainder > 0 else 0)}: ")
+
+        args.nevents = this_proc_events
+        args.offset = offset
+        args.output = output_filename
+
+        run('gpu', args)  # Use your run() function, which waits for completion
+        batch_outputs.append(output_filename)
+        offset += this_proc_events
+
+    if remainder > 0:
+        output_filename = f"gpu-{n_batches+1}.yoda"
+        print(f"Running batch {n_batches+1}/{n_batches+1}: ")
+        args.nevents = remainder
+        args.offset = offset
+        args.output = output_filename
+
+        run('gpu', args)
+        batch_outputs.append(output_filename)
+
+    print("All GPU-based Monte Carlo simulations have completed.")
+
+    if do_zip:
+        print(f"Zipping GPU results into {zipname}...")
+        os.makedirs(zipname.replace('.zip', ''), exist_ok=True)
+        for f in batch_outputs:
+            subprocess.run(f"mv {f} {zipname.replace('.zip', '')}/", shell=True, check=True)
+        subprocess.run(["zip", "-r", zipname, zipname.replace('.zip', '')], check=True)
+        subprocess.run(["rm", "-rf", zipname.replace('.zip', '')], check=True)
+        print("GPU .yoda files have been zipped.\n")

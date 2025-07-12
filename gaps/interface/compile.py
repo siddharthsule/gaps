@@ -35,7 +35,7 @@ def compile_code(runtype, args):
 
     is_compiled = False
     try:
-        with open('build_output.log', 'a') as log_file:
+        with open('build_output.log', 'w') as log_file:
             # CMAKE
             if args.gprof:
                 # If gprof profiling is enabled, set the CMake variable
