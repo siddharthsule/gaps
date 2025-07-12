@@ -593,11 +593,14 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
              cudaMemcpyDeviceToHost);
   if (too_many_particles > 0) {
     if (max_particles < n_emissions_max) {
-      std::cerr << "Warning: " << too_many_particles
+      std::cerr << "\033[31m" << "Warning: " << too_many_particles
                 << " events surpassed the maximum number of particles"
-                << std::endl;
-      std::cerr << "Consider increasing max_particles, default: "
-                << max_particles << std::endl;
+                << "\033[0m" << std::endl;
+      std::cerr << "\033[31m" <<  "Consider increasing max_particles, default: "
+                << max_particles << "\033[0m" << std::endl;
+      std::cerr << "\033[31m" << "This can be done in gaps/gpu-shower/base/include/base.cuh"      
+                << "\033[0m" << std::endl; 
+        
     }
   }
 

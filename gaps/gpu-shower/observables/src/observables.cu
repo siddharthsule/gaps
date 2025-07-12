@@ -107,9 +107,9 @@ void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
   cudaFree(d_invalid);
 
   if (h_invalid > 0) {
-    std::cout << "" << std::endl;
-    std::cout << "error: invalid events found" << std::endl;
-    std::cout << "number of invalid events: " << h_invalid << "\n";
+    std::cout << std::endl;
+    std::cout << "\033[31m" << "error: invalid events found" << "\033[0m" << std::endl;
+    std::cout << "\033[31m" << "number of invalid events: " << h_invalid << "\033[0m" << std::endl;
   }
 
   // do the analysis

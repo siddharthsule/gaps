@@ -105,6 +105,7 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
     t_axis = t_axis * -1.;
   }
 
+  // DISABLE FOR LOG
   if (thr < 1e-12) {
     thr = -5.;
   }
@@ -167,4 +168,8 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   results[21 * idx + 7] = (n_with == 1 || n_against == 1) ? -50. : m_l;
   results[21 * idx + 8] = b_w;
   results[21 * idx + 9] = (n_with == 1 || n_against == 1) ? -50. : b_n;
+
+  // Log Observables - for NLL Tests
+  // results[21 * idx + 4] = log(thr);
+  // results[21 * idx + 8] = log(b_w);
 }
