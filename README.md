@@ -34,13 +34,13 @@ This should build the program and generate 10000 events on the GPU. More customi
 ./rungaps -n nevents
 
 # Simulate N Events on CPU
-./rungaps -n nevents -c ncores -r cpu
+./rungaps -n nevents -r cpu
 
 # Simulate N Events on CPU and GPU and compare times and results
-./rungaps -n nevents -c ncores -r compare
+./rungaps -n nevents -r compare
 
 # Simulate a range of N on both CPU and GPU and compare (in paper)
-./rungaps -c ncores -r full
+./rungaps -r full
 ```
 
 The histograms are saved as `yoda` files [[arxiv:2312.15070](https://arxiv.org/abs/2312.15070)]. To generate the plots, use `rivet` [[arxiv:1912.05451](https://arxiv.org/abs/1912.05451)] as follows:
