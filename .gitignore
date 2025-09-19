@@ -1,0 +1,84 @@
+# Folders Created after Building
+bin/
+build/
+
+# Rivet and Yoda files
+rivet-plots/
+plots/
+*.yoda
+yoda-files/
+cpu-yodas/
+gpu-yodas/
+yoda-files.tar.gz
+yoda-files.zip
+cpu-yodas.zip
+gpu-yodas.zip
+
+# Shower Time Measuremnts
+*.dat
+
+# VS Code Settings
+.venv/
+.vscode/
+
+# Plots
+test/*.pdf
+test/*.png
+doc/extra/*.pdf
+doc/extra/*.png
+doc/extra/*-time.dat
+
+# LHAPDF Path - Exclusive to setups
+lhapdf_path.txt
+path.txt
+gaps/lhapdf-gpu/install/
+
+# Any Profiling Results
+*.nsys-rep
+*.sqlite
+profile.log
+powermetrics_log.txt
+gmon.out
+analysis.log
+
+# Herwig and Rivet Output
+test/Herwig/Herwig-cache/
+test/Herwig/*.run
+test/Herwig/*.log
+test/Herwig/*.out
+test/Herwig/*.aux
+test/Herwig/*.err
+test/Herwig/*.tex
+test/Herwig/*.plot
+test/Herwig/*.so
+test/Herwig/*.info
+
+# Plots of pdf ratios
+pdfratio-plots/
+heatmap-data/
+
+# Any pt plots
+pt.pdf
+z.pdf
+
+# Python Cache
+__pycache__/
+
+# LHAPDF Test
+test/evals
+
+# Herwig Builds
+test/Herwig/hwbuild/
+
+# ------------------------------------------------------------------------------
+# Exceptions!!!
+
+# Results files to prevent re-running
+!test/SH-Tutorial/SH-Tutorial.yoda
+!test/SH-Tutorial/SH-Tutorial-NLO.yoda
+!test/Herwig/herwig-lep.yoda
+!test/Herwig/herwig-lepnlo.yoda
+!test/Herwig/herwig-lhc.yoda
+!test/Herwig/herwig-lhcnlo.yoda
+
+!doc/results-in-paper-2/*
