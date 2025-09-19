@@ -48,29 +48,70 @@ void shower::select_winner(event& ev, double* winner) const {
         continue;
       }
 
-      double zp = 0.5 * (1. + sqrt(1. - 4. * t_c / sijk));
-      double zm = 1. - zp;
-      if (zm < 0. || zp > 1. || zm > zp) {
-        continue;
-      }
-
-      // generate the splitting function code:
-      int splittings[6];
-      get_possible_splittings(ev.get_particle(ij).get_pid(), splittings);
+      // get the splitting functions for the current partons
+      // sf_codes is an array of possible splitting functions
+      int sf_codes[11];
+      generate_possible_splittings(ev.get_particle(ij).get_pid(),
+                                   ev.get_particle(k).get_pid(),
+                                   ev.get_particle(ij).is_initial(),
+                                   ev.get_particle(k).is_initial(), sf_codes);
 
       // codes instead of object oriented approach! See splittings.cpp
-      for (int sf : splittings) {
+      for (int sf : sf_codes) {
         // When a null code is encountered, we have reached the end of the
         // possible splittings, we can break out of the loop
         if (sf == -1) {
           break;
         }
 
+        // check if either parton has eta < eta_min (usually 1e-5)
+        if (is_ii(sf) && (ev.get_particle(ij).get_eta() < 1e-5 ||
+                          ev.get_particle(k).get_eta() < 1e-5)) {
+          continue;
+        }
+
+        // phase space limits
+        double zm, zp;
+        get_boundaries(zm, zp, sijk, ev.get_particle(ij).get_eta(), sf);
+
+        if (zm < 0. || zp > 1. || zm > zp) {
+          continue;
+        }
+
         // Calulate the integrated overestimate
-        double c = j_max * as_max / (2. * M_PI) * sf_integral(zm, zp, sf);
+        double pdf_max = get_pdf_max(sf, ev.get_particle(ij).get_eta());
+        double c =
+            as_max / (2. * M_PI) * sf_integral(zm, zp, sf) * j0_max * pdf_max;
 
         // calculate the evolution variable
-        double tt = ev.get_shower_t() * std::pow(ev.gen_random(), 1. / c);
+        double tt;
+
+        // Final State Radiation - As always
+        if (is_fsr(sf)) {
+          // t = T * random^(1/c)
+          tt = ev.get_shower_t() * pow(ev.gen_random(), 1. / c);
+        }
+
+        // Initial State Radiation - Need to account for quark masses for PDF
+        // Ranges (Avoid evolving to below quark mass)
+        else {
+          // Get the quark mass squared
+          int fl = abs(ev.get_particle(ij).get_pid());
+          double mq2 = fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.);
+
+          // Evolve from (t - m2) not t for this case
+          tt = (ev.get_shower_t() - mq2) * pow(ev.gen_random(), 1. / c) + mq2;
+
+          // Check if tt <= mq2: Need some numerical error protection
+          if (tt - mq2 < 1e-9) {
+            continue;
+          }
+        }
+
+        // For FI, IF and II, skip events where q2 (=tt) is less than pdf limit
+        if (!is_ff(sf) && tt < pdf_q_min * pdf_q_min) {
+          continue;
+        }
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -91,8 +132,26 @@ void shower::select_winner(event& ev, double* winner) const {
 
   // Also generate z, y and phi
   double z = sf_generate_z(win_zm, win_zp, ev.gen_random(), win_sf);
-  double y = win_tt / win_sijk / z / (1. - z);
+  double y = calculate_y(win_tt, z, win_sijk, win_sf);
   double phi = 2. * M_PI * ev.gen_random();
+
+  // IF: z, y -> x, u (here, z, y)
+  if (is_if(win_sf)) {
+    double z0 = z;
+    double ratio = win_tt / win_sijk;
+    double frac2 =
+        4 * ratio * z0 * (1. - z0) / ((1. - z0 + ratio) * (1. - z0 + ratio));
+    z = (1. - z0 + ratio) / (2 * ratio) * (1. - sqrt(1. - frac2));
+    y = (z * ratio) / (1. - z0);
+  }
+
+  // II: z, pt -> x, v (here, z, y)
+  else if (is_ii(win_sf)) {
+    double z0 = z;
+    double ratio = win_tt / win_sijk;
+    z = z0 * (1. - z0) / (1. - z0 + ratio);
+    y = (z * ratio) / (1. - z0);
+  }
 
   // Set the winner variables (sf, ij, k, sijk, z, y, phi)
   winner[0] = static_cast<double>(win_sf);
@@ -153,6 +212,15 @@ void shower::generate_splitting(event& ev) {
     double y = winner[5];
     double phi = winner[6];
 
+    // calculate z (as in the sampled variable)
+    double z0;
+    if (is_isr(sf)) {
+      z0 = 1. - (z * (t / sijk) / y);
+    } else {
+      // FF and FI: can use z directly
+      z0 = z;
+    }
+
     // Check for Cutoff
     if (!(t > t_c)) {
       // set the end shower flag
@@ -161,16 +229,113 @@ void shower::generate_splitting(event& ev) {
     }
 
     // Check for Phase Space
-    if (z < 0. || z > 1. || y < 0. || y > 1.) {
+    if (!(check_phase_space(z, y, sf))) {
       continue;
     }
 
+    // Additional Check for FI and IF/II, in case quark > proton
+    vec4 pijt = ev.get_particle(ij).get_mom();
+    vec4 pkt = ev.get_particle(k).get_mom();
+    if ((is_isr(sf)) && (pijt[0] / z > e_proton)) {
+      continue;
+    }
+    if ((is_fi(sf)) && (pkt[0] / y > e_proton)) {
+      continue;
+    }
+
+    // Get PDF Ratio and PDF Max for FI and IF/II
+    double pdf_ratio(1.), pdf_max(1.);
+
+    if (!is_ff(sf)) {
+      // Check Momentum Fraction
+      if (!(check_mom_frac(sf, ev.get_particle(ij).get_pid(),
+                           ev.get_particle(k).get_pid(),
+                           ev.get_particle(ij).get_eta(),
+                           ev.get_particle(k).get_eta(), z))) {
+        continue;
+      }
+
+      // Get PDF Ratio
+      pdf_ratio = get_pdf_ratio(
+          sf, ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
+          ev.get_particle(ij).get_eta(), ev.get_particle(k).get_eta(), z, t);
+
+      // cancel emission if pdf_ratio is nan, inf, or less than 0
+      if (isnan(pdf_ratio) || isinf(pdf_ratio) || pdf_ratio <= 0.) {
+        continue;
+      }
+
+      // If PDF Ratio is too large, veto
+      if (pdf_ratio > 1e6) {
+        continue;
+      }
+
+      /**
+       * Why the factor of z?
+       * --------------------
+       * From LHAPDF, we get xf(x, q2). This means our ratio will be equal to
+       * (x/z)f(x/z, q2) / xf(x, q2) = 1/z * f(x/z, q2) / f(x, q2)
+       *
+       * So, we can either adjust the jacobian by multiplying by z or adjust the
+       * pdf_ratio by dividing by z. We choose the latter.
+       */
+      pdf_ratio *= z;
+
+      // Mutliply by (t - m2) / t for ISR to account for quark masses
+      int fl = abs(ev.get_particle(ij).get_pid());
+      pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+
+      // -----------------------------------------------------------------------
+      /*
+      // Printing for PDF Ratio Analysis
+      int pid_final;
+      if (get_splitting_type(sf) == 0) {
+        pid_final = ev.get_particle(ij).get_pid();
+      } else if (get_splitting_type(sf) == 1) {
+        pid_final = 21;
+      } else if (get_splitting_type(sf) == 2) {
+        pid_final = ev.get_particle(ij).get_pid();
+      } else if (get_splitting_type(sf) == 3) {
+        pid_final = -1 * get_splitting_flavour(sf);
+      } else if (get_splitting_type(sf) == 4) {
+        pid_final = get_splitting_flavour(sf);
+      }
+
+      double eta_out;
+      if (is_fi(sf) == 1) {
+        eta_out = ev.get_particle(k).get_eta();
+      } else {
+        eta_out = ev.get_particle(ij).get_eta();
+      }
+
+      std::cout << ev.get_particle(ij).get_pid() << ", " << pid_final << ", "
+                << eta_out << ", " << pdf_ratio << std::endl;
+      */
+      // -----------------------------------------------------------------------
+
+      // Get PDF Max
+      pdf_max = get_pdf_max(sf, ev.get_particle(ij).get_eta());
+    }
+
+    // Jacobian
+    double jacobian = get_jacobian(z, y, z0, sf) * pdf_ratio;
+    double jmaxtot = j0_max * pdf_max;
+
+    // Splitting Function Value and Estimate
+    double value = sf_value(z, y, sf);
+    double estimate = sf_estimate(z0, sf);
+
     // veto algorithm
-    double f = as(t) * sf_value(z, y, sf) * (1. - y);
-    double g = as_max * sf_estimate(z, sf) * j_max;
+    double f = as(t) * value * jacobian;
+    double g = as_max * estimate * jmaxtot;
 
     // Check for Negative f
     if (f < 0.) {
+      continue;
+    }
+
+    // Check for f > g
+    if (f > g) {
       continue;
     }
 
@@ -202,9 +367,15 @@ void shower::generate_splitting(event& ev) {
       ev.set_particle_mom(ij, moms[0]);
       ev.set_particle_col(ij, coli[0]);
       ev.set_particle_acol(ij, coli[1]);
+      if (is_isr(sf)) {
+        ev.set_particle_eta(ij, ev.get_particle(ij).get_eta() / z);
+      }
 
       // modify recoiled spectator
       ev.set_particle_mom(k, moms[2]);
+      if (is_fi(sf)) {
+        ev.set_particle_eta(k, ev.get_particle(k).get_eta() / y);
+      }
 
       // add emitted parton
       particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
@@ -212,6 +383,11 @@ void shower::generate_splitting(event& ev) {
 
       // increment emissions (important) !!!!!!
       ev.increment_emissions();
+
+      // II Only - Lorentz Boost the new final state
+      if (is_ii(sf)) {
+        ii_boost_after_emission(ev, moms);
+      }
 
       return;
     }
@@ -263,8 +439,7 @@ void shower::run(event& ev, bool nlo_matching) {
   // run the shower
   while (ev.get_shower_t() > t_c) {
     // limit to max particles
-    if (ev.get_size() ==
-        std::min(max_particles, ev.get_hard() + n_emissions_max)) {
+    if (ev.get_size() == min(max_particles, ev.get_hard() + n_emissions_max)) {
       // Only print warning if too many emissions for the code,
       // not when the number of emissions is limited by the user
       if (max_particles < n_emissions_max) {

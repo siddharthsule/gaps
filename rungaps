@@ -19,15 +19,14 @@ cores to use, and the type of run to perform. The run types are:
 
 import argparse
 import os
-import shutil
-import subprocess
 
 # ------------------------------------------------------------------------------
 # Functions
 
 from gaps.interface.logo import print_logo
 from gaps.interface.compile import compile_code
-from gaps.interface.run import run
+from gaps.interface.lhapdf_gpu import check_lhapdf_path
+from gaps.interface.run import run, run_cpu_cluster
 
 
 # ------------------------------------------------------------------------------
@@ -52,7 +51,7 @@ def parse_arguments():
     p.add_argument('-r', '--runtype',
                    type=str,
                    default='gpu',
-                   choices=['gpu', 'cpu', 'compare', 'full'],
+                   choices=['gpu', 'cpu', 'compare', 'cpu-cluster', 'tune'],
                    help='choose run type (default: gpu)')
 
     # Process and Parameters
@@ -70,12 +69,21 @@ def parse_arguments():
                    type=float,
                    help='set the Centre of Mass Energy, sqrt(s)')
 
-    # Shower Parameters
+    # Strong Coupling
     p.add_argument('-asmz', '--asmz',
                    type=float,
                    default=0.118,
                    help='set the strong coupling asmz (default: 0.118)')
 
+    p.add_argument('-fixas', '--fixas',
+                   action='store_true',
+                   help='fix the strong coupling to asmz (default: False)')
+
+    p.add_argument('-noshower', '--noshower',
+                   action='store_true',
+                   help='skip the shower section (default: False)')
+
+    # Shower Parameters
     p.add_argument('-t_c', '--t_c',
                    type=float,
                    default=1.0,
@@ -84,13 +92,30 @@ def parse_arguments():
     p.add_argument('-n_em_max', '--n_emissions_max',
                    type=int,
                    default=1000,
-                   help='set the maximum number of emissions (default: 1000)')
+                   help='set the maximum number of emissions, including the MC@NLO Emission (default: 1000)')
 
     # Run options
     p.add_argument('-n', '--nevents',
                    type=int,
                    default=10000,
                    help='set the number of events (default: 10000)')
+
+    p.add_argument('-ncpu', '--ncpu',
+                   type=int,
+                   default=8,
+                   help='number of cpus for cpu-cluster run')
+
+    # GPU and GPU Tuning
+    p.add_argument('-do_partitioning', '--do_partitioning',
+                   type=str,
+                   choices=['yes', 'no'],
+                   default='yes',
+                   help='enable event record partitioning (default: yes)')
+
+    p.add_argument('-t', '--threads',
+                   type=int,
+                   default=256,
+                   help='set the number of threads per block (default: 256)')
 
     # Profiling
     p.add_argument('-nsys', '--nsysprofile',
@@ -104,12 +129,6 @@ def parse_arguments():
     p.add_argument('-gprof', '--gprof',
                    action='store_true',
                    help='Enable gprof profiling for CPU Shower')
-
-    # GPU and GPU Tuning
-    p.add_argument('-t', '--threads',
-                   type=int,
-                   default=256,
-                   help='set the number of threads per block (default: 256)')
 
     # Parse the arguments
     args = p.parse_args()
@@ -136,17 +155,11 @@ def compile_and_run(args):
     # --------------------------------------------------------------------------
     # Compile the code
 
-    if args.runtype in ['gpu', 'compare', 'full']:
-        compile_ok = compile_code('gpu', args)
-        if not compile_ok:
-            print("GPU compilation failed. Exiting.")
-            return
+    if args.runtype in ['gpu', 'compare', 'tune']:
+        compile_code('gpu', args)
 
-    if args.runtype in ['cpu', 'compare', 'full']:
-        compile_ok = compile_code('cpu', args)
-        if not compile_ok:
-            print("CPU compilation failed. Exiting.")
-            return
+    if args.runtype in ['cpu', 'compare', 'cpu-cluster']:
+        compile_code('cpu', args)
 
     # --------------------------------------------------------------------------
     # Run the code
@@ -179,78 +192,51 @@ def compile_and_run(args):
         else:
             run('cpu', args)
 
+    if args.runtype == 'cpu-cluster':
+        if (codecarbon_available and args.codecarbon):
+            # Ensure CodeCarbon works fine with more than 64 threads
+            os.environ["OMP_NUM_THREADS"] = "100"
+            os.environ["MKL_NUM_THREADS"] = "100"
+            os.environ["NUMEXPR_MAX_THREADS"] = "100"
+            tracker = OfflineEmissionsTracker(
+                country_iso_code="GBR",
+                output_file="cpu-cluster-emissions.dat",
+                measure_power_secs=5,
+                tracking_mode="process",
+                # Used to avoid tracking gpus (unless there is a 1000th gpu!)
+                gpu_ids="1000")
+            tracker.start()
+            run_cpu_cluster(args.ncpu, args)
+            tracker.stop()
+        else:
+            run_cpu_cluster(args.ncpu, args)
+
     # --------------------------------------------------------------------------
-    # Full Run - Compare Execution Times
+    # Kernel Tuning
 
-    if args.runtype == 'full':
+    if args.runtype == 'tune':
+
         # Remove previous results and make folder
-        if os.path.exists('results'):
-            shutil.rmtree('results')
-        os.makedirs('results', exist_ok=True)
-
-        # Clear previous log files
-        if os.path.exists('cpu-time.dat'):
-            os.remove('cpu-time.dat')
         if os.path.exists('gpu-time.dat'):
             os.remove('gpu-time.dat')
-        if os.path.exists('cpu-emissions.dat'):
-            os.remove('cpu-emissions.dat')
-        if os.path.exists('gpu-emissions.dat'):
-            os.remove('gpu-emissions.dat')
 
-        # Run the comparison 100 times, for different number of events
-        n_list = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000,
-                  5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
+        # Possible number of threads per block
+        # blocks per grid = (n_events + threads - 1) / threads
+        threads = [32, 64, 128, 256, 512]
+
+        n_list = [10000, 100000, 1000000]
+
+        # Run the GPU simulation for different number of threads
+        # Do this 10 times for each number of threads
+        # And for each number of events
         for n in n_list:
-
-            # for cpu, n=100000 and above take too long
-            # i.e. measurement of time taken is very precise for these.
-            # Can reduce the number of repetitions to save time.
-            nrepcpu = 10
-            nrepgpu = 10
-
-            # Run the gpu simulation
-            for i in range(nrepgpu):
-                args.nevents = n
-                print(f"Running GPU Shower with {n} events: " +
-                      str(i+1) + " of " + str(nrepgpu))
-                if codecarbon_available and args.codecarbon:
-                    # Set up codecarbon tracking if available
-                    tracker_gpu = OfflineEmissionsTracker(
-                        country_iso_code="GBR",
-                        output_file="gpu-emissions.dat",
-                        measure_power_secs=5,
-                        tracking_mode="process")
-                    tracker_gpu.start()
+            args.nevents = n
+            for t in threads:
+                args.threads = t
+                for i in range(10):
+                    print(f"Running GPU Shower with {t} threads: " +
+                          str(i+1) + " of 10")
                     run('gpu', args)
-                    tracker_gpu.stop()
-                else:
-                    run('gpu', args)
-
-            # Run the cpu simulation
-            for i in range(nrepcpu):
-                args.nevents = n
-                print(f"Running CPU Shower with {n} events" +
-                      str(i+1) + " of " + str(nrepcpu))
-                if codecarbon_available and args.codecarbon:
-                    tracker_cpu = OfflineEmissionsTracker(
-                        country_iso_code="GBR",
-                        output_file="cpu-emissions.dat",
-                        measure_power_secs=5,
-                        tracking_mode="process",
-                        # Used to avoid tracking gpus (unless there is a 1000th gpu!)
-                        gpu_ids="1000")
-                    tracker_cpu.start()
-                    run("cpu", args)
-                    tracker_cpu.stop()
-                else:
-                    run("cpu", args)
-
-        # Move the log files to the results directory
-        shutil.move('cpu-time.dat', 'results/')
-        shutil.move('gpu-time.dat', 'results/')
-        shutil.move('cpu.yoda', 'results/')
-        shutil.move('gpu.yoda', 'results/')
 
 
 # ------------------------------------------------------------------------------
@@ -265,6 +251,9 @@ def main():
 
     # Print the GAPS logo
     print_logo(args)
+
+    # Verify Setup
+    check_lhapdf_path()
 
     # Compile and run the code
     compile_and_run(args)

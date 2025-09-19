@@ -27,11 +27,11 @@ __global__ void lep_lo(matrix *matrix, event *events, int n) {
   double phi = 2. * M_PI * rho_2;
 
   // Kinematics
-  double ecms = sqrt(matrix->s_hat);
-  double p0 = 0.5 * ecms;               // 0.5 * Ecms
-  double st = std::sqrt(1. - ct * ct);  // sin(theta)
-  vec4 pa = vec4(p0, 0., 0., p0);       // e+
-  vec4 pb = vec4(p0, 0., 0., -p0);      // e-
+  double ecms = matrix->root_s;     // Ecms
+  double p0 = 0.5 * ecms;           // 0.5 * Ecms
+  double st = sqrt(1. - ct * ct);   // sin(theta)
+  vec4 pa = vec4(p0, 0., 0., p0);   // e+
+  vec4 pb = vec4(p0, 0., 0., -p0);  // e-
   vec4 p1 = vec4(p0, p0 * st * cos(phi), p0 * st * sin(phi), p0 * ct);     // q
   vec4 p2 = vec4(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);  // qb
 
@@ -46,7 +46,8 @@ __global__ void lep_lo(matrix *matrix, event *events, int n) {
   double lome = matrix->me2(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= k_nc;  // Three possible colour states
 
-  double dxs = (1. / (2. * matrix->s_hat)) * (1. / (8. * M_PI)) * lome;
+  double dxs =
+      (1. / (2. * matrix->root_s * matrix->root_s)) * (1. / (8. * M_PI)) * lome;
   dxs *= static_cast<double>(k_nf) * GeV_minus_2_to_pb;  // 5 flavours + units
 
   // Set the particles

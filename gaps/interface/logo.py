@@ -30,7 +30,7 @@ def logo():
     print_blue(" ##        ##  ##        ##  ##            ##        ## ")
     print_blue("  ##########   ##        ##  ##             ##########  ")
     print_blue("                                                        ")
-    print_green("          a GPU-Amplified Parton Shower, v1.3.0         ")
+    print_green("          a GPU-Amplified Parton Shower, v2.0.0         ")
     print("--------------------------------------------------------")
 
 # ------------------------------------------------------------------------------
@@ -48,6 +48,21 @@ def lep_lo():
              e- /                       \ qbar
     """)
 
+
+# ------------------------------------------------------------------------------
+# LHC LO
+
+
+def lhc_lo():
+    print(r"""
+              q \                       / e+
+                 \                     /
+                  \        Z/γ        /
+                   /\/\/\/\/\/\/\/\/\/
+                  /                   \
+                 /                     \
+           qbar /                       \ e-
+    """)
 
 # ------------------------------------------------------------------------------
 # LEP NLO
@@ -82,6 +97,47 @@ def lep_nlo():
  e- /               \ qbar     e- /               \ qbar  
     """)
 
+# ------------------------------------------------------------------------------
+# LHC NLO
+
+
+def lhc_nlo():
+    print(r"""
+    q \                         q \                   
+       \                           \              
+        \     Z                  oo-\     Z       
+         /\/\/\/\/\/             o   /\/\/\/\/\/
+        /                        oo-/            
+       /                           /              
+ qbar /                      qbar /                   
+          
+
+    q \-ooo                      q \                 
+       \  o                         \             
+        \-o   Z                      \    Z        
+         /\/\/\/\/\/                 /\/\/\/\/\/   
+        /                           /-o          
+       /                           /  o           
+ qbar /                      qbar /-ooo               
+          
+           
+    q \                          q \              
+       \-ooo- g                     \             
+        \     Z                      \    Z        
+         /\/\/\/\/\/                 /\/\/\/\/\/   
+        /                           /           
+       /                           /-ooo- g        
+ qbar /                      qbar /                   
+                                     
+                                     
+         / qbar                  q \                  
+ g -ooo-/                           \             
+        \     Z                      \    Z        
+         /\/\/\/\/\/                 /\/\/\/\/\/   
+        /                           /            
+       /                     g -ooo-\             
+ qbar /                              \ q              
+    """)
 
 # ------------------------------------------------------------------------------
 # Print the logo and the process
@@ -99,6 +155,13 @@ def print_logo(args):
             lep_nlo()
         else:
             lep_lo()
+
+    elif args.process == 'LHC':
+        print(f"Process: LHC: Root S = {args.root_s / 1000} TeV")
+        if args.nlo:
+            lhc_nlo()
+        else:
+            lhc_lo()
 
     # Print the number of events
     print(f"Number of Events: {args.nevents}")

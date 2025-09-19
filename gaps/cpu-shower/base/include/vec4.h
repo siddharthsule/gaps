@@ -307,4 +307,6 @@ class vec4 {
   }
 };
 
+inline vec4 operator*(double lhs, const vec4& rhs) { return rhs * lhs; }
+
 #endif  // vec4_h_

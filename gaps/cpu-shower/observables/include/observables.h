@@ -7,6 +7,7 @@
 // add analyses here
 #include "eventshapes.h"
 #include "jets.h"
+#include "mczinc.h"
 
 class analysis {
   /**
@@ -23,7 +24,8 @@ class analysis {
   // ---------------------------------------------------------------------------
   // member variables
 
-  histo1d hists[10];
+  int process;
+  histo1d hists[20];
 
   double wtot;  // scale by weight for 1/sigma d(sigma)/d observable
   double ntot;  // scale by number for d(sigma)/d observable
@@ -31,18 +33,43 @@ class analysis {
   // ---------------------------------------------------------------------------
   // constructor
 
-  analysis() : wtot(0.), ntot(0.) {
-    // jet rates and event shapes
-    hists[0] = histo1d(-4.3, -0.3, "/gaps/log10y23\n");
-    hists[1] = histo1d(-4.3, -0.3, "/gaps/log10y34\n");
-    hists[2] = histo1d(-4.3, -0.3, "/gaps/log10y45\n");
-    hists[3] = histo1d(-4.3, -0.3, "/gaps/log10y56\n");
-    hists[4] = histo1d(0., 0.5, "/gaps/tvalue\n");
-    hists[5] = histo1d(0., 0.5, "/gaps/tzoomd\n");
-    hists[6] = histo1d(0., 1., "/gaps/hjm\n");
-    hists[7] = histo1d(0., 0.5, "/gaps/ljm\n");
-    hists[8] = histo1d(0., 0.5, "/gaps/wjb\n");
-    hists[9] = histo1d(0., 0.2, "/gaps/njb\n");
+  analysis(int process) : process(process), wtot(0.), ntot(0.) {
+    // lep: e+ e- -> q qbar
+    if (process == 1) {
+      hists[0] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y23\n");
+      hists[1] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y34\n");
+      hists[2] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y45\n");
+      hists[3] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y56\n");
+      hists[4] = histo1d(100, 0., 0.5, "/gaps_lep/tvalue\n");
+      hists[5] = histo1d(100, 0., 0.5, "/gaps_lep/tzoomd\n");
+      hists[6] = histo1d(100, 0., 1., "/gaps_lep/hjm\n");
+      hists[7] = histo1d(100, 0., 0.5, "/gaps_lep/ljm\n");
+      hists[8] = histo1d(100, 0., 0.5, "/gaps_lep/wjb\n");
+      hists[9] = histo1d(100, 0., 0.2, "/gaps_lep/njb\n");
+    }
+
+    // lhc: p p -> e+ e-
+    else if (process == 2) {
+      hists[0] = histo1d(100, mz_cut_a, mz_cut_b, "/gaps_lhc/zmass\n");
+      hists[1] = histo1d(100, 0., 100., "/gaps_lhc/zpt\n");
+      hists[2] = histo1d(100, 0.5, 1000., "/gaps_lhc/zptfull\n", true);
+      hists[3] = histo1d(100, -3.2, 3.2, "/gaps_lhc/zphi\n");
+      hists[4] = histo1d(100, -10., 10., "/gaps_lhc/zrap\n");
+      hists[5] = histo1d(100, 0., 100., "/gaps_lhc/leptpt\n");
+      hists[6] = histo1d(100, -10., 10., "/gaps_lhc/lepteta\n");
+      hists[7] = histo1d(100, 0., 100., "/gaps_lhc/j1pt\n");
+      hists[8] = histo1d(100, 0., 100., "/gaps_lhc/j2pt\n");
+      hists[9] = histo1d(100, 0., 100., "/gaps_lhc/j3pt\n");
+      hists[10] = histo1d(100, -10., 10., "/gaps_lhc/j1eta\n");
+      hists[11] = histo1d(100, -10., 10., "/gaps_lhc/j2eta\n");
+      hists[12] = histo1d(100, -10., 10., "/gaps_lhc/j3eta\n");
+      hists[13] = histo1d(10, -0.5, 9.5, "/gaps_lhc/njets\n");
+      hists[14] = histo1d(100, -10., 10., "/gaps_lhc/detazj1\n");
+      hists[15] = histo1d(100, 0., 10., "/gaps_lhc/dRzj1\n");
+      hists[16] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j2\n");
+      hists[17] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j3\n");
+      hists[18] = histo1d(100, 0., 10., "/gaps_lhc/dRj2j3\n");
+    }
   }
 
   // ---------------------------------------------------------------------------

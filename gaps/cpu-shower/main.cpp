@@ -31,14 +31,21 @@
 
 // -----------------------------------------------------------------------------
 
-void run_generator(bool nlo, double root_s, double asmz, double t_c,
+void run_generator(int process, bool nlo, double root_s, double asmz,
+                   bool fixed_as, bool no_shower, double t_c,
                    int n_emissions_max, int n, int id_offset,
                    std::string filename) {
   /**
    * @brief Run the event generator
    *
+   * @param process: Process ID
    * @param nlo: NLO or LO
    * @param root_s: Center of mass energy
+   * @param asmz: Strong coupling constant at Z mass
+   * @param fixed_as: Whether to use fixed strong coupling
+   * @param no_shower: Whether to skip the shower section
+   * @param t_c: Shower cutoff in GeV
+   * @param n_emissions_max: Maximum number of emissions
    * @param n: Number of events to generate
    * @param id_offset: Offset for event IDs
    * @param filename: Name of the file to store the histograms
@@ -57,6 +64,9 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
     double dummy = ev.gen_random();  // Generate the first random number
   }
 
+  std::cout << " - Using LHAPDF with CT14lo set" << std::endl;
+  LHAPDF::setVerbosity(0);
+
   // Extra line to add space
   std::cout << "" << std::endl;
 
@@ -66,7 +76,7 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   std::cout << "Generating Matrix Elements (CPU)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  matrix me(nlo, root_s, asmz);
+  matrix me(process, nlo, root_s, asmz);
 
   for (int i = 0; i < n; i++) {
     me.run(events[i]);
@@ -78,19 +88,25 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   // ---------------------------------------------------------------------------
   // showering
 
-  std::cout << "Showering Partons (CPU)..." << std::endl;
-  start = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff_sh(0.0);
 
-  shower sh(root_s, t_c, asmz, n_emissions_max);
+  if (!no_shower) {
+    std::cout << "Showering Partons (CPU)..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
 
-  for (int i = 0; i < n; i++) {
-    sh.run(events[i], nlo);
-    std::cerr << "\rEvent " << i + 1 << " of " << n << std::flush;
+    shower sh(root_s, t_c, asmz, fixed_as, n_emissions_max);
+
+    for (int i = 0; i < n; i++) {
+      sh.run(events[i], nlo);
+      std::cerr << "\rEvent " << i + 1 << " of " << n << std::flush;
+    }
+    std::cout << "" << std::endl;
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_sh = end - start;
+  } else {
+    std::cout << "Skipping shower section (noshower enabled)..." << std::endl;
   }
-  std::cout << "" << std::endl;
-
-  end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff_sh = end - start;
 
   // ---------------------------------------------------------------------------
   // analysis
@@ -101,7 +117,7 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   // remove existing file
   std::remove(filename.c_str());
 
-  analysis an;
+  analysis an(process);
 
   // analyze events (including validation of colour and momentum conservation)
   for (int i = 0; i < n; i++) {
@@ -118,8 +134,6 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
 
   // ---------------------------------------------------------------------------
   // results
-
-  // events[0].print_info();  // print the first event
 
   double diff = diff_me.count() + diff_sh.count() + diff_an.count();
 
@@ -159,29 +173,38 @@ int main(int argc, char* argv[]) {
    * number of events.
    */
 
-  // NLO or LO? O = false, 1 = true
-  bool nlo = atoi(argv[1]);
+  // 1 - 1 for LEP or 2 for LHC
+  int process = atoi(argv[1]);
 
-  // Energy or Root_S
-  double root_s = atof(argv[2]);
+  // 2 - 0 if no NLO, 1 if NLO
+  bool nlo = atoi(argv[2]);
 
-  // Alpha(s) at Z mass
-  double asmz = atof(argv[3]);
+  // 3 - The root s value
+  double root_s = atof(argv[3]);
 
-  // Shower Cutoff in GeV
-  double t_c = atof(argv[4]);
+  // 4 - The strong coupling constant at the Z mass
+  double asmz = atof(argv[4]);
 
-  // Max number of emission
-  int n_emissions_max = atoi(argv[5]);
+  // 5 - If fixas is set, use the fixed asmz value
+  bool fixed_as = atoi(argv[5]);
 
-  // Number of events
-  int n_events = atoi(argv[6]);
+  // 6 - If noshower is set, skip the shower section
+  bool no_shower = atoi(argv[6]);
 
-  // Event ID Offset
-  int id_offset = atoi(argv[7]);
+  // 7 - The Shower Cutoff in GeV
+  double t_c = atof(argv[7]);
 
-  // Storage file name
-  std::string storage_file = argv[8];
+  // 8 - The maximum number of emissions
+  int n_emissions_max = atoi(argv[8]);
+
+  // 9 - The Number of events
+  int n_events = atoi(argv[9]);
+
+  // 10 - The Event Number Offset
+  int id_offset = atoi(argv[10]);
+
+  // 11 - Storage file name
+  std::string storage_file = argv[11];
 
   // if more than max_events, run in batches
   if (n_events > max_events) {
@@ -190,8 +213,8 @@ int main(int argc, char* argv[]) {
   }
 
   // run the generator
-  run_generator(nlo, root_s, asmz, t_c, n_emissions_max, n_events, id_offset,
-                storage_file);
+  run_generator(process, nlo, root_s, asmz, fixed_as, no_shower, t_c,
+                n_emissions_max, n_events, id_offset, storage_file);
   return 0;
 }
 // -----------------------------------------------------------------------------

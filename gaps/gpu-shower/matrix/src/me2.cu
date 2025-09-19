@@ -43,6 +43,6 @@ __device__ double matrix::me2(int fl, double s, double t) const {
   double term2 = cos_theta * (4. * qe * qf * ae * af * chi1 +
                               8. * ae * ve * af * vf * chi2);
 
-  // Output: 16 pi^2 aEM^2 ( (1+cos^2theta)(qf^2 + ...) + costheta(4qf...) )
+  // Output: 16 pi^2 aEM^2 ( (1+cos^2theta)(3qf + ...) + costheta(4qf...) )
   return pow(4. * M_PI * alpha, 2.) * (term1 + term2);
 }

@@ -1,5 +1,82 @@
 #include "shower.h"
 
+double shower::calculate_y(double t, double z, double sijk, int sf) const {
+  /**
+   * @brief Calculate y(z,t) for the given splitting
+   *
+   * @param t: Evolution variable
+   * @param z: Splitting variable
+   * @param sijk: Invariant mass of the emitter and spectator
+   * @param sf: Splitting function code
+   * @return double: y(t,z)
+   */
+
+  // 0 = FF, 1 = FI, 2 = IF, 3 = II
+  int splitting_case = get_splitting_case(sf);
+
+  switch (splitting_case) {
+    // FF splittings: z and y
+    case 0:
+      return t / sijk / z / (1. - z);
+      break;
+
+    // FI splittings: z and x (here, y)
+    case 1:
+      return 1 / ((t / sijk / z / (1. - z)) + 1);
+      break;
+
+    // IF splittings: x (here, z) and u (here, y)
+    case 2:
+      return 0.5 * (1 - sqrt(1 - (4 * t * z) / (sijk * (1 - z))));
+      break;
+
+    // II splittings: x (here, z) and v (here, y)
+    case 3:
+      return (1 - z) / 2. *
+             (1 - sqrt(1 - (4 * t * z) / (sijk * (1 - z) * (1 - z))));
+      break;
+  }
+  return 0.;
+}
+
+double shower::calculate_t(double z, double y, double sijk, int sf) const {
+  /**
+   * @brief Calculate t(z,y) for the given splitting
+   *
+   * @param z: Splitting variable
+   * @param y: Momentum fraction of the spectator
+   * @param sijk: Invariant mass of the emitter and spectator
+   * @param sf: Splitting function code
+   * @return double: t value
+   */
+
+  // 0 = FF, 1 = FI, 2 = IF, 3 = II
+  int splitting_case = get_splitting_case(sf);
+
+  switch (splitting_case) {
+    // FF splittings: z and y
+    case 0:
+      return z * (1. - z) * y * sijk;
+      break;
+
+    // FI splittings: z and x (here, y)
+    case 1:
+      return z * (1 - z) * (1 - y) / y * sijk;
+      break;
+
+    // IF splittings: x (here, z) and u (here, y)
+    case 2:
+      return y * (1 - y) * (1 - z) / z * sijk;
+      break;
+
+    // II splittings: x (here, z) and v (here, y)
+    case 3:
+      return (1 - z - y) * y / z * sijk;
+      break;
+  }
+  return 0.;
+}
+
 void shower::make_kinematics(vec4* kinematics, const double z, const double y,
                              const double phi, const vec4 pijt, const vec4 pkt,
                              int sf) const {
@@ -22,7 +99,7 @@ void shower::make_kinematics(vec4* kinematics, const double z, const double y,
   vec4 m = pijt + pkt;
 
   // generating the transverse momentum
-  double pt = sqrt(z * (1. - z) * y * m.m2());
+  double pt = sqrt(calculate_t(z, y, m.m2(), sf));
 
   // Kt vector in the dipole frame
   vec4 kt_dipole = vec4(0., pt * cos(phi), pt * sin(phi), 0.);
@@ -73,9 +150,46 @@ void shower::make_kinematics(vec4* kinematics, const double z, const double y,
 
   vec4 pi, pj, pk;
 
-  pi = pijt * z + pkt * ((1. - z) * y) + kt;
-  pj = pijt * (1. - z) + pkt * (z * y) - kt;
-  pk = pkt * (1. - y);
+  // 0 = FF, 1 = FI, 2 = IF, 3 = II
+  int splitting_case = get_splitting_case(sf);
+
+  switch (splitting_case) {
+    // FF splittings: z and y
+    case 0:
+      pi = pijt * z + pkt * ((1. - z) * y) + kt;
+      pj = pijt * (1. - z) + pkt * (z * y) - kt;
+      pk = pkt * (1. - y);
+      break;
+
+    // FI splittings: z and x (here, y)
+    case 1:
+      pi = pijt * z + pkt * ((1. - z) * (1. - y) / y) + kt;
+      pj = pijt * (1. - z) + pkt * (z * (1. - y) / y) - kt;
+      pk = pkt * (1. / y);
+      break;
+
+    // IF splittings: x (here, z) and u (here, y) - Boost after emission
+    case 2:
+      pi = pijt * (1. / z);
+      pj = pijt * ((1. - y) * (1. - z) / z) + pkt * y - kt;
+      pk = pijt * (y * (1. - z) / z) + pkt * (1. - y) + kt;
+      /*
+      // Alternative Map - NOT USING THIS
+      pi = pijt * ((1 - y) / (z - y)) + pkt * ((y / z) * (1. - z) / (z - y)) +
+           kt * (1. / (y - z));
+      pj = pijt * ((1 - z) / (z - y)) + pkt * ((y / z) * (1. - y) / (z - y)) +
+           kt * (1. / (y - z));
+      pk = pkt * ((z - y) / z);
+      */
+      break;
+
+    // II splittings: x (here, z) and v (here, y) - Boost after emission
+    case 3:
+      pi = pijt * (1. / z);
+      pj = pijt * ((1. - z - y) / (z)) + pkt * y - kt;
+      pk = pkt;
+      break;
+  }
 
   // --------------------------------------------------
   // Set the kinematics
@@ -83,7 +197,46 @@ void shower::make_kinematics(vec4* kinematics, const double z, const double y,
   kinematics[0] = pi;
   kinematics[1] = pj;
   kinematics[2] = pk;
-  kinematics[3] = pijt;
+  kinematics[3] = pijt;  // for IF and II Boost after emission
   kinematics[4] = pkt;
   kinematics[5] = kt;
+}
+
+// -----------------------------------------------------------------------------
+// Boost after emission
+
+void shower::ii_boost_after_emission(event& ev, vec4* kinematics) const {
+  /**
+   * @brief Boost the momenta after the emission for II splittings
+   *
+   * @param ev: Event object
+   * @param kinematics: Array of post-emission momenta
+   */
+
+  vec4 ktil = kinematics[3] + kinematics[4];  // pij + pk OR  pijt + pkt
+  vec4 k = kinematics[0] - kinematics[1] + kinematics[2];  // pi - pj + pk
+
+  // temporary momenta for the boost
+  for (int i = 0; i < ev.get_size(); i++) {
+    // Avoid initial state particles
+    if (ev.get_particle(i).is_initial()) {
+      continue;
+    }
+
+    // Avoid the emission - should be the last element
+    if (i == ev.get_size() - 1) {
+      continue;
+    }
+
+    // Boost the original momenta
+    vec4 p = ev.get_particle(i).get_mom();
+
+    vec4 q1 = p;
+    vec4 q2 = (ktil + k) * (-2.) * (1. / (ktil + k).m2()) * ((ktil + k) * p);
+    vec4 q3 = k * (2.) * (1. / k.m2()) * (ktil * p);
+    vec4 q = q1 + q2 + q3;
+
+    // Assign the new momenta
+    ev.set_particle_mom(i, q);
+  }
 }

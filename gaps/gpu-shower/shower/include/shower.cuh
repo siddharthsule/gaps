@@ -1,6 +1,7 @@
 #ifndef shower_cuh_
 #define shower_cuh_
 
+#include "pdf.cuh"
 #include "qcd.cuh"
 
 class shower {
@@ -21,9 +22,10 @@ class shower {
    * *: as possible as a second year phd student can make it ;)
    */
  public:
+  double e_proton;
   double t_c;
   double as_max;
-  double j_max;
+  double j0_max = 2.;
 
  public:
   // constructor
@@ -42,18 +44,49 @@ class shower {
   __device__ int is_emitter_antiparticle(int sf) const;
   __device__ int get_splitting_flavour(int sf) const;
 
+  // special true/false functions
+  __device__ bool is_ff(int sf) const;
+  __device__ bool is_fi(int sf) const;
+  __device__ bool is_if(int sf) const;
+  __device__ bool is_ii(int sf) const;
+  __device__ bool is_fsr(int sf) const;
+  __device__ bool is_isr(int sf) const;
+  __device__ bool is_q2qg(int sf) const;
+  __device__ bool is_q2gq(int sf) const;
+  __device__ bool is_g2gg(int sf) const;
+  __device__ bool is_g2qqbar(int sf) const;
+  __device__ bool is_g2qbarq(int sf) const;
+
   // splitting functions for the shower
-  __device__ void get_possible_splittings(int ij, int *splittings) const;
+  __device__ void generate_possible_splittings(int ij_pid, int k_pid,
+                                               bool ij_init, bool k_init,
+                                               int *sf_codes) const;
   __device__ bool validate_splitting(int ij, int sf, bool emt_init,
                                      bool spc_init) const;
   __device__ void sf_to_flavs(int sf, int *flavs) const;
   __device__ void sf_to_text(int sf, char *text) const;
 
+  // check phase space boundaries
+  __device__ void get_boundaries(double &zm, double &zp, double sijk,
+                                 double eta, int sf) const;
+  __device__ bool check_phase_space(double z, double y, int sf) const;
+
+  // pdf ratio calc
+  __device__ bool check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
+                                 double k_eta, double z) const;
+  __device__ double get_pdf_max(int sf, double ij_eta = 0.) const;
+
+  // jacobian
+  __device__ double get_jacobian(double z, double y, int sf) const;
+
   // kinematics
+  __device__ double calculate_y(double t, double z, double sijk, int sf) const;
+  __device__ double calculate_t(double z, double y, double sijk, int sf) const;
   __device__ void make_kinematics(vec4 *kinematics, const double z,
                                   const double y, const double phi,
                                   const vec4 pijt, const vec4 pkt,
                                   int sf) const;
+  __device__ void ii_boost_after_emission(event &ev, vec4 *kinematics) const;
 
   // colours
   __device__ void make_colours(int current_col, int sf, int flavs[3],
@@ -74,6 +107,10 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
 __global__ void check_cutoff(event *events, int *d_completed, double cutoff,
                              int n);
 
+__global__ void setup_pdfratio(shower *shower, event *events, int n,
+                               int *flavours_a, int *flavours_b, double *x_a,
+                               double *x_b, double *q2, double *winner);
+
 __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
                          double *xf_a, double *xf_b, bool *accept_emission,
                          double *winner, int *d_evaluations,
@@ -87,7 +124,8 @@ __global__ void check_too_many_particles(event *events,
 
 // all tasks wrapped into a function
 void run_shower(thrust::device_vector<event> &dv_events, double root_s,
-                bool nlo_matching, bool do_partition, double t_c, double asmz,
-                int n_emissions_max, int blocks, int threads);
+                bool nlo_matching, bool do_partitioning, double t_c,
+                double asmz, bool fixed_as, int n_emissions_max, int blocks,
+                int threads);
 
 #endif  // shower_cuh_

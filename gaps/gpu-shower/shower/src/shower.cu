@@ -4,9 +4,10 @@
 // constructor
 
 __device__ void shower::setup(double root_s, double t_c, double as_max) {
+  this->e_proton = root_s / 2.;
   this->t_c = t_c;
   this->as_max = as_max;
-  this->j_max = 1.;
+  this->j0_max = 2.;
 }
 
 // kernel to set up the matrix object on the device
@@ -141,31 +142,67 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
         continue;
       }
 
-      double zp = 0.5 * (1. + sqrt(1. - 4. * shower->t_c / sijk));
-      double zm = 1. - zp;
-      if (zm < 0. || zp > 1. || zm > zp) {
-        continue;
-      }
-
       // get the splitting functions for the current partons
-      int splittings[6];
-      shower->get_possible_splittings(ev.get_particle(ij).get_pid(),
-                                      splittings);
+      int sf_codes[11];
+      shower->generate_possible_splittings(
+          ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
+          ev.get_particle(ij).is_initial(), ev.get_particle(k).is_initial(),
+          sf_codes);
 
       // codes instead of object oriented approach!
-      for (int sf : splittings) {
+      for (int sf : sf_codes) {
         // When a null code is encountered, we have reached the end of the
         // possible splittings, we can break out of the loop
         if (sf == -1) {
           break;
         }
 
+        // check if either particle has eta < eta_min (usually 1e-5)
+        if (shower->is_ii(sf) && (ev.get_particle(ij).get_eta() < 1e-5 ||
+                                  ev.get_particle(k).get_eta() < 1e-5)) {
+          continue;
+        }
+
+        // phase space limits
+        double zm, zp;
+        shower->get_boundaries(zm, zp, sijk, ev.get_particle(ij).get_eta(), sf);
+        if (zm < 0. || zp > 1. || zm > zp) {
+          continue;
+        }
+
         // calculate the integrated overestimate
-        double c = shower->j_max * shower->as_max / (2. * M_PI) *
-                   shower->sf_integral(zm, zp, sf);
+        double pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
+        double c = shower->as_max / (2. * M_PI) *
+                   shower->sf_integral(zm, zp, sf) * shower->j0_max * pdf_max;
 
         // calculate the evolution variable
-        double tt = ev.get_shower_t() * pow(ev.gen_random(), 1. / c);
+        double tt;
+
+        // Final State Radiation - As always
+        if (shower->is_fsr(sf)) {
+          // t = T * random^(1/c)
+          tt = ev.get_shower_t() * pow(ev.gen_random(), 1. / c);
+        }
+
+        // Initial State Radiation - Need to account for quark masses for PDF
+        // Ranges (Avoid evolving to below quark mass)
+        else {
+          // Get the quark mass squared
+          int fl = abs(ev.get_particle(ij).get_pid());
+          double mq2 = fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.);
+
+          tt = (ev.get_shower_t() - mq2) * pow(ev.gen_random(), 1. / c) + mq2;
+
+          // Check if tt <= mq2: Need some numerical error protection
+          if (tt - mq2 < 1e-9) {
+            continue;
+          }
+        }
+
+        // For FI, IF and II, skip events where q2 (=tt) is less than pdf limit
+        if (!shower->is_ff(sf) && tt < (pdf_q_min * pdf_q_min)) {
+          continue;
+        }
 
         // check if tt is greater than the current winner
         if (tt > win_tt) {
@@ -186,8 +223,26 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
 
   // Also generate z, y and phi
   double z = shower->sf_generate_z(win_zm, win_zp, ev.gen_random(), win_sf);
-  double y = win_tt / win_sijk / z / (1. - z);
+  double y = shower->calculate_y(win_tt, z, win_sijk, win_sf);
   double phi = 2. * M_PI * ev.gen_random();
+
+  // IF: z, y -> x, u (here, z, y)
+  if (shower->is_if(win_sf)) {
+    double z0 = z;
+    double ratio = win_tt / win_sijk;
+    double frac2 =
+        4 * ratio * z0 * (1. - z0) / ((1. - z0 + ratio) * (1. - z0 + ratio));
+    z = (1. - z0 + ratio) / (2 * ratio) * (1. - sqrt(1. - frac2));
+    y = (z * ratio) / (1. - z0);
+  }
+
+  // II: z, pt -> x, v (here, z, y)
+  else if (shower->is_ii(win_sf)) {
+    double z0 = z;
+    double ratio = win_tt / win_sijk;
+    z = z0 * (1. - z0) / (1. - z0 + ratio);
+    y = (z * ratio) / (1. - z0);
+  }
 
   // Set the winner variables (sf, ij, k, sijk, z, y, phi)
   winner[7 * idx] = static_cast<double>(win_sf);
@@ -221,13 +276,6 @@ __global__ void check_cutoff(event *events, shower *shower, int *d_completed,
   event &ev = events[idx];
   // ---------------------------------------------
 
-  // limit to one emission
-  // if (ev.get_emissions() == 1) {
-  //   ev.shower_has_ended(true);
-  //   atomicAdd(d_completed, 1);  // increment the number of completed events
-  //   return;
-  // }
-
   /**
    * end shower if t < cutoff
    *
@@ -257,7 +305,8 @@ __global__ void check_cutoff(event *events, shower *shower, int *d_completed,
 // -----------------------------------------------------------------------------
 
 __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
-                         bool *accept_emission, double *winner) {
+                         double *xf_a, double *xf_b, bool *accept_emission,
+                         double *winner) {
   /**
    * @brief The veto algorithm for the shower
    *
@@ -269,8 +318,6 @@ __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
    * @param xf_b The PDF of the parton before emissions
    * @param accept_emission The array to store the acceptance of the emission
    * @param winner The array to store the winner emission data
-   * @param d_evaluations The number of evaluations
-   * @param d_overestimate_error The number of overestimate errors
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -290,32 +337,108 @@ __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
 
   // Get the winner variables (sf, ij, j, sijk, z, y, phi)
   int sf = static_cast<int>(winner[7 * idx]);
-  // int ij = static_cast<int>(winner[7 * idx + 1]);
-  // int k = static_cast<int>(winner[7 * idx + 2]);
-  // double sijk = winner[7 * idx + 3];
+  int ij = static_cast<int>(winner[7 * idx + 1]);
+  int k = static_cast<int>(winner[7 * idx + 2]);
+  double sijk = winner[7 * idx + 3];
   double z = winner[7 * idx + 4];
   double y = winner[7 * idx + 5];
-  // double phi = winner[7 * idx + 6];
+
+  // calculate z (as in the sampled variable)
+  double z0;
+  if (shower->is_isr(sf)) {
+    z0 = 1. - (z * (t / sijk) / y);
+  } else {
+    // FF and FI: can use z directly
+    z0 = z;
+  }
 
   // Check Phase Space is Valid
-  if (z < 0. || z > 1. || y < 0. || y > 1.) {
+  if (!(shower->check_phase_space(z, y, sf))) {
     return;
   }
 
+  // Additional Check for FI and IF/II, in case quark > proton
+  vec4 pijt = ev.get_particle(ij).get_mom();
+  vec4 pkt = ev.get_particle(k).get_mom();
+  if ((shower->is_isr(sf)) && (pijt[0] / z > shower->e_proton)) {
+    return;
+  }
+  if ((shower->is_fi(sf)) && (pkt[0] / y > shower->e_proton)) {
+    return;
+  }
+
+  // Get PDF Ratio and PDF Max for FI and IF/II
+  double pdf_ratio(1.), pdf_max(1.);
+  if (!shower->is_ff(sf)) {
+    // Check Momentum Fraction
+    if (!(shower->check_mom_frac(
+            sf, ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
+            ev.get_particle(ij).get_eta(), ev.get_particle(k).get_eta(), z))) {
+      return;
+    }
+
+    // Ensure PDFs are valid
+    if (isnan(xf_a[idx]) || isnan(xf_b[idx]) || isinf(xf_a[idx]) ||
+        isinf(xf_b[idx]) || xf_a[idx] <= 0. || xf_b[idx] <= 0.) {
+      return;
+    }
+
+    // Calculate the ratio and handle division by zero
+    pdf_ratio = xf_a[idx] / xf_b[idx];
+
+    // Verify the pdfratio
+    if (isnan(pdf_ratio) || isinf(pdf_ratio) || (pdf_ratio <= 0.)) {
+      return;
+    }
+
+    // If PDF Ratio is too large, veto
+    if (pdf_ratio > 1e6) {
+      return;
+    }
+
+    // Get PDF Max
+    pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
+
+    /**
+     * Why the factor of z?
+     * --------------------
+     * From LHAPDF, we get xf(x, q2). This means our ratio will be equal to
+     * (x/z)f(x/z, q2) / xf(x, q2) = 1/z * f(x/z, q2) / f(x, q2)
+     *
+     * So, we can either adjust the jacobian by multiplying by z or adjust the
+     * pdf_ratio by dividing by z. We choose the latter.
+     */
+    pdf_ratio *= z;
+
+    // Mutliply by (t - m2) / t for ISR to account for quark masses
+    int fl = abs(ev.get_particle(ij).get_pid());
+    pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+  }
+
+  // Jacobian
+  double jacobian = shower->get_jacobian(z, y, sf) * pdf_ratio;
+  double jmaxtot = shower->j0_max * pdf_max;
+
+  // Splitting Function Value and Estimate
+  double value = shower->sf_value(z, y, sf);
+  double estimate = shower->sf_estimate(z0, sf);
+
   // veto algorithm
-  double f = (*as)(t)*shower->sf_value(z, y, sf) * (1. - y);
-  double g = shower->as_max * shower->sf_estimate(z, sf) * shower->j_max;
+  double f = (*as)(t)*value * jacobian;
+  double g = shower->as_max * estimate * jmaxtot;
 
   // Check for Negative f
   if (f < 0.) {
     return;
   }
 
+  if (f > g) {
+    return;
+  }
+
   if (ev.gen_random() < f / g) {
     accept_emission[idx] = true;
   }
-
-  return;
 }
 
 // -----------------------------------------------------------------------------
@@ -354,7 +477,6 @@ __global__ void do_splitting(shower *shower, event *events, int n,
   int sf = static_cast<int>(winner[7 * idx]);
   int ij = static_cast<int>(winner[7 * idx + 1]);
   int k = static_cast<int>(winner[7 * idx + 2]);
-  // double sijk = winner[7 * idx + 3];
   double z = winner[7 * idx + 4];
   double y = winner[7 * idx + 5];
   double phi = winner[7 * idx + 6];
@@ -382,9 +504,15 @@ __global__ void do_splitting(shower *shower, event *events, int n,
   ev.set_particle_mom(ij, moms[0]);
   ev.set_particle_col(ij, coli[0]);
   ev.set_particle_acol(ij, coli[1]);
+  if (shower->is_isr(sf)) {
+    ev.set_particle_eta(ij, ev.get_particle(ij).get_eta() / z);
+  }
 
   // modify recoiled spectator
   ev.set_particle_mom(k, moms[2]);
+  if (shower->is_fi(sf)) {
+    ev.set_particle_eta(k, ev.get_particle(k).get_eta() / y);
+  }
 
   // add emitted particle
   particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
@@ -392,6 +520,11 @@ __global__ void do_splitting(shower *shower, event *events, int n,
 
   // increment emissions (important) !!!!!
   ev.increment_emissions();
+
+  // II Only - Lorentz Boost the new final state
+  if (shower->is_ii(sf)) {
+    shower->ii_boost_after_emission(ev, moms);
+  }
 
   return;
 }
@@ -429,26 +562,41 @@ __global__ void check_too_many_particles(event *events, int n_emissions_max,
 
 // -----------------------------------------------------------------------------
 
+struct is_not_end_shower {
+  /**
+   * @brief Function object to check if the shower has ended
+   *
+   * @param ev The event to check
+   * @return true if the shower has not ended
+   */
+  __device__ bool operator()(const event &ev) const {
+    return !ev.has_shower_ended();
+  }
+};
+
+// -----------------------------------------------------------------------------
+
 void run_shower(thrust::device_vector<event> &dv_events, double root_s,
-                bool nlo_matching, bool do_partition, double t_c, double asmz,
-                int n_emissions_max, int blocks, int threads) {
+                bool nlo_matching, bool do_partitioning, double t_c,
+                double asmz, bool fixed_as, int n_emissions_max, int blocks,
+                int threads) {
   /**
    * @brief Run the shower on the events
    *
    * @param dv_events The events to run the shower on
    * @param root_s The root s energy
    * @param nlo_matching Whether to do NLO matching
-   * @param do_partition Whether to partition the events
+   * @param do_partitioning Whether to partition the events
    */
 
   // number of events - can get from d_events.size()
   event *d_events = thrust::raw_pointer_cast(dv_events.data());
-  int n = dv_events.size();
+  int n_events = dv_events.size();
 
   // set up the device alpha_s calculator
   alpha_s *d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, mz, asmz);
+  as_setup_kernel<<<1, 1>>>(d_as, mz, asmz, (fixed_as ? 0 : 2));
   sync_gpu_and_check("as_setup_kernel");
 
   // Calculate as_max = as(t_c)
@@ -465,6 +613,9 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
   shower_setup_kernel<<<1, 1>>>(d_shower, root_s, t_c, as_max);
   sync_gpu_and_check("shower_setup_kernel");
 
+  // set up the pdf evaluator
+  pdf_wrapper pdf;
+
   /**
    * Shower Variables - useful to store as collective
    *
@@ -473,14 +624,32 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
    * like these.
    *
    * Winner variables: (sf, ij, k, sijk, z, y, phi)
-   * Stored in ONE array, so we make it 7 x n
+   * Stored in ONE array, so we make it 6 x n_events
    * Stored all as doubles, so static_cast<int> for sf, ij, k
    */
-  thrust::device_vector<double> dv_winner(7 * n, 0.0);
+  thrust::device_vector<double> dv_winner(7 * n_events, 0.0);
   double *d_winner = thrust::raw_pointer_cast(dv_winner.data());
 
+  // pdf ratio
+  thrust::device_vector<double> dv_x_a(n_events, 0.0);
+  thrust::device_vector<double> dv_x_b(n_events, 0.0);
+  thrust::device_vector<double> dv_q2(n_events, 0.0);
+  thrust::device_vector<double> dv_xf_a(n_events, 0.0);
+  thrust::device_vector<double> dv_xf_b(n_events, 0.0);
+  thrust::device_vector<double> dv_ratio(n_events, 0.0);
+  thrust::device_vector<int> dv_flavours_a(n_events, 0);
+  thrust::device_vector<int> dv_flavours_b(n_events, 0);
+  double *d_x_a = thrust::raw_pointer_cast(dv_x_a.data());
+  double *d_x_b = thrust::raw_pointer_cast(dv_x_b.data());
+  double *d_q2 = thrust::raw_pointer_cast(dv_q2.data());
+  double *d_xf_a = thrust::raw_pointer_cast(dv_xf_a.data());
+  double *d_xf_b = thrust::raw_pointer_cast(dv_xf_b.data());
+  double *d_ratio = thrust::raw_pointer_cast(dv_ratio.data());
+  int *d_flavours_a = thrust::raw_pointer_cast(dv_flavours_a.data());
+  int *d_flavours_b = thrust::raw_pointer_cast(dv_flavours_b.data());
+
   // veto outcome
-  thrust::device_vector<bool> dv_accept_emission(n, false);
+  thrust::device_vector<bool> dv_accept_emission(n_events, false);
   bool *d_accept_emission = thrust::raw_pointer_cast(dv_accept_emission.data());
 
   // ---------------------------------------------------
@@ -496,35 +665,34 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
   cudaMalloc(&d_too_many_particles, sizeof(int));
   cudaMemset(d_too_many_particles, 0, sizeof(int));
 
-  // store the number of time and finished events per cycle
-  std::vector<double> time_per_cycle;
-  std::vector<int> completed_per_cycle;
-
   // ---------------------------------------------------------------------------
   // prepare the shower
 
   debug_msg("running @prep_shower");
-  prep_shower<<<blocks, threads>>>(d_events, nlo_matching, n);
+  prep_shower<<<blocks, threads>>>(d_events, nlo_matching, n_events);
   sync_gpu_and_check("prep_shower");
 
   // ---------------------------------------------------------------------------
   // run the shower
 
-  // ----------------------------------------------------
-  // start the clock to analyse the time per cycle
-  auto start = std::chrono::high_resolution_clock::now();
-
-  // dummy variables to store the time and difference
-  auto end = std::chrono::high_resolution_clock::now();
-  double diff = 0.;
-  // ----------------------------------------------------
-
   // number of completed events and cycles
   int completed = 0;
   int cycle = 0;
 
-  while (completed < n) {
+  // (Varying) kernel size and partition factor
+  int n = n_events;
+  int p = 1;
+
+  while (completed < n_events) {
     // run all the kernels here...
+
+    // -------------------------------------------------------------------------
+    // check if there are too many particles (do first in case of H event)
+
+    debug_msg("running @check_too_many_particles");
+    check_too_many_particles<<<blocks, threads>>>(
+        d_events, n_emissions_max, d_too_many_particles, d_completed, n);
+    sync_gpu_and_check("check_too_many_particles");
 
     // -------------------------------------------------------------------------
     // select the winner kernel
@@ -542,10 +710,22 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
     sync_gpu_and_check("check_cutoff");
 
     // -------------------------------------------------------------------------
+    // calculate pdf of ij and i using LHAPDF
+
+    debug_msg("running @setup_pdfratio");
+    setup_pdfratio<<<blocks, threads>>>(d_shower, d_events, n, d_flavours_a,
+                                        d_flavours_b, d_x_a, d_x_b, d_q2,
+                                        d_winner);
+    sync_gpu_and_check("setup_pdfratio");
+
+    pdf.evaluate(d_flavours_a, d_x_a, d_q2, d_xf_a, n, blocks, threads);
+    pdf.evaluate(d_flavours_b, d_x_b, d_q2, d_xf_b, n, blocks, threads);
+
+    // -------------------------------------------------------------------------
     // veto algorithm
 
     debug_msg("running @veto_alg");
-    veto_alg<<<blocks, threads>>>(d_shower, d_as, d_events, n,
+    veto_alg<<<blocks, threads>>>(d_shower, d_as, d_events, n, d_xf_a, d_xf_b,
                                   d_accept_emission, d_winner);
     sync_gpu_and_check("veto_alg");
 
@@ -558,30 +738,41 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
     sync_gpu_and_check("do_splitting");
 
     // -------------------------------------------------------------------------
-    // check if there are too many particles
-
-    debug_msg("running @check_too_many_particles");
-    check_too_many_particles<<<blocks, threads>>>(
-        d_events, n_emissions_max, d_too_many_particles, d_completed, n);
-    sync_gpu_and_check("check_too_many_particles");
-
-    // -------------------------------------------------------------------------
     // import the number of completed events
 
     cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
     cycle++;
 
     // -------------------------------------------------------------------------
-    // store the number of completed events and time per cycle
 
-    // until paper is published, we will use this
-    completed_per_cycle.push_back(completed);
-    std::cerr << "\rCompleted Events: " << completed << "/" << n << std::flush;
+    // Partition the events based on completion at 50%, 75%, 87.5%, etc.
+    if (do_partitioning &&
+        completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
+      if (static_cast<int>(n_events * (1 / pow(2, p))) > 10) {
+        std::cerr << std::endl;
+        std::cerr << "partition at " << completed << "/" << n_events
+                  << std::endl;
 
-    // end the clock
-    end = std::chrono::high_resolution_clock::now();
-    diff = std::chrono::duration<double>(end - start).count();
-    time_per_cycle.push_back(diff);
+        // Partition only the first n elements
+        // Prevents partitioning of completed events
+        // using n ensures all incomplete events are
+        // accounted for
+        thrust::partition(dv_events.begin(), dv_events.begin() + n,
+                          is_not_end_shower());
+
+        // Update n to reflect the number of incomplete events
+        n = n_events - completed;
+
+        // Increment the partitioning step
+        p++;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // show progress
+
+    std::cerr << "\rCompleted Events: " << completed << "/" << n_events
+              << std::flush;
 
     // -------------------------------------------------------------------------
   }
@@ -593,23 +784,12 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
              cudaMemcpyDeviceToHost);
   if (too_many_particles > 0) {
     if (max_particles < n_emissions_max) {
-      std::cerr << "\033[31m" << "Warning: " << too_many_particles
+      std::cerr << "Warning: " << too_many_particles
                 << " events surpassed the maximum number of particles"
-                << "\033[0m" << std::endl;
-      std::cerr << "\033[31m" <<  "Consider increasing max_particles, default: "
-                << max_particles << "\033[0m" << std::endl;
-      std::cerr << "\033[31m" << "This can be done in gaps/gpu-shower/base/include/base.cuh"      
-                << "\033[0m" << std::endl; 
-        
+                << std::endl;
+      std::cerr << "Consider increasing max_particles, default: "
+                << max_particles << std::endl;
     }
-  }
-
-  // ---------------------------------------------------------------------------
-  // write completed_per_cycle to file
-  std::ofstream file("gpu-cycles.dat");
-  for (int i = 0; i < cycle; i++) {
-    file << time_per_cycle[i] << ", " << n - completed_per_cycle[i]
-         << std::endl;
   }
 
   // ---------------------------------------------------------------------------

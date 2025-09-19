@@ -142,11 +142,11 @@ void calculate_ev_shapes(const event& ev, double* results) {
   broad_with /= broad_denominator;
   broad_against /= broad_denominator;
 
-  double m_h = fmax(mass_with, mass_against);
-  double m_l = fmin(mass_with, mass_against);
+  double m_h = max(mass_with, mass_against);
+  double m_l = min(mass_with, mass_against);
 
-  double b_w = fmax(broad_with, broad_against);
-  double b_n = fmin(broad_with, broad_against);
+  double b_w = max(broad_with, broad_against);
+  double b_n = min(broad_with, broad_against);
 
   // store the results (y23, y34, y45, y56, tvalue, tzoomd, hjm, ljm, wjb, njb)
   results[4] = thr;

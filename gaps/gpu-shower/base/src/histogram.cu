@@ -34,7 +34,10 @@ std::string to_string(histo1d h) {
      << h.oflow.wx << "\t" << h.oflow.wx2 << "\t" << static_cast<int>(h.oflow.n)
      << "\n";
   ss << "# xlow\txhigh\tsumw\tsumw2\tsumwx\tsumwx2\tnumEntries\n";
-  for (size_t i = 0; i < n_bins; ++i) {
+  for (size_t i = 0; i < max_bins; ++i) {
+    if ((h.bins[i].xmin == 0) && (h.bins[i].xmax == 0)) {
+      break;  // Stop if we reach uninitialized bins
+    }
     ss << std::scientific << std::setprecision(6);
     ss << h.bins[i].xmin << "\t" << h.bins[i].xmax << "\t" << h.bins[i].w
        << "\t" << h.bins[i].w2 << "\t" << h.bins[i].wx << "\t" << h.bins[i].wx2

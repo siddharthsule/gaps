@@ -122,7 +122,8 @@ class histo1d {
   // member variables
 
   std::string name;
-  bin1d bins[n_bins];
+  bin1d bins[max_bins];
+  int n_bins;
   bin1d uflow;
   bin1d oflow;
   bin1d total;
@@ -131,23 +132,45 @@ class histo1d {
   // ---------------------------------------------------------------------------
   // constructor
 
-  histo1d(double xmin = 0., double xmax = 1., const std::string& name = "hst")
-      : name(name),
+  histo1d(int n_bins = max_bins, double xmin = 0., double xmax = 1.,
+          const std::string& name = "hst", bool logspace = false)
+      : n_bins(n_bins),
+        name(name),
         uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
         total(xmin - 100., xmax + 100.),
         scale(1.) {
-    double width = (xmax - xmin) / n_bins;
-    for (int i = 0; i < n_bins; ++i) {
-      double xlow = xmin + i * width;
-      double xhigh = xlow + width;
+    // Option 1: Linear spacing
+    if (!logspace) {
+      double width = (xmax - xmin) / n_bins;
+      for (int i = 0; i < n_bins; ++i) {
+        double xlow = xmin + i * width;
+        double xhigh = xlow + width;
 
-      // Guards to prevent discontinuities in the histogram
-      xlow = std::fabs(xlow) < 1e-12 ? 0. : xlow;
-      xhigh = std::fabs(xhigh) < 1e-12 ? 0. : xhigh;
+        // Guards to prevent discontinuities in the histogram
+        xlow = fabs(xlow) < 1e-12 ? 0. : xlow;
+        xhigh = fabs(xhigh) < 1e-12 ? 0. : xhigh;
 
-      // initialise the bins
-      bins[i] = bin1d(xlow, xhigh);
+        // initialise the bins
+        bins[i] = bin1d(xlow, xhigh);
+      }
+    }
+
+    // Option 2: Logarithmic spacing
+    else {
+      for (int i = 0; i < n_bins; ++i) {
+        double xlow =
+            xmin * pow((xmax / xmin), static_cast<double>(i) / n_bins);
+        double xhigh =
+            xmin * pow((xmax / xmin), static_cast<double>(i + 1) / n_bins);
+
+        // Guards to prevent discontinuities in the histogram
+        xlow = fabs(xlow) < 1e-12 ? 0. : xlow;
+        xhigh = fabs(xhigh) < 1e-12 ? 0. : xhigh;
+
+        // initialise the bins
+        bins[i] = bin1d(xlow, xhigh);
+      }
     }
   }
 
@@ -224,6 +247,9 @@ class histo1d {
     ss << oflow.format("Overflow") << "\n";
     ss << "# xlow\txhigh\tsumw\tsumw2\tsumwx\tsumwx2\tnumEntries\n";
     for (const auto& bin : bins) {
+      if ((bin.xmin == 0) && (bin.xmax == 0)) {
+        break;  // Stop if we reach uninitialized bins
+      }
       ss << bin.to_string() << "\n";
     }
     ss << "END YODA_HISTO1D\n\n";

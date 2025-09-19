@@ -1,0 +1,4 @@
+The yoda file SH-Tutorial.yoda is the output from S. Höche's code.
+
+NB: As threshold matching is turned off in GAPS, it is turned off in the 
+tutorial before getting the yoda file.

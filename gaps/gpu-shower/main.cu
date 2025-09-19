@@ -52,18 +52,26 @@ __global__ void set_seed_kernel(event* events, int id_offset, int n) {
   double dummy = ev.gen_random();
 }
 
-void run_generator(bool nlo, double root_s, double asmz, double t_c,
+void run_generator(int process, bool nlo, double root_s, double asmz,
+                   bool fixed_as, bool no_shower, double t_c,
                    int n_emissions_max, int n, int id_offset,
-                   std::string filename, const int& threads) {
+                   std::string filename, bool do_partitioning, int threads) {
   /**
    * @brief Run the event generator
    *
-   * @param nlo: NLO or LO
-   * @param root_s: Center of mass energy
-   * @param n: Number of events to generate
-   * @param id_offset: Offset for event IDs
-   * @param filename: Name of the file to store the histograms
-   * @param threads: Number of threads per block
+   * @param process the process to generate (1 for LEP, 2 for LHC)
+   * @param nlo whether to use NLO matching
+   * @param root_s the center-of-mass energy
+   * @param asmz the strong coupling constant at the Z mass
+   * @param fixed_as whether to use a fixed strong coupling constant
+   * @param no_shower whether to skip the shower section
+   * @param t_c the shower cutoff in GeV
+   * @param n_emissions_max the maximum number of emissions
+   * @param n the number of events to generate
+   * @param id_offset the offset for the event id
+   * @param filename the name of the file to store the histograms
+   * @param do_partitioning whether to use event partitioning
+   * @param threads the number of threads per block
    */
   // ---------------------------------------------------------------------------
   // initialisation
@@ -80,10 +88,14 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   int blocks =
       static_cast<int>(std::ceil(static_cast<double>(n_events) / threads));
   std::cout << " - Using " << blocks << " blocks and " << threads
-            << " threads per block." << std::endl;
+            << " threads per block" << std::endl;
 
   // set the seed
   set_seed_kernel<<<blocks, threads>>>(d_events, id_offset, n);
+
+  // Output LHAPDF settings
+  std::cout << " - Using LHAPDF with CT14lo set" << std::endl;
+  LHAPDF::setVerbosity(0);
 
   // Extra line to add space
   std::cout << "" << std::endl;
@@ -95,23 +107,30 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   auto start = std::chrono::high_resolution_clock::now();
 
   // Calculate the leading order cross section and kinematics
-  calc_lome(dv_events, nlo, root_s, asmz, blocks, threads);
+  calc_lome(dv_events, process, nlo, root_s, asmz, blocks, threads);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
 
+  thrust::host_vector<event> h_events = dv_events;
+
   // ---------------------------------------------------------------------------
   // do the showering
 
-  std::cout << "Showering partons..." << std::endl;
-  start = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff_sh(0.0);
 
-  bool do_partition = true;
-  run_shower(dv_events, root_s, nlo, do_partition, t_c, asmz, n_emissions_max,
-             blocks, threads);
+  if (!no_shower) {
+    std::cout << "Showering partons..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
 
-  end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff_sh = end - start;
+    run_shower(dv_events, root_s, nlo, do_partitioning, t_c, asmz, fixed_as,
+               n_emissions_max, blocks, threads);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_sh = end - start;
+  } else {
+    std::cout << "Skipping shower section (noshower enabled)..." << std::endl;
+  }
 
   // ---------------------------------------------------------------------------
   // analyze events
@@ -120,7 +139,7 @@ void run_generator(bool nlo, double root_s, double asmz, double t_c,
   start = std::chrono::high_resolution_clock::now();
 
   // analysis
-  do_analysis(dv_events, filename, blocks, threads);
+  do_analysis(dv_events, filename, process, blocks, threads);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;
@@ -190,32 +209,44 @@ int main(int argc, char* argv[]) {
    * number of events.
    */
 
-  // NLO or LO? O = false, 1 = true
-  bool nlo = atoi(argv[1]);
+  // 1 - 1 for LEP or 2 for LHC
+  int process = atoi(argv[1]);
 
-  // Energy or Root_S
-  double root_s = atof(argv[2]);
+  // 2 - 0 if no NLO, 1 if NLO
+  bool nlo = atoi(argv[2]);
 
-  // Alpha(s) at Z mass
-  double asmz = atof(argv[3]);
+  // 3 - The root s value
+  double root_s = atof(argv[3]);
 
-  // Shower Cutoff in GeV
-  double t_c = atof(argv[4]);
+  // 4 - The strong coupling constant at the Z mass
+  double asmz = atof(argv[4]);
 
-  // Max number of emission
-  int n_emissions_max = atoi(argv[5]);
+  // 5 - If fixas is set, use the fixed asmz value
+  bool fixed_as = atoi(argv[5]);
 
-  // Number of events
-  int n_events = atoi(argv[6]);
+  // 6 - If noshower is set, skip the shower section
+  bool no_shower = atoi(argv[6]);
 
-  // Event ID Offset
-  int id_offset = atoi(argv[7]);
+  // 7 - The Shower Cutoff in GeV
+  double t_c = atof(argv[7]);
 
-  // Storage file name
-  std::string storage_file = argv[8];
+  // 8 - The maximum number of emissions
+  int n_emissions_max = atoi(argv[8]);
 
-  // Threads per block
-  int threads = atoi(argv[9]);
+  // 9 - The Number of events
+  int n_events = atoi(argv[9]);
+
+  // 10 - The Event Number Offset
+  int id_offset = atoi(argv[10]);
+
+  // 11 - Storage file name
+  std::string storage_file = argv[11];
+
+  // 12 - Do partitioning
+  bool do_partitioning = atoi(argv[12]);
+
+  // 13 - Threads per block
+  int threads = atoi(argv[13]);
 
   // if more than max_events, run in batches
   if (n_events > max_events) {
@@ -224,8 +255,9 @@ int main(int argc, char* argv[]) {
   }
 
   // run the generator
-  run_generator(nlo, root_s, asmz, t_c, n_emissions_max, n_events, id_offset,
-                storage_file, threads);
+  run_generator(process, nlo, root_s, asmz, fixed_as, no_shower, t_c,
+                n_emissions_max, n_events, id_offset, storage_file,
+                do_partitioning, threads);
   return 0;
 }
 // -----------------------------------------------------------------------------

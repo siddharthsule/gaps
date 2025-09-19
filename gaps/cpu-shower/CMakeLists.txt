@@ -39,8 +39,19 @@ set(SOURCES
     ${MAIN_SOURCES}
 )
 
+# Obtain LHAPDF Path
+file(READ ${CMAKE_SOURCE_DIR}/../lhapdf-gpu/path.txt LHAPDF_PATH)
+string(STRIP ${LHAPDF_PATH} LHAPDF_PATH)
+
+# Add LHAPDF
+include_directories(${LHAPDF_PATH}/include)
+link_directories(${LHAPDF_PATH}/lib)
+
 # Set the directory for the executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # Add executable
 add_executable(cpu-shower ${SOURCES})
+
+# Link LHAPDF
+target_link_libraries(cpu-shower LHAPDF)

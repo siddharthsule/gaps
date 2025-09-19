@@ -3,11 +3,10 @@
 // -----------------------------------------------------------------------------
 // constructor
 
-__device__ void matrix::setup(bool nlo, double root_s) {
+__device__ void matrix::setup(int process, bool nlo, double root_s) {
+  this->process = process;
   this->nlo = nlo;
   this->root_s = root_s;
-  this->s = pow(root_s, 2.);
-  this->s_hat = s;
   this->mz2 = pow(mz, 2.);
   this->gz2 = pow(gz, 2.);
   this->alpha = 1. / 128.802;
@@ -19,16 +18,17 @@ __device__ void matrix::setup(bool nlo, double root_s) {
 }
 
 // kernel to set up the matrix object on the device
-__global__ void matrix_setup_kernel(matrix *matrix, bool nlo, double root_s) {
-  matrix->setup(nlo, root_s);
+__global__ void matrix_setup_kernel(matrix *matrix, int process, bool nlo,
+                                    double root_s) {
+  matrix->setup(process, nlo, root_s);
 }
 
 // -----------------------------------------------------------------------------
 // main
 
 // function to generate the lo matrix elements + momenta
-void calc_lome(thrust::device_vector<event> &d_events, bool nlo, double root_s,
-               double asmz, int blocks, int threads) {
+void calc_lome(thrust::device_vector<event> &d_events, int process, bool nlo,
+               double root_s, double asmz, int blocks, int threads) {
   /**
    * @brief wrap
    */
@@ -42,7 +42,7 @@ void calc_lome(thrust::device_vector<event> &d_events, bool nlo, double root_s,
 
   // set up the device matrix object
   debug_msg("running @matrix_setup_kernel");
-  matrix_setup_kernel<<<1, 1>>>(d_matrix, nlo, root_s);
+  matrix_setup_kernel<<<1, 1>>>(d_matrix, process, nlo, root_s);
   sync_gpu_and_check("matrix_setup_kernel");
 
   // set up the device alpha_s calculator
@@ -52,7 +52,7 @@ void calc_lome(thrust::device_vector<event> &d_events, bool nlo, double root_s,
   sync_gpu_and_check("as_setup_kernel");
 
   // LEP LO
-  if (!nlo) {
+  if ((process == 1) && !nlo) {
     debug_msg("running @lep_lo");
     lep_lo<<<blocks, threads>>>(d_matrix,
                                 thrust::raw_pointer_cast(d_events.data()), n);
@@ -60,7 +60,7 @@ void calc_lome(thrust::device_vector<event> &d_events, bool nlo, double root_s,
   }
 
   // LEP NLO
-  else {
+  else if ((process == 1) && nlo) {
     debug_msg("running @lep_lo and @lep_nlo");
     lep_lo<<<blocks, threads>>>(d_matrix,
                                 thrust::raw_pointer_cast(d_events.data()), n);
@@ -68,6 +68,15 @@ void calc_lome(thrust::device_vector<event> &d_events, bool nlo, double root_s,
     lep_nlo<<<blocks, threads>>>(d_matrix, d_as,
                                  thrust::raw_pointer_cast(d_events.data()), n);
     sync_gpu_and_check("lep_nlo");
+  }
+
+  // LHC LO - and just do NLO = LO for now
+  else if ((process == 2) && !nlo) {
+    lhc_lo(d_events, d_matrix, blocks, threads);
+  }
+
+  else if ((process == 2) && nlo) {
+    lhc_nlo(d_events, d_matrix, d_as, blocks, threads);
   }
 
   return;

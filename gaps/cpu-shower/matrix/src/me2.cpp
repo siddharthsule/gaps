@@ -22,8 +22,8 @@ double matrix::me2(int fl, double s, double t) const {
   double qe = -1.;
   double ae = -0.5;
   double ve = ae - 2. * qe * sin2tw;
-  double qf = (std::abs(fl) == 2 || std::abs(fl) == 4) ? 2. / 3. : -1. / 3.;
-  double af = (std::abs(fl) == 2 || std::abs(fl) == 4) ? 0.5 : -0.5;
+  double qf = (abs(fl) == 2 || abs(fl) == 4) ? 2. / 3. : -1. / 3.;
+  double af = (abs(fl) == 2 || abs(fl) == 4) ? 0.5 : -0.5;
   double vf = af - 2. * qf * sin2tw;
 
   // Kappa and Chi Functions (Breit-Wigner Here!)
@@ -43,6 +43,6 @@ double matrix::me2(int fl, double s, double t) const {
   double term2 = cos_theta * (4. * qe * qf * ae * af * chi1 +
                               8. * ae * ve * af * vf * chi2);
 
-  // Output: 16 pi^2 aEM^2 ( (1+cos^2theta)(qf^2 + ...) + costheta(4qf...) )
+  // Output: 16 pi^2 aEM^2 ( (1+cos^2theta)(3qf + ...) + costheta(4qf...) )
   return pow(4. * M_PI * alpha, 2.) * (term1 + term2);
 }

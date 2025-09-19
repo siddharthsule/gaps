@@ -7,7 +7,7 @@ void matrix::lep_lo(event& ev) {
    * The Leading order differential cross section for e+ e- -> q qbar is
    * given by:
    *
-   * dsigma = drho1 drho2 * 1/(2 s_hat) * 1/(8 pi) * N_C * 1/4 Sum_spins |M|^2
+   * dsigma = drho1 drho2 * 1/(2s) * 1/(8 pi) * N_C * 1/4 Sum_spins |M|^2
    *
    * @param ev the event object
    */
@@ -24,11 +24,11 @@ void matrix::lep_lo(event& ev) {
   double phi = 2. * M_PI * rho_2;
 
   // Kinematics
-  double ecms = sqrt(s_hat);
-  double p0 = 0.5 * ecms;               // 0.5 * Ecms
-  double st = std::sqrt(1. - ct * ct);  // sin(theta)
-  vec4 pa = vec4(p0, 0., 0., p0);       // e+
-  vec4 pb = vec4(p0, 0., 0., -p0);      // e-
+  double ecms = root_s;
+  double p0 = 0.5 * ecms;           // 0.5 * Ecms
+  double st = sqrt(1. - ct * ct);   // sin(theta)
+  vec4 pa = vec4(p0, 0., 0., p0);   // e+
+  vec4 pb = vec4(p0, 0., 0., -p0);  // e-
   vec4 p1 = vec4(p0, p0 * st * cos(phi), p0 * st * sin(phi), p0 * ct);     // q
   vec4 p2 = vec4(p0, -p0 * st * cos(phi), -p0 * st * sin(phi), -p0 * ct);  // qb
 
@@ -44,7 +44,7 @@ void matrix::lep_lo(event& ev) {
   lome *= k_nc;  // Three possible colour states
 
   // Calculate the cross-section
-  double dxs = (1. / (2. * s_hat)) * (1. / (8. * M_PI)) * lome;
+  double dxs = (1. / (2. * root_s * root_s)) * (1. / (8. * M_PI)) * lome;
   dxs *= static_cast<double>(k_nf) * GeV_minus_2_to_pb;  // 5 flavours + units
 
   // Set the particles

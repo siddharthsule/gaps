@@ -1,49 +1,57 @@
-# GAPS: a GPU-Amplified Parton Shower
+# ![GAPS: a GPU-Amplified Parton Shower](doc/banner.png)
 
-> **Version 1.3.0**: Improved code structure, more parameter options, MC@NLO Matching
+<!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-Codebase for [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
+> **Version 2.0.0**: Initial and Final State Shower, MC@NLO Matching
 
-The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be written to run in parallel on a GPU. The code runs a simple LEP Event Generator on NVIDIA GPUs using CUDA. It is based on S. Höche's Tutorial on Parton Showers [[arxiv:1411.4085](https://arxiv.org/abs/1411.4085)].
+This is for Codebase for:
+
+- [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
+- M. H. Seymour and S. Sule, _An NLO-Matched Initial and Final State Parton Shower on a GPU_ (TBD)
+
+The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be reorganised to run in parallel on a GPU without altering the algorithm itself.
 
 ## What can the code do on the GPU?
 
-- Generate the process $e^+ e^- \to q \bar{q}$ at 91.2 GeV
-- Convert to NLO using Catani-Seymour Subtraction
-- Generate Emissions using a Dipole Shower
-- Calculate Jet Rates and Event Shapes
+The code is an NLO+Shower generator. It can simulate two processes:
+
+- **Electron-Positron Collisions at LEP @ 91.2 GeV** 
+  - Process: $e^+ e^- \to Z/\gamma \to q \bar{q}$ at LO/NLO
+  - Observables: Durham Jet Rates and Event Shapes
+
+- **Z Production at the LHC @ 13 TeV**
+  - LO Process:  $p p \to Z/\gamma \to e^+ e^-$
+  - NLO Process: $p p \to Z$
+  - Observables: $Z$ Observables and Anti-$k_T$ Jets
 
 ## Requirements
 
-You will need an NVIDIA GPU, with CUDA Compatibility 7.0 [[Guide](https://developer.nvidia.com/cuda-gpus)]. To build the code, you will need `cmake`, `g++`, `python` and NVIDIA's `nvcc` compiler.
+You will need an NVIDIA GPU with CUDA Compatibility 7.0 [[Guide](https://developer.nvidia.com/cuda-gpus)]. To build the code, you will need `cmake`, `g++`, `python` and NVIDIA's `nvcc` compiler.
 
 ## Running the Code
 
-The executable ```rungaps``` is written to simplify the use of the code. One can simply execute the command:
+The executable ```rungaps``` is written to simplify the use of the code. One can execute the command:
 
 ```bash
 ./rungaps
 ```
 
-NB: If you get a permission denied error, please run ```chmod +x rungaps```.
+NB: When running the first time, the code will install LHAPDF-GPU, packaged with the code [[LHAPDF Repo](https://gitlab.com/hepcedar/lhapdf/-/tree/kokkos_version/)]
 
-This should build the program and generate 10000 events on the GPU. More customisation options are available, and are listed below:
+This command should build the program and generate 10000 events on the GPU. More customisation options are available, and are listed below:
 
 ```bash
 # Simulate N Events on GPU (Default)
-./rungaps -n nevents
+./rungaps -p <LEP/LHC> [-nlo] -n nevents
 
 # Simulate N Events on CPU
-./rungaps -n nevents -r cpu
+./rungaps -p <LEP/LHC> [-nlo] -n nevents -r cpu
 
-# Simulate N Events on CPU and GPU and compare times and results
-./rungaps -n nevents -r compare
-
-# Simulate a range of N on both CPU and GPU and compare (in paper)
-./rungaps -r full
+# Simulate N Events over multiple CPUs
+./rungaps -p <LEP/LHC> [-nlo] -n nevents -r cpu-cluster -ncpu ncores
 ```
 
-The histograms are saved as `yoda` files [[arxiv:2312.15070](https://arxiv.org/abs/2312.15070)]. To generate the plots, use `rivet` [[arxiv:1912.05451](https://arxiv.org/abs/1912.05451)] as follows:
+The histograms are saved as Yoda files [[arxiv:2312.15070](https://arxiv.org/abs/2312.15070)]. To generate the plots, use Rivet [[2404.15984](https://arxiv.org/abs/2404.15984)] as follows:
 
 ```shell
 rivet-mkhtml --mc-errs -c test/plots.conf <yoda file>
@@ -51,21 +59,21 @@ rivet-mkhtml --mc-errs -c test/plots.conf <yoda file>
 
 ## Going Further
 
-**New!** You can now adjust the following paramters:
+You can adjust the following parameters:
 
-- `-nlo`: Generate NLO Events
-- `-e, --root_s`: Adjust the center of mass energy
-- `-asmz, -t_c`,: Adjust $\alpha_s(m_Z)$ and the shower cutoff $t_{C}$
-- `-n_em_max`: Limit the number of emissions
-- `-nsys, -codecarbon, -gprof`: Profiling Tools
+- `-e, --root_s`: Adjust the centre of mass energy
+- `-asmz, -fixas`: Adjust $\alpha_s(m_Z)$, use fixed $\alpha_s=\alpha_s(m_Z)$
+- `-noshower`: Skip the shower section (hard subprocess only)
+- `-t_c`: Adjust the Shower Cutoff
+- `-n_em_max`: Limit the number of emissions, including the MC@NLO Emission
 - `-t`: Number of threads per block on the GPU
+- `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
+- `-nsys, -codecarbon, -gprof`: Profiling Tools
 
-To learn more about the code and how it all works, see the [documentation](doc/README.md).
-
-**NLL Testers**: A run script has been attached for running the GPU code for $\alpha_s L = 0.2$. After following the instructions, the code should produce all the distributions for the different $(\alpha_s(m_Z), \sqrt{s})$ as `yoda` files.
+To learn more about the code and how it all works, see the [documentation](https://gitlab.com/siddharthsule/gaps/-/wikis/home).
 
 ***
 
-### Sid Sule + Mike Seymour, July 2025
+### Sid Sule + Mike Seymour, September 2025
 
 For issues and queries, email: [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)

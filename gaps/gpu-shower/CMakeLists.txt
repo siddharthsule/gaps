@@ -42,6 +42,15 @@ set(SOURCES
 # Set all source files to compile with CUDA
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE CUDA)
 
+
+# Obtain LHAPDF Path
+file(READ ${CMAKE_SOURCE_DIR}/../lhapdf-gpu/path.txt LHAPDF_PATH)
+string(STRIP ${LHAPDF_PATH} LHAPDF_PATH)
+
+# Add LHAPDF
+include_directories(${LHAPDF_PATH}/include)
+link_directories(${LHAPDF_PATH}/lib)
+
 # Set the directory for the executable
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
@@ -57,3 +66,6 @@ set_target_properties(
     PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
 )
+
+# Link LHAPDF
+target_link_libraries(gpu-shower LHAPDF)

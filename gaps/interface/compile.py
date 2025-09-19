@@ -26,40 +26,19 @@ def compile_code(runtype, args):
     dir_path = os.path.join('gaps', folder)
     os.chdir(dir_path)
 
-    # Print the current working directory
-    print(f"Compiling {folder}")
-
     # Compile the code
     os.makedirs('build', exist_ok=True)
     os.chdir('build')
 
-    is_compiled = False
-    try:
-        with open('build_output.log', 'w') as log_file:
-            # CMAKE
-            if args.gprof:
-                # If gprof profiling is enabled, set the CMake variable
-                subprocess.run(['cmake', '..', '-DGPROF=ON'], check=True,
-                               stdout=log_file, stderr=log_file)
-            else:
-                subprocess.run(['cmake', '..', '-DGPROF=OFF'], check=True,
-                               stdout=log_file, stderr=log_file)
+    # CMAKE
+    if args.gprof:
+        # If gprof profiling is enabled, set the CMake variable
+        subprocess.run(['cmake', '..', '-DGPROF=ON'], check=True)
+    else:
+        subprocess.run(['cmake', '..', '-DGPROF=OFF'], check=True)
 
-            # MAKE
-            subprocess.run(['make', '-j'], check=True,
-                           stdout=log_file, stderr=log_file)
-
-        # IF Compilation is successful
-        is_compiled = True
-
-    except subprocess.CalledProcessError:
-        red = "\033[31m"
-        res = "\033[0m"
-        print(f"{red}Build failed! Check {os.path.abspath('build_output.log')}{res}")
-        is_compiled = False
+    # MAKE
+    subprocess.run(['make', '-j'], check=True)
 
     # Return to the original directory
-    finally:
-        os.chdir(home_dir)
-
-    return is_compiled
+    os.chdir(home_dir)

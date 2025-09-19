@@ -1,9 +1,9 @@
 #include "qcd.cuh"
 
 // constructor
-__device__ alpha_s::alpha_s(double mz, double asmz, int order, double mb,
+__device__ alpha_s::alpha_s(double mz, double asmz, int n_loops, double mb,
                             double mc)
-    : order(order),
+    : n_loops(n_loops),
       mc2(mc * mc),
       mb2(mb * mb),
       mz2(mz * mz),
@@ -12,9 +12,9 @@ __device__ alpha_s::alpha_s(double mz, double asmz, int order, double mb,
       asmc((*this)(mc2)) {}
 
 // setup
-__device__ void alpha_s::setup(double mz, double asmz, int order, double mb,
+__device__ void alpha_s::setup(double mz, double asmz, int n_loops, double mb,
                                double mc) {
-  this->order = order;
+  this->n_loops = n_loops;
   this->mc2 = mc * mc;
   this->mb2 = mb * mb;
   this->mz2 = mz * mz;
@@ -26,7 +26,7 @@ __device__ void alpha_s::setup(double mz, double asmz, int order, double mb,
 // beta and alpha s functions
 __device__ double alpha_s::beta0(int nf) const {
   /**
-   * @brief calculate the beta function at order 0
+   * @brief calculate the beta function at 1 loop (leading order)
    *
    * @param nf the number of flavours
    * @return the beta function
@@ -37,7 +37,7 @@ __device__ double alpha_s::beta0(int nf) const {
 
 __device__ double alpha_s::beta1(int nf) const {
   /**
-   * @brief calculate the beta function at order 1
+   * @brief calculate the beta function at 2 loops (next-to-leading order)
    *
    * @param nf the number of flavours
    * @return the beta function
@@ -46,9 +46,9 @@ __device__ double alpha_s::beta1(int nf) const {
   return (17. / 6. * k_ca * k_ca) - ((5. / 3. * k_ca + k_cf) * k_tr * nf);
 }
 
-__device__ double alpha_s::as0(double t) const {
+__device__ double alpha_s::as1(double t) const {
   /**
-   * @brief calculate the strong coupling constant at order 0
+   * @brief calculate the strong coupling constant at 1 loop (leading order)
    *
    * @param t the scale
    * @return the strong coupling constant
@@ -56,7 +56,7 @@ __device__ double alpha_s::as0(double t) const {
 
   double tref, asref, b0;
 
-  // Threshold Matching OFF
+  // Threshold Matching is OFF - massless quarks!
   // if (t >= mb2) {
   tref = mz2;
   asref = asmz;
@@ -70,13 +70,13 @@ __device__ double alpha_s::as0(double t) const {
   //   asref = asmc;
   //   b0 = beta0(3) / (2. * M_PI);
   // }
-
   return 1. / (1. / asref + b0 * log(t / tref));
 }
 
-__device__ double alpha_s::as1(double t) const {
+__device__ double alpha_s::as2(double t) const {
   /**
-   * @brief calculate the strong coupling constant at order 1
+   * @brief calculate the strong coupling constant at 2 loops (next-to-leading
+   * order)
    *
    * @param t the scale
    * @return the strong coupling constant
@@ -84,7 +84,7 @@ __device__ double alpha_s::as1(double t) const {
 
   double tref, asref, b0, b1, w;
 
-  // Threshold Matching OFF
+  // Threshold Matching is OFF - massless quarks!
   // if (t >= mb2) {
   tref = mz2;
   asref = asmz;
@@ -101,43 +101,46 @@ __device__ double alpha_s::as1(double t) const {
   //   b0 = beta0(3) / (2. * M_PI);
   //   b1 = beta1(3) / pow(2. * M_PI, 2);
   // }
-
   w = 1. + b0 * asref * log(t / tref);
   return asref / w * (1. - b1 / b0 * asref * log(w) / w);
 }
 
-__device__ double alpha_s::operator()(double t) {
+__device__ double alpha_s::operator()(double t) const {
   /**
    * @brief wrapper/call operator for the strong coupling constant. This
-   * function will calculate the strong coupling constant at the given scale,
-   * the order is determined by the member variable order
+   * function will calculate the strong coupling constant at the given scale
+   * and at the number of loops specified in the constructor.
    *
    * @param t the scale
    * @return the strong coupling constant
    */
-
-  if (order == 0) {
-    return as0(t);
-  } else {
-    return as1(t);
+  switch (n_loops) {
+    case 0:
+      return asmz;  // No running coupling, for fixas tests
+    case 1:
+      return as1(t);
+    case 2:
+      return as2(t);
+    default:
+      return as2(t);  // Default to 2-loop calculation
   }
 }
 
 // set up kernel on the device
-__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz, int order,
-                                double mb, double mc) {
+__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz,
+                                int n_loops, double mb, double mc) {
   /**
    * @brief set up the alpha_s class on the device
    *
    * @param as the alpha_s class
    * @param mz the Z boson mass
    * @param asmz the strong coupling constant at the Z boson mass
-   * @param order the order of the strong coupling constant
+   * @param n_loops the number of loops for the strong coupling constant
    * @param mb the bottom quark mass
    * @param mc the charm quark mass
    */
 
-  as->setup(mz, asmz, order, mb, mc);
+  as->setup(mz, asmz, n_loops, mb, mc);
 }
 
 // calculate alpha_s on the device for one input

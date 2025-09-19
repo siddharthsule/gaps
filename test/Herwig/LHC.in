@@ -1,0 +1,183 @@
+# -*- ThePEG-repository -*-
+
+##################################################
+# Example generator based on LHC parameters
+# usage: Herwig read LHC.in
+##################################################
+
+read snippets/PPCollider.in
+
+##################################################
+# Technical parameters for this run
+##################################################
+cd /Herwig/Generators
+
+# sqrt(s) = 13000 GeV
+set EventGenerator:EventHandler:LuminosityFunction:Energy 13000.0
+
+##################################################
+# LHC physics parameters (override defaults here) 
+##################################################
+cd /Herwig/Cuts/
+insert Cuts:TwoCuts 0 LeptonPairMassCut
+set LeptonPairMassCut:MinMass 60*GeV
+set LeptonPairMassCut:MaxMass 120*GeV
+
+##################################################
+# Z Boson cuts - For Testing
+##################################################
+# cd /Herwig/Cuts/
+# set ZBosonKtCut:MaxRapidity 0.0
+# set ZBosonKtCut:MinRapidity 0.0
+# insert Cuts:OneCuts[0] ZBosonCut
+# set ZBosonCut:YRange 0.1 0.5
+# set /Herwig/Cuts/Cuts:YHatMin -4.5
+# set /Herwig/Cuts/Cuts:YHatMax 4.5
+
+##################################################
+# Matrix Elements for hadron-hadron collisions 
+# (by default only gamma/Z switched on)
+##################################################
+cd /Herwig/MatrixElements/
+
+# Drell-Yan Z/gamma
+insert SubProcess:MatrixElements[0] MEqq2gZ2ff
+set MEqq2gZ2ff:Process Electron # qq -> ee
+set MEqq2gZ2ff:SpinCorrelations No # Simple
+
+##################################################
+#  Switch off Any QED radiation
+##################################################
+set /Herwig/Particles/e-:PDF /Herwig/Partons/NoPDF
+set /Herwig/Particles/e+:PDF /Herwig/Partons/NoPDF
+
+##################################################
+# No MPI, Decays or Hadronization
+##################################################
+cd /Herwig/EventHandlers
+set EventHandler:CascadeHandler:MPIHandler NULL
+set EventHandler:DecayHandler NULL
+set EventHandler:HadronizationHandler NULL
+
+##################################################
+# Massless Quarks and AntiQuarks
+##################################################
+# Disable Quark Warning
+cd /Herwig/Analysis
+set Basics:CheckQuark No
+
+set /Herwig/Particles/u:NominalMass 0.*GeV
+set /Herwig/Particles/ubar:NominalMass 0.*GeV
+set /Herwig/Particles/d:NominalMass 0.*GeV
+set /Herwig/Particles/dbar:NominalMass 0.*GeV
+set /Herwig/Particles/c:NominalMass 0.*GeV
+set /Herwig/Particles/cbar:NominalMass 0.*GeV
+set /Herwig/Particles/s:NominalMass 0.*GeV
+set /Herwig/Particles/sbar:NominalMass 0.*GeV
+set /Herwig/Particles/b:NominalMass 0.*GeV
+set /Herwig/Particles/bbar:NominalMass 0.*GeV
+
+##################################################
+# PDFs
+##################################################
+set /Herwig/Partons/HardLOPDF:PDFName CT14lo
+set /Herwig/Partons/HardNLOPDF:PDFName CT14lo
+set /Herwig/Partons/ShowerLOPDF:PDFName CT14lo
+set /Herwig/Partons/ShowerNLOPDF:PDFName CT14lo
+set /Herwig/Partons/MPIPDF:PDFName CT14lo
+set /Herwig/Partons/RemnantPDF:PDFName CT14lo
+
+##################################################
+## Shower and scheme selection.
+## Should be empty unless using the Dipole Shower.
+##################################################
+
+# Set the shower to the dipole shower
+cd /Herwig/Generators
+set EventGenerator:EventHandler:CascadeHandler /Herwig/DipoleShower/DipoleShowerHandler
+
+# No Spin Correlations
+set /Herwig/DipoleShower/DipoleShowerHandler:SpinCorrelations No
+
+# Alpha S Settings
+set /Herwig/DipoleShower/DipoleShowerHandler:GlobalAlphaS:input_alpha_s 0.118
+set /Herwig/DipoleShower/DipoleShowerHandler:GlobalAlphaS:input_scale 91.1876*GeV
+
+# No MPI
+set /Herwig/DipoleShower/DipoleShowerHandler:MPIHandler NULL
+
+# No non-perturbative corrections
+set /Herwig/DipoleShower/DipoleShowerHandler:ConstituentReshuffler NULL
+set /Herwig/DipoleShower/DipoleShowerHandler:IntrinsicPtGenerator NULL
+
+# Set all cutoffs to 1 GeV
+set /Herwig/DipoleShower/Kinematics/FFLightKinematics:IRCutoff 1.0*GeV
+set /Herwig/DipoleShower/Kinematics/FILightKinematics:IRCutoff 1.0*GeV
+set /Herwig/DipoleShower/Kinematics/IFLightKinematics:IRCutoff 1.0*GeV
+set /Herwig/DipoleShower/Kinematics/IILightKinematics:IRCutoff 1.0*GeV
+
+# Set the scale for the shower
+set /Herwig/DipoleShower/DipoleShowerHandler:MaxPtIsMuF Yes
+set /Herwig/DipoleShower/DipoleShowerHandler:HardScaleProfile NULL
+set /Herwig/DipoleShower/DipoleShowerHandler:DoSubleadingNc Off
+
+# Alpha S Can be evaluated until 0 GeV
+set /Herwig/DipoleShower/DipoleShowerHandler:FactorizationScaleFreeze 0.0*GeV
+set /Herwig/DipoleShower/DipoleShowerHandler:RenormalizationScaleFreeze 0.0*GeV
+
+# FF Gluon splitting - Asymmetry Option 0 (only 1/(1-z) divergence)
+set /Herwig/DipoleShower/Kernels/FFgx2ggxDipoleKernel:AsymmetryOption 0
+
+# PDF Freezing scale (Step Function Setting inside Herwig)
+set /Herwig/DipoleShower/Kernels/IIqx2qgxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIqx2gqxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2ggxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2ddbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2dbardxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2uubarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2ubaruxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2ssbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2sbarsxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2ccbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2cbarcxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2bbbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IIgx2bbarbxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFqx2qgxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFqx2gqxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2ggxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2ddbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2dbardxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2uubarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2ubaruxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2ssbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2sbarsxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2ccbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2cbarcxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2bbbarxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/IFgx2bbarbxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIqx2qgxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2ggxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2ddxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2uuxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2ssxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2ccxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+set /Herwig/DipoleShower/Kernels/FIgx2bbxDipoleKernel:PDFRatio:FreezingScale 1.295*GeV
+
+##################################################
+# Shower Testing
+##################################################
+# set /Herwig/DipoleShower/DipoleShowerHandler:NEmissions 1
+# set /Herwig/DipoleShower/DipoleShowerHandler:Verbosity 10
+
+##################################################
+## prepare for Rivet analysis or HepMC output
+## when running with parton shower
+##################################################
+read snippets/Rivet.in
+insert /Herwig/Analysis/Rivet:Analyses 0 GAPS_LHC
+
+##################################################
+# Save run for later usage with 'Herwig run'
+##################################################
+cd /Herwig/Generators
+saverun LHC EventGenerator

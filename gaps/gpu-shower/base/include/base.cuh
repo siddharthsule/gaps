@@ -28,6 +28,9 @@
 #include <thrust/host_vector.h>
 #include <thrust/partition.h>
 
+// LHAPDF
+#include <LHAPDF/CuPDF.h>
+
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
 
@@ -46,15 +49,33 @@ const unsigned long lcg_m = 4294967296;
 const double k_nc = 3.;
 const int k_nf = 5;
 
+// Charm and Bottom quark masses
+const double mc = 1.30;
+const double mb = 4.75;
+
 // Z Boson: Mass, Width
 const double mz = 91.1876;
 const double gz = 2.4952;
 
+// PDF: Limits (CT14lo)
+const double pdf_x_min = 1e-9;
+const double pdf_x_max = 1.;
+const double pdf_q_min = 1.295;
+const double pdf_q_max = 1e5;
+
+// ME: Z mass cuts for qq -> ee
+const double mz_cut_a = 60.;
+const double mz_cut_b = 120.;
+
 // XS: GeV^-2 to pb conversion
 const double GeV_minus_2_to_pb = 3.89379656e8;
 
-// Observables: number of histogram bins
-const int n_bins = 100;
+// Observables: max number of histogram bins
+const int max_bins = 100;
+
+// Gen Kt: power and R values
+const double power = -1.;  // 1. = kt, 0. = cambridge, -1. = anti-kt
+const double R = 0.4;
 
 // -----------------------------------------------------------------------------
 // common functions and debugging

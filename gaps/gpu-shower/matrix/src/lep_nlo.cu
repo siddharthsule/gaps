@@ -94,7 +94,7 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     // Real Emission Term
     double real =
         me2_lo / Q2 * (s23 / s13 + s13 / s23 + 2. * s12 * Q2 / (s13 * s23));
-    real *= k_cf * 8 * M_PI * (*as)(matrix->s_hat);
+    real *= k_cf * 8 * M_PI * (*as)(matrix->root_s * matrix->root_s);
 
     // Subtraction term - quark emitter
     double z1 = s12 / (s12 + s23);
@@ -103,7 +103,7 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     vec4 p13t = p1 + p3 - p2 * (y132 / (1. - y132));
     D132 *=
         matrix->me2(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
-    D132 *= k_cf * 8 * M_PI * (*as)(matrix->s_hat);
+    D132 *= k_cf * 8 * M_PI * (*as)(matrix->root_s * matrix->root_s);
 
     // Subtraction term - antiquark emitter
     double z2 = s12 / (s12 + s13);
@@ -112,7 +112,7 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     vec4 p23t = p2 + p3 - p1 * (y231 / (1. - y231));
     D231 *=
         matrix->me2(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
-    D231 *= k_cf * 8 * M_PI * (*as)(matrix->s_hat);
+    D231 *= k_cf * 8 * M_PI * (*as)(matrix->root_s * matrix->root_s);
 
     // Veto very small virtualities - no subtraction
     if (y132 < matrix->amin || y231 < matrix->amin) {
@@ -121,8 +121,9 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     }
 
     // Calculate the cross-section
-    dxs_nlo = (1. / (2. * matrix->s_hat)) * (1. / (8. * M_PI));
-    dxs_nlo *= matrix->s_hat / (16. * M_PI * M_PI);
+    dxs_nlo =
+        (1. / (2. * matrix->root_s * matrix->root_s)) * (1. / (8. * M_PI));
+    dxs_nlo *= matrix->root_s * matrix->root_s / (16. * M_PI * M_PI);
     dxs_nlo *= (real - D132 - D231);
     dxs_nlo *= (1. - y);
     dxs_nlo *= static_cast<double>(k_nf) * GeV_minus_2_to_pb;
@@ -171,7 +172,8 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     // Matching - Set the starting scale for the shower
 
     // This is t of the first emission
-    double t = ij_is_quark ? s13 * z1 * (1. - z1) : s23 * z2 * (1. - z2);
+    double t =
+        ij_is_quark ? s13 * y132 * z1 * (1. - z1) : s23 * y231 * z2 * (1. - z2);
 
     ev.set_shower_t(t);
     ev.set_shower_c(2);
@@ -210,7 +212,7 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     // Calculate the NLO cross-section, params[0] = ecms
 
     // Calculate the NLO cross-section
-    double factor = k_cf * (*as)(matrix->s_hat) / M_PI;
+    double factor = k_cf * (*as)(matrix->root_s * matrix->root_s) / M_PI;
     dxs_nlo = dxs_lo * (1. + factor);
 
     // Adjust dxs for the nlo weighting ws

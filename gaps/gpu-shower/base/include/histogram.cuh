@@ -100,7 +100,8 @@ class histo1d {
    */
 
   char name[20];
-  bin1d bins[n_bins];
+  bin1d bins[max_bins];
+  int n_bins;  // Actual number of bins used
   bin1d uflow;
   bin1d oflow;
   bin1d total;
@@ -109,9 +110,12 @@ class histo1d {
   // ---------------------------------------------------------------------------
   // constructor
 
-  __host__ __device__ histo1d(double xmin = 0., double xmax = 1.,
-                              const char* hist_name = "histo1d")
-      : uflow(xmin - 100., xmin),
+  __host__ __device__ histo1d(int n_bins = max_bins, double xmin = 0.,
+                              double xmax = 1.,
+                              const char* hist_name = "histo1d",
+                              bool logspace = false)
+      : n_bins(n_bins),
+        uflow(xmin - 100., xmin),
         oflow(xmax, xmax + 100.),
         total(xmin - 100., xmax + 100.),
         scale(1.) {
@@ -122,17 +126,40 @@ class histo1d {
     }
     name[19] = '\0';  // Ensure null-termination
 
-    double width = (xmax - xmin) / n_bins;
-    for (int i = 0; i < n_bins; ++i) {
-      double xlow = xmin + i * width;
-      double xhigh = xlow + width;
+    // Option 1: Linear spacing
+    if (!logspace) {
+      double width = (xmax - xmin) / n_bins;
+      for (int i = 0; i < n_bins; ++i) {
+        double xlow = xmin + i * width;
+        double xhigh = xlow + width;
 
-      // Guards to prevent discontinuities in the histogram
-      xlow = abs(xlow) < 1e-12 ? 0. : xlow;
-      xhigh = abs(xhigh) < 1e-12 ? 0. : xhigh;
+        // Guards to prevent discontinuities in the histogram
+        xlow = abs(xlow) < 1e-12 ? 0. : xlow;
+        xhigh = abs(xhigh) < 1e-12 ? 0. : xhigh;
 
-      // initialize bin1d object on the device
-      bins[i] = bin1d(xlow, xhigh);
+        // initialize bin1d object on the device
+        bins[i] = bin1d(xlow, xhigh);
+      }
+    }
+
+    // Option 2: Logarithmic spacing
+    else {
+      double log_xmin = log10(xmin);
+      double log_xmax = log10(xmax);
+      double log_width = (log_xmax - log_xmin) / n_bins;
+
+      for (int i = 0; i < n_bins; ++i) {
+        double xlow = pow(10, log_xmin + static_cast<double>(i) * log_width);
+        double xhigh =
+            pow(10, log_xmin + static_cast<double>(i + 1) * log_width);
+
+        // Guards to prevent discontinuities in the histogram
+        xlow = fabs(xlow) < 1e-12 ? 0. : xlow;
+        xhigh = fabs(xhigh) < 1e-12 ? 0. : xhigh;
+
+        // initialize bin1d object on the device
+        bins[i] = bin1d(xlow, xhigh);
+      }
     }
   }
 

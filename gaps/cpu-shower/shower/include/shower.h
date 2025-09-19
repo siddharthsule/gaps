@@ -27,11 +27,13 @@ class shower {
   // ---------------------------------------------------------------------------
   // member variables
   alpha_s as;
+  LHAPDF::PDF* pdf = LHAPDF::mkPDF("CT14lo", 0);
 
  public:
+  double e_proton;
   double t_c;
   double as_max;
-  double j_max;
+  double j0_max = 2.;
 
   int n_emissions_max;
 
@@ -39,10 +41,13 @@ class shower {
   // ---------------------------------------------------------------------------
   // constructor
 
-  shower(double root_s, double t_c, double asmz, int n_emissions_max)
-      : t_c(t_c), n_emissions_max(n_emissions_max), as(mz, asmz) {
+  shower(double root_s, double t_c, double asmz, bool fixed_as,
+         int n_emissions_max)
+      : e_proton(root_s / 2.),
+        t_c(t_c),
+        n_emissions_max(n_emissions_max),
+        as(mz, asmz, (fixed_as ? 0 : 2)) {
     as_max = as(t_c);
-    j_max = 1.;
   }
 
   // ---------------------------------------------------------------------------
@@ -60,20 +65,54 @@ class shower {
   int is_emitter_antiparticle(int sf) const;
   int get_splitting_flavour(int sf) const;
 
+  // special true/false functions
+  bool is_ff(int sf) const;
+  bool is_fi(int sf) const;
+  bool is_if(int sf) const;
+  bool is_ii(int sf) const;
+  bool is_fsr(int sf) const;
+  bool is_isr(int sf) const;
+  bool is_q2qg(int sf) const;
+  bool is_q2gq(int sf) const;
+  bool is_g2gg(int sf) const;
+  bool is_g2qqbar(int sf) const;
+  bool is_g2qbarq(int sf) const;
+
   // splitting functions for the shower
-  void get_possible_splittings(int ij, int* splittings) const;
+  void generate_possible_splittings(int ij_pid, int k_pid, bool ij_init,
+                                    bool k_init, int* sf_codes) const;
   bool validate_splitting(int ij, const int sf, bool emt_init,
                           bool spc_init) const;
   void sf_to_flavs(int sf, int* flavs) const;
   void sf_to_text(int sf, char* text) const;
 
+  // check phase space boundaries
+  void get_boundaries(double& zm, double& zp, double sijk, double eta,
+                      int sf) const;
+  bool check_phase_space(double z, double y, int sf) const;
+
+  // pdf ratio calc
+  bool check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
+                      double k_eta, double z) const;
+  double pdf_ratio(int pid_before, int pid_after, double eta, double z,
+                   double t) const;
+  double get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
+                       double k_eta, double z, double t) const;
+  double get_pdf_max(int sf, double ij_eta = 0.) const;
+
+  // jacobian
+  double get_jacobian(double z, double y, double z0, int splitting) const;
+
   // select the winner emission
   void select_winner(event& ev, double* winner) const;
 
   // kinematics
+  double calculate_y(double t, double z, double sijk, int sf) const;
+  double calculate_t(double z, double y, double sijk, int sf) const;
   void make_kinematics(vec4* kinematics, const double z, const double y,
                        const double phi, const vec4 pijt, const vec4 pkt,
                        int sf) const;
+  void ii_boost_after_emission(event& ev, vec4* kinematics) const;
 
   // colours
   void make_colours(int current_col, int sf, int flavs[3], int colij[2],

@@ -9,7 +9,7 @@ mathtext.fontset: cm
 mathtext.rm:      Times New Roman
 mathtext.it:      Times New Roman:italic
 mathtext.bf:      Times New Roman:bold
-mathtext.cal:     Times New Roman:caligraphic
+mathtext.cal:     Times New Roman
 
 # Common settings
 axes.titlesize: 12

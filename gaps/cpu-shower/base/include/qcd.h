@@ -21,16 +21,16 @@ class alpha_s {
   // ---------------------------------------------------------------------------
   // member variables
 
-  int order;
+  int n_loops;
   double mc2, mb2, mz2, asmz, asmb, asmc;
 
  public:
   // ---------------------------------------------------------------------------
   // constructor
 
-  alpha_s(double mz, double asmz, int order = 1, double mb = 4.75,
-          double mc = 1.27)
-      : order(order),
+  alpha_s(double mz, double asmz, int n_loops = 2, double mb = 4.75,
+          double mc = 1.3)
+      : n_loops(n_loops),
         mc2(mc * mc),
         mb2(mb * mb),
         mz2(mz * mz),
@@ -43,7 +43,7 @@ class alpha_s {
 
   double beta0(int nf) const {
     /**
-     * @brief calculate the beta function at order 0
+     * @brief calculate the beta function at 1 loop (leading order)
      *
      * @param nf the number of flavours
      * @return the beta function
@@ -54,7 +54,7 @@ class alpha_s {
 
   double beta1(int nf) const {
     /**
-     * @brief calculate the beta function at order 1
+     * @brief calculate the beta function at 2 loops (next-to-leading order)
      *
      * @param nf the number of flavours
      * @return the beta function
@@ -63,9 +63,9 @@ class alpha_s {
     return (17. / 6. * k_ca * k_ca) - ((5. / 3. * k_ca + k_cf) * k_tr * nf);
   }
 
-  double as0(double t) const {
+  double as1(double t) const {
     /**
-     * @brief calculate the strong coupling constant at order 0
+     * @brief calculate the strong coupling constant at 1 loop (leading order)
      *
      * @param t the scale
      * @return the strong coupling constant
@@ -73,7 +73,7 @@ class alpha_s {
 
     double tref, asref, b0;
 
-    // Threshold Matching OFF
+    // Threshold Matching is OFF - massless quarks!
     // if (t >= mb2) {
     tref = mz2;
     asref = asmz;
@@ -87,13 +87,13 @@ class alpha_s {
     //   asref = asmc;
     //   b0 = beta0(3) / (2. * M_PI);
     // }
-
     return 1. / (1. / asref + b0 * log(t / tref));
   }
 
-  double as1(double t) const {
+  double as2(double t) const {
     /**
-     * @brief calculate the strong coupling constant at order 1
+     * @brief calculate the strong coupling constant at 2 loops (next-to-leading
+     * order)
      *
      * @param t the scale
      * @return the strong coupling constant
@@ -101,7 +101,7 @@ class alpha_s {
 
     double tref, asref, b0, b1, w;
 
-    // Threshold Matching OFF
+    // Threshold Matching is OFF - massless quarks!
     // if (t >= mb2) {
     tref = mz2;
     asref = asmz;
@@ -118,25 +118,29 @@ class alpha_s {
     //   b0 = beta0(3) / (2. * M_PI);
     //   b1 = beta1(3) / pow(2. * M_PI, 2);
     // }
-
     w = 1. + b0 * asref * log(t / tref);
     return asref / w * (1. - b1 / b0 * asref * log(w) / w);
   }
 
-  double operator()(double t) {
+  double operator()(double t) const {
     /**
      * @brief wrapper/call operator for the strong coupling constant. This
-     * function will calculate the strong coupling constant at the given scale,
-     * the order is determined by the member variable order
+     * function will calculate the strong coupling constant at the given scale
+     * and at the number of loops specified in the constructor.
      *
      * @param t the scale
      * @return the strong coupling constant
      */
 
-    if (order == 0) {
-      return as0(t);
-    } else {
-      return as1(t);
+    switch (n_loops) {
+      case 0:
+        return asmz;  // No running coupling, for fixas tests
+      case 1:
+        return as1(t);
+      case 2:
+        return as2(t);
+      default:
+        return as2(t);  // Default to 2-loop calculation
     }
   }
 };

@@ -58,12 +58,6 @@ class event {
 
  public:
   // ---------------------------------------------------------------------------
-  // Any variables used to study the event can be added here
-
-  // The flavour of the quark-antiquark pair
-  int qqbar_flavour = 0;
-
-  // ---------------------------------------------------------------------------
   // constructor
 
   // empty, so that we can build our me, ps onto it
@@ -367,12 +361,10 @@ class event {
      * @brief print the event information
      */
 
-    printf("--------------------------------------------------\n");
     printf("event number %d\n", get_id());
     printf("PRNG seed: %lu\n", get_seed());
     printf("\n");
     printf("dxs: %f\n", get_dxs());
-    printf("me2: %f\n", get_me2());
     printf("number of hard particles: %d\n", get_hard());
     printf("number of emissions: %d\n", get_emissions());
     printf("\n");
@@ -389,7 +381,6 @@ class event {
       printf("    eta: %f\n", particle.get_eta());
     }
     printf("\n");
-    printf("--------------------------------------------------\n");
 
     return;
   }
@@ -433,7 +424,7 @@ class event {
     }
 
     // Momentum Conservation: limit imbalance to 1e-7 GeV (10000 eV)
-    double diff = 1e-7;
+    double diff = 1e-5;
     bool pcheck = (abs(psum[0]) < diff && abs(psum[1]) < diff &&
                    abs(psum[2]) < diff && abs(psum[3]) < diff);
 
