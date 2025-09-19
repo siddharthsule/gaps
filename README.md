@@ -1,4 +1,4 @@
-# ![GAPS: a GPU-Amplified Parton Shower](doc/banner.png)
+# ![GAPS: a GPU-Amplified Parton Shower](gaps/banner.png)
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
@@ -70,7 +70,7 @@ You can adjust the following parameters:
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
 - `-nsys, -codecarbon, -gprof`: Profiling Tools
 
-To learn more about the code and how it all works, see the [documentation](https://gitlab.com/siddharthsule/gaps/-/wikis/home).
+To learn more about the code and how it all works, see the [documentation](doc/README.md).
 
 ***
 
