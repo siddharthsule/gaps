@@ -318,7 +318,7 @@ void shower::generate_splitting(event& ev) {
     }
 
     // Jacobian
-    double jacobian = get_jacobian(z, y, z0, sf) * pdf_ratio;
+    double jacobian = get_jacobian(z, y, sf) * pdf_ratio;
     double jmaxtot = j0_max * pdf_max;
 
     // Splitting Function Value and Estimate
@@ -339,7 +339,7 @@ void shower::generate_splitting(event& ev) {
       continue;
     }
 
-    // Veto Algorithm
+    // Accept / Veto
     if (ev.gen_random() < f / g) {
       // Success!
 

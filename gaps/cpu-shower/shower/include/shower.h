@@ -101,7 +101,7 @@ class shower {
   double get_pdf_max(int sf, double ij_eta = 0.) const;
 
   // jacobian
-  double get_jacobian(double z, double y, double z0, int splitting) const;
+  double get_jacobian(double z, double y, int splitting) const;
 
   // select the winner emission
   void select_winner(event& ev, double* winner) const;

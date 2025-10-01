@@ -1,6 +1,6 @@
 #include "shower.h"
 
-double shower::get_jacobian(double z, double y, double z0, int sf) const {
+double shower::get_jacobian(double z, double y, int sf) const {
   /**
    * @brief Calculate the jacobian for the given splitting
    *
@@ -31,8 +31,7 @@ double shower::get_jacobian(double z, double y, double z0, int sf) const {
 
     // II splittings: x (here, z) and v (here, y)
     case 3:
-      // return 1. / (z + y);
-      return 1. / z0;
+      return 1. / (z + y);
       break;
   }
   return 0.;

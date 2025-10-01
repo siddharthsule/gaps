@@ -2,7 +2,7 @@
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-> **Version 2.0.0**: Initial and Final State Shower, MC@NLO Matching
+> **Version 2.0.0-beta**: Initial and Final State Shower, MC@NLO Matching
 
 This is for Codebase for:
 

@@ -432,10 +432,12 @@ __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
     return;
   }
 
+  // Check for f > g
   if (f > g) {
     return;
   }
 
+  // Accept / Veto
   if (ev.gen_random() < f / g) {
     accept_emission[idx] = true;
   }
