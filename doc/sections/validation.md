@@ -12,7 +12,7 @@ Before we start, we want to mention that although our shower and Herwig's shower
 
 Below, we will compare the results of GAPS and Herwig. We can work with the simple $pp \to Z$ example, and fix to down quarks only. The plots were made using Rivet [[2404.15984](https://arxiv.org/abs/2404.15984)]
 
-## LO - Hard Subprocess Only
+## Hard Subprocess Only
 
 This is spot on between the two codes.
 
@@ -20,15 +20,7 @@ This is spot on between the two codes.
 |:---:|:---:|
 | ![Z Mass](../figures/validation/lo-zmass.png) | ![Z Rapidity](../figures/validation/lo-zrap.png) |
 
-## NLO - Hard Subprocess Only
-
-Again, pretty good agreement here. The fluctuations in the pT spectrum exist because it consists only of the three possible real emissions, one of which has a negative weight. This spectrum becomes tighter as emissions from the parton shower are added.
-
-| Z pT | Z Rapidity |
-|:---:|:---:|
-| ![Z Transverse Momentum](../figures/validation/nlo-zptfull.png) | ![Z Rapidity](../figures/validation/nlo-zrap.png) |
-
-## LO + 1 Emission
+## One Emission
 
 Again, pretty good agreement here.
 
@@ -36,15 +28,7 @@ Again, pretty good agreement here.
 |:---:|:---:|
 | ![Z Transverse Momentum](../figures/validation/lo-1em-zpt.png) | ![Z Rapidity](../figures/validation/lo-1em-zrap.png) |
 
-## NLO + 1 Emission
-
-Here you can see the remnant production and decay in action. Additional initial state splittings alter the final state momenta and shift the Z Boson. It is also occurring above, but is more prominent here due to the hard emissions.
-
-| Z pT | Z Rapidity |
-|:---:|:---:|
-| ![Z Transverse Momentum](../figures/validation/nlo-1em-zptfull.png) | ![Z Rapidity](../figures/validation/nlo-1em-zrap.png) |
-
-## LO + 2 Emissions
+## Two Emissions
 
 Now, deviations start propping up. From the LEP results (see [results](results.md)), we know that final state radiation is in good agreement for the first few emissions, indicating that the initial-state emissions are likely the source of the issues.
 
@@ -59,22 +43,6 @@ Now, deviations start propping up. From the LEP results (see [results](results.m
 | J2 pT | J2 PseudoRapidity |
 |:---:|:---:|
 | ![Second Jet Transverse Momentum](../figures/validation/lo-2em-j2pt.png) | ![Second Jet Pseudorapidity](../figures/validation/lo-2em-j2eta.png) |
-
-## NLO + 2 Emissions
-
-The jet distributions suffer further in this case, due to the hard emissions.
-
-| Z pT | Z Rapidity |
-|:---:|:---:|
-| ![Z Transverse Momentum](../figures/validation/nlo-2em-zptfull.png) | ![Z Rapidity](../figures/validation/nlo-2em-zrap.png) |
-
-| J1 pT | J1 PseudoRapidity |
-|:---:|:---:|
-| ![First Jet Transverse Momentum](../figures/validation/nlo-2em-j1pt.png) | ![First Jet Pseudorapidity](../figures/validation/nlo-2em-j1eta.png) |
-
-| J2 pT | J2 PseudoRapidity |
-|:---:|:---:|
-| ![Second Jet Transverse Momentum](../figures/validation/nlo-2em-j2pt.png) | ![Second Jet Pseudorapidity](../figures/validation/nlo-2em-j2eta.png) |
 
 ## Concluding Remarks
 

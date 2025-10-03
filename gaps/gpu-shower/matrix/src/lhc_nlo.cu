@@ -437,10 +437,10 @@ __global__ void h_event(event *events, int n, matrix *matrix, alpha_s *as,
   // -------------------------------------------------------------------------
   // Matching - Set the starting scale for the shower
 
-  // This is t of the first emission!
-  double t_in = (1 - x - v) * v / x * m.m2();
+  // Power Shower: Now allow emissions all the way up to root_s
+  double sij = matrix->root_s * matrix->root_s;
 
-  ev.set_shower_t(t_in);
+  ev.set_shower_t(sij);
   ev.set_shower_c(2);
 
   return;

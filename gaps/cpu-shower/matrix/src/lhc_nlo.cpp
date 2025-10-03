@@ -369,10 +369,10 @@ void matrix::lhc_nlo(event &ev) {
     // -------------------------------------------------------------------------
     // Matching - Set the starting scale for the shower
 
-    // This is t of the first emission!
-    double t_in = (1 - x - v) * v / x * m.m2();
+    // Power Shower: Now allow emissions all the way up to root_s
+    double sij = root_s * root_s;
 
-    ev.set_shower_t(t_in);
+    ev.set_shower_t(sij);
     ev.set_shower_c(2);
 
     return;
