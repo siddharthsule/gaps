@@ -105,7 +105,7 @@ def plot_data(dat, dat_iqr, ax1, ax2, color='C2', label_prefix=''):
         fmt_styles = ['o-', 's-', '^-']  # circle, square, triangle
 
         # Create label with prefix if provided
-        label = f'{label_prefix}, ${nev_str[i]}$'
+        label = f'{label_prefix}, ${nev_str[i]}$ Events'
 
         # Plot on both axes
         ax1.errorbar(threads_per_block, dat.iloc[i, :],
@@ -158,7 +158,7 @@ if all_data:
     # Upper part - for 1,000,000 events (row 2)
     all_row2_min = min(np.min(data.iloc[2, :]) for data in all_data)
     all_row2_max = max(np.max(data.iloc[2, :]) for data in all_data)
-    ax1.set_ylim(all_row2_min - 2, all_row2_max + 5)
+    ax1.set_ylim(all_row2_min - 2, all_row2_max + 15)
 
     # Lower part - for 10,000 and 100,000 events (rows 0 and 1)
     all_lower_min = min(min(np.min(data.iloc[0, :]), np.min(
