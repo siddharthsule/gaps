@@ -459,19 +459,56 @@ void cluster_genkt(const event& ev, double* results) {
     j2_j3_dR = -50.;
   }
 
-  // store the results
-  results[8] = jet_counter > 0 ? jets[0].pt() : -50.;
-  results[9] = jet_counter > 1 ? jets[1].pt() : -50.;
-  results[10] = jet_counter > 2 ? jets[2].pt() : -50.;
-  results[11] = jet_counter > 0 ? jets[0].eta() : -50.;
-  results[12] = jet_counter > 1 ? jets[1].eta() : -50.;
-  results[13] = jet_counter > 2 ? jets[2].eta() : -50.;
-  results[14] = jet_counter;
-  results[15] = jet_counter > 0 ? z_j1_eta : -50.;
-  results[16] = jet_counter > 0 ? z_j1_dR : -50.;
-  results[17] = jet_counter > 1 ? j1_j2_dR : -50.;
-  results[18] = jet_counter > 2 ? j1_j3_dR : -50.;
-  results[19] = jet_counter > 2 ? j2_j3_dR : -50.;
+  // store the first three jets' pt and eta
+  double jet1_pt = jet_counter > 0 ? jets[0].pt() : -50.;
+  double jet1_eta = jet_counter > 0 ? jets[0].eta() : -50.;
+  double jet2_pt = jet_counter > 1 ? jets[1].pt() : -50.;
+  double jet2_eta = jet_counter > 1 ? jets[1].eta() : -50.;
+  double jet3_pt = jet_counter > 2 ? jets[2].pt() : -50.;
+  double jet3_eta = jet_counter > 2 ? jets[2].eta() : -50.;
+
+  // Jet PT (with eta cuts)
+  results[8] = (jet_counter > 0 && fabs(jet1_eta) < 5.0) ? jet1_pt : -50.;
+  results[9] = (jet_counter > 1 && fabs(jet2_eta) < 5.0) ? jet2_pt : -50.;
+  results[10] = (jet_counter > 2 && fabs(jet3_eta) < 5.0) ? jet3_pt : -50.;
+
+  // Jet Eta (with pt cuts)
+  results[11] = (jet_counter > 0 && jet1_pt > 5.0) ? jet1_eta : -50.;
+  results[12] = (jet_counter > 1 && jet2_pt > 5.0) ? jet2_eta : -50.;
+  results[13] = (jet_counter > 2 && jet3_pt > 5.0) ? jet3_eta : -50.;
+
+  // Count jets satisfying |eta| < 5 and pt > 5
+  int n_good_jets = 0;
+  for (int i = 0; i < jet_counter; ++i) {
+    if (fabs(jets[i].eta()) < 5.0 && jets[i].pt() > 5.0) {
+      n_good_jets++;
+    }
+  }
+  results[14] = n_good_jets;
+
+  // Z-Jet1 dEta and dR, only when |jeteta1|<5 and jetpt1>5
+  results[15] = (jet_counter > 0 && fabs(jet1_eta) < 5.0 && jet1_pt > 5.0)
+                    ? z_j1_eta
+                    : -50.;
+  results[16] = (jet_counter > 0 && fabs(jet1_eta) < 5.0 && jet1_pt > 5.0)
+                    ? z_j1_dR
+                    : -50.;
+
+  // Jet1-Jet2 dR only when both jets pass cuts
+  results[17] = (jet_counter > 1 && fabs(jet1_eta) < 5.0 && jet1_pt > 5.0 &&
+                 fabs(jet2_eta) < 5.0 && jet2_pt > 5.0)
+                    ? j1_j2_dR
+                    : -50.;
+
+  // Jet1-Jet3 and Jet2-Jet3 dR only when all three jets pass cuts
+  results[18] = (jet_counter > 2 && fabs(jet1_eta) < 5.0 && jet1_pt > 5.0 &&
+                 fabs(jet3_eta) < 5.0 && jet3_pt > 5.0)
+                    ? j1_j3_dR
+                    : -50.;
+  results[19] = (jet_counter > 2 && fabs(jet2_eta) < 5.0 && jet2_pt > 5.0 &&
+                 fabs(jet3_eta) < 5.0 && jet3_pt > 5.0)
+                    ? j2_j3_dR
+                    : -50.;
 
   return;
 }

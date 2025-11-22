@@ -177,8 +177,8 @@ class GAPS_LHC : public Analysis {
     }
 
     for (const Particle& l : zfinder.constituents()) {
-      _h_lepton_pT->fill(l.pT() / GeV);
-      _h_lepton_eta->fill(l.eta());
+      _h_lepton_pT->fill(l.pT() / GeV, 0.5);
+      _h_lepton_eta->fill(l.eta(), 0.5);
     }
 
     Cut cut = Cuts::pt > 0. * GeV;
@@ -189,11 +189,37 @@ class GAPS_LHC : public Analysis {
     if (do_clustering) {
       const Jets& jets = apply<FastJets>(e, "Jets").jetsByPt(cut);
 
+      // Extract jet kinematics for applying cuts
+      double jet1_pt = jets.size() > 0 ? jets[0].pT() / GeV : -50.;
+      double jet1_eta = jets.size() > 0 ? jets[0].eta() : -50.;
+      double jet2_pt = jets.size() > 1 ? jets[1].pT() / GeV : -50.;
+      double jet2_eta = jets.size() > 1 ? jets[1].eta() : -50.;
+      double jet3_pt = jets.size() > 2 ? jets[2].pT() / GeV : -50.;
+      double jet3_eta = jets.size() > 2 ? jets[2].eta() : -50.;
+
+      // Count jets satisfying |eta| < 5 and pt > 5
+      int n_good_jets = 0;
+      for (size_t i = 0; i < jets.size(); ++i) {
+        if (fabs(jets[i].eta()) < 5.0 && jets[i].pT() / GeV > 5.0) {
+          n_good_jets++;
+        }
+      }
+
+      // Jet1 observables with kinematic cuts
       if (jets.size() > 0) {
-        _h_deta_z_j1->fill(zmom.eta() - jets[0].eta());
-        _h_dR_z_j1->fill(deltaR(zmom, jets[0].momentum()));
-        _h_jet1_pt->fill(jets[0].pT());
-        _h_jet1_eta->fill(jets[0].eta());
+        // jetpt1 only when |jeteta1|<5
+        _h_jet1_pt->fill((fabs(jet1_eta) < 5.0) ? jet1_pt : -50.);
+        // jeteta1 only when jetpt1>5
+        _h_jet1_eta->fill((jet1_pt > 5.0) ? jet1_eta : -50.);
+
+        // Z-jet1 observables only when |jeteta1|<5 and jetpt1>5
+        if (fabs(jet1_eta) < 5.0 && jet1_pt > 5.0) {
+          _h_deta_z_j1->fill(zmom.eta() - jets[0].eta());
+          _h_dR_z_j1->fill(deltaR(zmom, jets[0].momentum()));
+        } else {
+          _h_deta_z_j1->fill(-50.);
+          _h_dR_z_j1->fill(-50.);
+        }
       } else {
         _h_deta_z_j1->fill(-50.);
         _h_dR_z_j1->fill(-50.);
@@ -201,21 +227,48 @@ class GAPS_LHC : public Analysis {
         _h_jet1_eta->fill(-50.);
       }
 
+      // Jet2 observables with kinematic cuts
       if (jets.size() > 1) {
-        _h_jet2_pt->fill(jets[1].pT());
-        _h_jet2_eta->fill(jets[1].eta());
-        _h_dR_j1_j2->fill(deltaR(jets[0].momentum(), jets[1].momentum()));
+        // jetpt2 only when |jeteta2|<5
+        _h_jet2_pt->fill((fabs(jet2_eta) < 5.0) ? jet2_pt : -50.);
+        // jeteta2 only when jetpt2>5
+        _h_jet2_eta->fill((jet2_pt > 5.0) ? jet2_eta : -50.);
+
+        // dR(j1,j2) only when both jets pass cuts
+        if (fabs(jet1_eta) < 5.0 && jet1_pt > 5.0 && fabs(jet2_eta) < 5.0 &&
+            jet2_pt > 5.0) {
+          _h_dR_j1_j2->fill(deltaR(jets[0].momentum(), jets[1].momentum()));
+        } else {
+          _h_dR_j1_j2->fill(-50.);
+        }
       } else {
         _h_jet2_pt->fill(-50.);
         _h_jet2_eta->fill(-50.);
         _h_dR_j1_j2->fill(-50.);
       }
 
+      // Jet3 observables with kinematic cuts
       if (jets.size() > 2) {
-        _h_jet3_pt->fill(jets[2].pT());
-        _h_jet3_eta->fill(jets[2].eta());
-        _h_dR_j1_j3->fill(deltaR(jets[0].momentum(), jets[2].momentum()));
-        _h_dR_j2_j3->fill(deltaR(jets[1].momentum(), jets[2].momentum()));
+        // jetpt3 only when |jeteta3|<5
+        _h_jet3_pt->fill((fabs(jet3_eta) < 5.0) ? jet3_pt : -50.);
+        // jeteta3 only when jetpt3>5
+        _h_jet3_eta->fill((jet3_pt > 5.0) ? jet3_eta : -50.);
+
+        // dR(j1,j3) only when both jets pass cuts
+        if (fabs(jet1_eta) < 5.0 && jet1_pt > 5.0 && fabs(jet3_eta) < 5.0 &&
+            jet3_pt > 5.0) {
+          _h_dR_j1_j3->fill(deltaR(jets[0].momentum(), jets[2].momentum()));
+        } else {
+          _h_dR_j1_j3->fill(-50.);
+        }
+
+        // dR(j2,j3) only when both jets pass cuts
+        if (fabs(jet2_eta) < 5.0 && jet2_pt > 5.0 && fabs(jet3_eta) < 5.0 &&
+            jet3_pt > 5.0) {
+          _h_dR_j2_j3->fill(deltaR(jets[1].momentum(), jets[2].momentum()));
+        } else {
+          _h_dR_j2_j3->fill(-50.);
+        }
       } else {
         _h_jet3_pt->fill(-50.);
         _h_jet3_eta->fill(-50.);
@@ -223,8 +276,8 @@ class GAPS_LHC : public Analysis {
         _h_dR_j2_j3->fill(-50.);
       }
 
-      // Exclusive
-      _h_num_jets->fill(jets.size());
+      // Fill good jets count instead of total jet count
+      _h_num_jets->fill(n_good_jets);
     }
 
     // Do Parton Momenta Only
@@ -275,18 +328,17 @@ class GAPS_LHC : public Analysis {
 
   /// Finalize
   void finalize() {
-
     // Normalisation
     // const double norm = (crossSection() / picobarn) / sumOfWeights();
     const double norm = 1. / sumOfWeights();
-    
+
     scale(_h_Z_mass, norm);
     scale(_h_Z_pT, norm);
     scale(_h_Z_pT_full, norm);
     scale(_h_Z_phi, norm);
     scale(_h_Z_y, norm);
     scale(_h_lepton_pT, norm);
-    scale(_h_lepton_eta, norm); 
+    scale(_h_lepton_eta, norm);
 
     scale(_h_jet1_pt, norm);
     scale(_h_jet2_pt, norm);

@@ -3,7 +3,7 @@
 // -----------------------------------------------------------------------------
 // Utility Kernels
 
-__global__ void multiply_dxs_by_pdf_lo(event *events, int n, double *xf) {
+__global__ void multiply_dxs_by_pdf_lo(event* events, int n, double* xf) {
   /**
    * @brief Multiply the cross section of each event by the PDFs
    *
@@ -23,7 +23,7 @@ __global__ void multiply_dxs_by_pdf_lo(event *events, int n, double *xf) {
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // Multiply by PDF
@@ -33,9 +33,9 @@ __global__ void multiply_dxs_by_pdf_lo(event *events, int n, double *xf) {
 
 // -----------------------------------------------------------------------------
 
-__global__ void lhc_lo_no_pdf(event *events, int n, matrix *matrix, int *fl_a,
-                              int *fl_b, double *x_a, double *x_b,
-                              double *mu2) {
+__global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
+                              int* fl_b, double* x_a, double* x_b,
+                              double* mu2) {
   /**
    * @brief generate the leading order interaction p p -> e+ e-
    *
@@ -53,7 +53,7 @@ __global__ void lhc_lo_no_pdf(event *events, int n, matrix *matrix, int *fl_a,
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // LHC: Bias Flavour based on contribution (based on cross section)
@@ -141,7 +141,6 @@ __global__ void lhc_lo_no_pdf(event *events, int n, matrix *matrix, int *fl_a,
   // Calculate the Matrix Element
   double lome = matrix->me2(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= 1 / k_nc;  // Three possible initial colour states
-  lome *= 2.;        // Two Possible Orientations
 
   // Store PDF Calculation details
   fl_a[idx] = fl;
@@ -159,6 +158,7 @@ __global__ void lhc_lo_no_pdf(event *events, int n, matrix *matrix, int *fl_a,
   dxs *= (1. / (2. * s_hat)) * (1. / (8. * M_PI)) * lome;
   dxs *= GeV_minus_2_to_pb;  // 5 flavours + units
   dxs /= pd[abs(fl) - 1];    // Flavour Selection
+  dxs *= 2.;                 // Two Possible Orientations
 
   // Set the particles
   for (int i = 0; i < 4; i++) {
@@ -174,7 +174,7 @@ __global__ void lhc_lo_no_pdf(event *events, int n, matrix *matrix, int *fl_a,
 // -----------------------------------------------------------------------------
 // Wrapper to do the Kernels and External LHAPDF calculation
 
-void lhc_lo(thrust::device_vector<event> &dv_events, matrix *matrix, int blocks,
+void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
             int threads) {
   /**
    * @brief run the hadronic_dxs conversion
@@ -191,22 +191,22 @@ void lhc_lo(thrust::device_vector<event> &dv_events, matrix *matrix, int blocks,
   pdf_wrapper pdf;
 
   // use a pointer to the device events
-  event *d_events = thrust::raw_pointer_cast(dv_events.data());
+  event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n = dv_events.size();
 
-  int *d_fl_a;
+  int* d_fl_a;
   cudaMalloc(&d_fl_a, n * sizeof(int));
-  int *d_fl_b;
+  int* d_fl_b;
   cudaMalloc(&d_fl_b, n * sizeof(int));
-  double *d_x_a;
+  double* d_x_a;
   cudaMalloc(&d_x_a, n * sizeof(double));
-  double *d_x_b;
+  double* d_x_b;
   cudaMalloc(&d_x_b, n * sizeof(double));
-  double *d_mu2;
+  double* d_mu2;
   cudaMalloc(&d_mu2, n * sizeof(double));
-  double *d_xf_a;
+  double* d_xf_a;
   cudaMalloc(&d_xf_a, n * sizeof(double));
-  double *d_xf_b;
+  double* d_xf_b;
   cudaMalloc(&d_xf_b, n * sizeof(double));
 
   debug_msg("running @lhc_lo_no_pdf");

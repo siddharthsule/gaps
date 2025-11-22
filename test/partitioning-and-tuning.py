@@ -136,7 +136,7 @@ nopart_data = nopart.iloc[:, -1]
 part_data = part.iloc[:, -1]
 
 # Plot
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 6), sharex=True)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 5), sharex=True)
 
 # Process and plot both datasets
 datasets = [
@@ -158,7 +158,7 @@ if all_data:
     # Upper part - for 1,000,000 events (row 2)
     all_row2_min = min(np.min(data.iloc[2, :]) for data in all_data)
     all_row2_max = max(np.max(data.iloc[2, :]) for data in all_data)
-    ax1.set_ylim(all_row2_min - 2, all_row2_max + 15)
+    ax1.set_ylim(all_row2_min - 2, all_row2_max + 10)
 
     # Lower part - for 10,000 and 100,000 events (rows 0 and 1)
     all_lower_min = min(min(np.min(data.iloc[0, :]), np.min(
@@ -196,5 +196,5 @@ ax2.set_xscale('log', base=2)
 ax2.set_xticks(threads_per_block)
 ax2.set_xticklabels(threads_per_block)
 
-plt.tight_layout()
-plt.savefig('gpu-tune.pdf')
+fig.tight_layout()
+fig.savefig('gpu-tune.pdf')

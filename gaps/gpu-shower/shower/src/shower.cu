@@ -11,7 +11,7 @@ __device__ void shower::setup(double root_s, double t_c, double as_max) {
 }
 
 // kernel to set up the matrix object on the device
-__global__ void shower_setup_kernel(shower *sh, double root_s, double t_c,
+__global__ void shower_setup_kernel(shower* sh, double root_s, double t_c,
                                     double as_max) {
   /**
    * @brief Set up the shower object on the device
@@ -31,7 +31,7 @@ __global__ void shower_setup_kernel(shower *sh, double root_s, double t_c,
 // -----------------------------------------------------------------------------
 // preparing the shower
 
-__global__ void prep_shower(event *events, bool nlo_matching, int n) {
+__global__ void prep_shower(event* events, bool nlo_matching, int n) {
   /**
    * @brief Prepares the shower for the event
    *
@@ -44,7 +44,7 @@ __global__ void prep_shower(event *events, bool nlo_matching, int n) {
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // NLO Matching does the first emission and sets the shower scale
@@ -80,8 +80,8 @@ __global__ void prep_shower(event *events, bool nlo_matching, int n) {
 
 // -----------------------------------------------------------------------------
 
-__global__ void select_winner_split_func(shower *shower, event *events, int n,
-                                         double *winner) {
+__global__ void select_winner_split_func(shower* shower, event* events, int n,
+                                         double* winner) {
   /**
    * @brief Select the winner splitting in the event
    *
@@ -106,7 +106,7 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
   // ---------------------------------------------
   // Shower Preamble
   if (events[idx].has_shower_ended()) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // default values
@@ -135,12 +135,9 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
         continue;
       }
 
-      // identical to all splitting functions
+      // get the invariant mass squared of the dipole
       double sijk =
           (ev.get_particle(ij).get_mom() + ev.get_particle(k).get_mom()).m2();
-      if (sijk < 4. * shower->t_c) {
-        continue;
-      }
 
       // get the splitting functions for the current partons
       int sf_codes[11];
@@ -165,7 +162,9 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
 
         // phase space limits
         double zm, zp;
-        shower->get_boundaries(zm, zp, sijk, ev.get_particle(ij).get_eta(), sf);
+        double eta = shower->is_fi(sf) ? ev.get_particle(k).get_eta()
+                                       : ev.get_particle(ij).get_eta();
+        shower->get_boundaries(zm, zp, sijk, eta, sf);
         if (zm < 0. || zp > 1. || zm > zp) {
           continue;
         }
@@ -226,7 +225,7 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
   double y = shower->calculate_y(win_tt, z, win_sijk, win_sf);
   double phi = 2. * M_PI * ev.gen_random();
 
-  // IF: z, y -> x, u (here, z, y)
+  // IF: z, pt -> x, u (here, z, y)
   if (shower->is_if(win_sf)) {
     double z0 = z;
     double ratio = win_tt / win_sijk;
@@ -256,7 +255,7 @@ __global__ void select_winner_split_func(shower *shower, event *events, int n,
 
 // -----------------------------------------------------------------------------
 
-__global__ void check_cutoff(event *events, shower *shower, int *d_completed,
+__global__ void check_cutoff(event* events, shower* shower, int* d_completed,
                              int n) {
   /**
    * @brief Check if the shower has ended
@@ -273,7 +272,7 @@ __global__ void check_cutoff(event *events, shower *shower, int *d_completed,
   // ---------------------------------------------
   // Shower Preamble
   if (events[idx].has_shower_ended()) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   /**
@@ -304,9 +303,9 @@ __global__ void check_cutoff(event *events, shower *shower, int *d_completed,
 
 // -----------------------------------------------------------------------------
 
-__global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
-                         double *xf_a, double *xf_b, bool *accept_emission,
-                         double *winner) {
+__global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
+                         double* xf_a, double* xf_b, bool* accept_emission,
+                         double* winner) {
   /**
    * @brief The veto algorithm for the shower
    *
@@ -326,7 +325,7 @@ __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
   // ---------------------------------------------
   // Shower Preamble
   if (events[idx].has_shower_ended()) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // set to false, only set to true if accpeted
@@ -446,8 +445,8 @@ __global__ void veto_alg(shower *shower, alpha_s *as, event *events, int n,
 // -----------------------------------------------------------------------------
 
 // do splitting
-__global__ void do_splitting(shower *shower, event *events, int n,
-                             bool *accept_emission, double *winner) {
+__global__ void do_splitting(shower* shower, event* events, int n,
+                             bool* accept_emission, double* winner) {
   /**
    * @brief Do the splitting for the shower
    *
@@ -464,7 +463,7 @@ __global__ void do_splitting(shower *shower, event *events, int n,
   // ---------------------------------------------
   // Shower Preamble
   if (events[idx].has_shower_ended()) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // Do not run if the shower has ended
@@ -533,9 +532,9 @@ __global__ void do_splitting(shower *shower, event *events, int n,
 
 // -----------------------------------------------------------------------------
 
-__global__ void check_too_many_particles(event *events, int n_emissions_max,
-                                         int *d_too_many_particles,
-                                         int *d_completed, int n) {
+__global__ void check_too_many_particles(event* events, int n_emissions_max,
+                                         int* d_too_many_particles,
+                                         int* d_completed, int n) {
   /**
    * @brief Check if the event has too many particles
    *
@@ -550,7 +549,7 @@ __global__ void check_too_many_particles(event *events, int n_emissions_max,
   // ---------------------------------------------
   // Shower Preamble
   if (events[idx].has_shower_ended()) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // limit to max particles
@@ -571,14 +570,14 @@ struct is_not_end_shower {
    * @param ev The event to check
    * @return true if the shower has not ended
    */
-  __device__ bool operator()(const event &ev) const {
+  __device__ bool operator()(const event& ev) const {
     return !ev.has_shower_ended();
   }
 };
 
 // -----------------------------------------------------------------------------
 
-void run_shower(thrust::device_vector<event> &dv_events, double root_s,
+void run_shower(thrust::device_vector<event>& dv_events, double root_s,
                 bool nlo_matching, bool do_partitioning, double t_c,
                 double asmz, bool fixed_as, int n_emissions_max, int blocks,
                 int threads) {
@@ -592,17 +591,17 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
    */
 
   // number of events - can get from d_events.size()
-  event *d_events = thrust::raw_pointer_cast(dv_events.data());
+  event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n_events = dv_events.size();
 
   // set up the device alpha_s calculator
-  alpha_s *d_as;
+  alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
   as_setup_kernel<<<1, 1>>>(d_as, mz, asmz, (fixed_as ? 0 : 2));
   sync_gpu_and_check("as_setup_kernel");
 
   // Calculate as_max = as(t_c)
-  double *d_as_max;
+  double* d_as_max;
   cudaMalloc(&d_as_max, sizeof(double));
   as_value<<<1, 1>>>(d_as, d_as_max, t_c);
   sync_gpu_and_check("as_value");
@@ -610,7 +609,7 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
   cudaMemcpy(&as_max, d_as_max, sizeof(double), cudaMemcpyDeviceToHost);
 
   // set up the shower
-  shower *d_shower;
+  shower* d_shower;
   cudaMalloc(&d_shower, sizeof(shower));
   shower_setup_kernel<<<1, 1>>>(d_shower, root_s, t_c, as_max);
   sync_gpu_and_check("shower_setup_kernel");
@@ -630,7 +629,7 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
    * Stored all as doubles, so static_cast<int> for sf, ij, k
    */
   thrust::device_vector<double> dv_winner(7 * n_events, 0.0);
-  double *d_winner = thrust::raw_pointer_cast(dv_winner.data());
+  double* d_winner = thrust::raw_pointer_cast(dv_winner.data());
 
   // pdf ratio
   thrust::device_vector<double> dv_x_a(n_events, 0.0);
@@ -641,29 +640,29 @@ void run_shower(thrust::device_vector<event> &dv_events, double root_s,
   thrust::device_vector<double> dv_ratio(n_events, 0.0);
   thrust::device_vector<int> dv_flavours_a(n_events, 0);
   thrust::device_vector<int> dv_flavours_b(n_events, 0);
-  double *d_x_a = thrust::raw_pointer_cast(dv_x_a.data());
-  double *d_x_b = thrust::raw_pointer_cast(dv_x_b.data());
-  double *d_q2 = thrust::raw_pointer_cast(dv_q2.data());
-  double *d_xf_a = thrust::raw_pointer_cast(dv_xf_a.data());
-  double *d_xf_b = thrust::raw_pointer_cast(dv_xf_b.data());
-  double *d_ratio = thrust::raw_pointer_cast(dv_ratio.data());
-  int *d_flavours_a = thrust::raw_pointer_cast(dv_flavours_a.data());
-  int *d_flavours_b = thrust::raw_pointer_cast(dv_flavours_b.data());
+  double* d_x_a = thrust::raw_pointer_cast(dv_x_a.data());
+  double* d_x_b = thrust::raw_pointer_cast(dv_x_b.data());
+  double* d_q2 = thrust::raw_pointer_cast(dv_q2.data());
+  double* d_xf_a = thrust::raw_pointer_cast(dv_xf_a.data());
+  double* d_xf_b = thrust::raw_pointer_cast(dv_xf_b.data());
+  double* d_ratio = thrust::raw_pointer_cast(dv_ratio.data());
+  int* d_flavours_a = thrust::raw_pointer_cast(dv_flavours_a.data());
+  int* d_flavours_b = thrust::raw_pointer_cast(dv_flavours_b.data());
 
   // veto outcome
   thrust::device_vector<bool> dv_accept_emission(n_events, false);
-  bool *d_accept_emission = thrust::raw_pointer_cast(dv_accept_emission.data());
+  bool* d_accept_emission = thrust::raw_pointer_cast(dv_accept_emission.data());
 
   // ---------------------------------------------------
   // Analysis Variables
 
   // allocate device memory for completed events counter
-  int *d_completed;
+  int* d_completed;
   cudaMalloc(&d_completed, sizeof(int));
   cudaMemset(d_completed, 0, sizeof(int));
 
   // allocate device memory to counts events that surpass max particles
-  int *d_too_many_particles;
+  int* d_too_many_particles;
   cudaMalloc(&d_too_many_particles, sizeof(int));
   cudaMemset(d_too_many_particles, 0, sizeof(int));
 

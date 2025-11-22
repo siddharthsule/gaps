@@ -97,7 +97,6 @@ void matrix::lhc_lo(event& ev) {
   // Calculate the Matrix Element
   double lome = me2(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= 1 / k_nc;  // Three possible initial colour states
-  lome *= 2.;        // Two Possible Orientations
 
   // Evaluate PDFs
   double pdf_a = pdf->xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
@@ -113,6 +112,7 @@ void matrix::lhc_lo(event& ev) {
   dxs *= (1. / (2. * s_hat)) * (1. / (8. * M_PI)) * lome;
   dxs *= GeV_minus_2_to_pb;  // units
   dxs /= pd[abs(fl) - 1];    // Flavour Selection
+  dxs *= 2.;                 // Two Possible Orientations
 
   // Set the particles
   for (int i = 0; i < 4; i++) {

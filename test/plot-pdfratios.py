@@ -189,6 +189,28 @@ def read_heatmap(fl_i, fl_f):
 # Heatmap Plotting
 
 
+def pids_to_names(fl_i, fl_f):
+
+    pid_names = {
+        21: 'g',
+        1: 'd',
+        2: 'u',
+        3: 's',
+        4: 'c',
+        5: 'b',
+        -1: r'\bar{d}',
+        -2: r'\bar{u}',
+        -3: r'\bar{s}',
+        -4: r'\bar{c}',
+        -5: r'\bar{b}'
+    }
+
+    name_i = pid_names.get(fl_i, str(fl_i))
+    name_f = pid_names.get(fl_f, str(fl_f))
+
+    return f'${name_i} \\to {name_f}$'
+
+
 def plot_heatmap(heatmap_data):
     """
     Generate a combined heatmap from individual heatmap files.
@@ -208,15 +230,37 @@ def plot_heatmap(heatmap_data):
     ax.imshow(h.T, extent=extent, origin='lower',
               aspect='auto', cmap='cividis')
 
-    if abs(fl_i) > 2 and fl_i != 21 and fl_f == 21:
+    ax.text(0.05, 0.15, pids_to_names(fl_i, fl_f), transform=ax.transAxes,
+            color='white', fontsize=12, fontweight='bold',
+            verticalalignment='top', horizontalalignment='left')
 
-        # Get 99th and 99.99th percentiles
+    if fl_i == 21 and fl_f in [1, 2]:
+
+        y9999 = heatmap_data['y9999']
+        y9999 = int(np.ceil(y9999 / 5) * 5)
+
+        xvals = np.linspace(xe[0], xe[-1], num=100)
+        fit = y9999 * np.sqrt(10 ** xvals)  # Use 10^x instead of exp(x)
+        log10fit = np.log10(fit)
+        ax.plot(xvals, log10fit, color="white")
+
+        ax.text(0.05, 0.08, f'$f(\\eta) = {y9999}\\sqrt{{\\eta}}$', transform=ax.transAxes,
+                color='white', fontsize=8, fontweight='bold',
+                verticalalignment='top', horizontalalignment='left')
+
+    else:
+
         y99 = heatmap_data['y99']
         y9999 = heatmap_data['y9999']
 
-        # Round them up to the nearest 50
-        y99 = int(np.ceil(y99 / 50) * 50)
-        y9999 = int(np.ceil(y9999 / 50) * 50)
+        # Round them up to the nearest 1
+        y99 = int(np.ceil(y99))
+        y9999 = int(np.ceil(y9999))
+
+        if abs(fl_i) > 2 and fl_i != 21 and fl_f == 21:
+            # Round them up to the nearest 50
+            y99 = int(np.ceil(y99 / 50) * 50)
+            y9999 = int(np.ceil(y9999 / 50) * 50)
 
         # Convert bin_midpoints from ln to log10 scale
         xvals = np.linspace(xe[0], xe[-1], num=100)
@@ -226,10 +270,6 @@ def plot_heatmap(heatmap_data):
         log10fit = np.log10(fit)
         ax.plot(xvals, log10fit, color="white")
 
-        # Add flavor transition text in top left corner
-        ax.text(0.05, 0.15, f'{fl_i} → {fl_f}', transform=ax.transAxes,
-                color='white', fontsize=12, fontweight='bold',
-                verticalalignment='top', horizontalalignment='left')
         ax.text(0.05, 0.08, f'$f(\\eta) = \\max({y99}, {y9999}\\eta)$', transform=ax.transAxes,
                 color='white', fontsize=8, fontweight='bold',
                 verticalalignment='top', horizontalalignment='left')
@@ -238,42 +278,24 @@ def plot_heatmap(heatmap_data):
     ax.set_xlabel(r'$\eta$')
     ax.set_ylabel(r'$\text{PDF Ratio}$')
 
-    # Swap out x ticks
-    ticks = ax.get_xticks()
-    # Create unique tick positions and labels
-    unique_ticks = []
-    unique_labels = []
-    seen_labels = set()
+    # Only Keep whole number x ticks
+    xticks = ax.get_xticks()
+    xticks = xticks[xticks == np.floor(xticks)]
+    ax.set_xticks(xticks)
+    # Swap out x tick labels
+    xtick_labels = [10**tick for tick in xticks]
+    ax.set_xticklabels(xtick_labels)
 
-    for t in ticks:
-        label = f"${{{10**int(t)}}}$"
-        if label not in seen_labels:
-            unique_ticks.append(t)
-            unique_labels.append(label)
-            seen_labels.add(label)
-
-    ax.set_xticks(unique_ticks)
-    ax.set_xticklabels(unique_labels)
-
-    # Swap out yticks
-    ticks = ax.get_yticks()
-    # Create unique tick positions and labels
-    unique_ticks = []
-    unique_labels = []
-    seen_labels = set()
-
-    for t in ticks:
-        label = f"${{{10**int(t)}}}$"
-        if label not in seen_labels:
-            unique_ticks.append(t)
-            unique_labels.append(label)
-            seen_labels.add(label)
-
-    ax.set_yticks(unique_ticks)
-    ax.set_yticklabels(unique_labels)
+    # Only Keep whole number y ticks
+    yticks = ax.get_yticks()
+    yticks = yticks[yticks == np.floor(yticks)]
+    ax.set_yticks(yticks)
+    # Swap out y tick labels
+    ytick_labels = [10**tick for tick in yticks]
+    ax.set_yticklabels(ytick_labels)
 
     # Tighten up xlim and ylim
-    ax.set_xlim(left=xe[0], right=xe[-1])
+    ax.set_xlim(left=xe[0], right=np.log10(1.))
     ax.set_ylim(bottom=ye[0], top=ye[-1])
 
     # Tighten layout to maximize space

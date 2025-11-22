@@ -41,12 +41,9 @@ void shower::select_winner(event& ev, double* winner) const {
         continue;
       }
 
-      // params identical to all splitting functions
+      // get the invariant mass squared of the dipole
       double sijk =
           (ev.get_particle(ij).get_mom() + ev.get_particle(k).get_mom()).m2();
-      if (sijk < 4. * t_c) {
-        continue;
-      }
 
       // get the splitting functions for the current partons
       // sf_codes is an array of possible splitting functions
@@ -72,7 +69,9 @@ void shower::select_winner(event& ev, double* winner) const {
 
         // phase space limits
         double zm, zp;
-        get_boundaries(zm, zp, sijk, ev.get_particle(ij).get_eta(), sf);
+        double eta = is_fi(sf) ? ev.get_particle(k).get_eta()
+                               : ev.get_particle(ij).get_eta();
+        get_boundaries(zm, zp, sijk, eta, sf);
 
         if (zm < 0. || zp > 1. || zm > zp) {
           continue;
@@ -135,7 +134,7 @@ void shower::select_winner(event& ev, double* winner) const {
   double y = calculate_y(win_tt, z, win_sijk, win_sf);
   double phi = 2. * M_PI * ev.gen_random();
 
-  // IF: z, y -> x, u (here, z, y)
+  // IF: z, pt -> x, u (here, z, y)
   if (is_if(win_sf)) {
     double z0 = z;
     double ratio = win_tt / win_sijk;

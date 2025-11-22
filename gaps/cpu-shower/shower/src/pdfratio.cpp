@@ -212,17 +212,18 @@ double shower::get_pdf_max(int sf, double ij_eta) const {
     }
   }
 
-  // Iniital State g -> u ubar or g -> ubar u
-  // Small unless eta > 0.1 (gluon wants to become an up quark for proton!)
-  else if ((sf == 3302) || (sf == 3402) || (sf == 2302) || (sf == 2402)) {
-    if (ij_eta > 0.1) {
-      return 10.;
-    }
-    return 2.;
+  // IF/II g -> d dbar
+  else if ((sf == 2301) || (sf == 3301)) {
+    return 5. * sqrt(ij_eta);
   }
 
-  // All other Splittings
+  // IF/II g -> u ubar
+  else if ((sf == 2302) || (sf == 3302)) {
+    return 10. * sqrt(ij_eta);
+  }
+
+  // All other Splittings, y99 ~ y9999 ~ 1
   else {
-    return 2.;
+    return 1.;
   }
 }

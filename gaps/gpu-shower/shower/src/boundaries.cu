@@ -18,11 +18,18 @@ __device__ void shower::get_boundaries(double& zm, double& zp, double sijk,
   // eta_max is the max x value of PDF set
   // double eta_max = pdf_x_max;
 
-  double t_max, frac;
+  double frac;
 
   switch (splitting_case) {
     // FF splittings: z and y
     case 0:
+      frac = (4. * t_c) / sijk;
+      if (frac > 1.) {
+        // No phase space available
+        zm = 0.;
+        zp = 0.;
+        return;
+      }
       zp = 0.5 * (1. + sqrt(1. - 4. * t_c / sijk));
       zm = 1. - zp;
       return;
@@ -30,19 +37,27 @@ __device__ void shower::get_boundaries(double& zm, double& zp, double sijk,
 
     // FI splittings: z and x (here, y)
     case 1:
-      zp = 0.5 * (1. + sqrt(1. - 4. * t_c / sijk));
+      frac = (4 * t_c * eta) / (sijk * (1. - eta));
+      if (frac > 1.) {
+        // No phase space available
+        zm = 0.;
+        zp = 0.;
+        return;
+      }
+      zp = 0.5 * (1. + sqrt(1. - frac));
       zm = 1. - zp;
       return;
       break;
 
     // IF splittings: x (here, z) and u (here, y)
     case 2:
-      // These are x boundaries
-      // zm = eta / eta_max;
-      // zp = (sijk) / (sijk + 4 * t_c);
-
-      // These are z boundaries
       frac = (4 * t_c * eta) / (sijk * (1. - eta));
+      if (frac > 1.) {
+        // No phase space available
+        zm = 0.;
+        zp = 0.;
+        return;
+      }
       zm = 0.5 * (1. + eta - (1. - eta) * sqrt(1. - frac));
       zp = 0.5 * (1. + eta + (1. - eta) * sqrt(1. - frac));
       return;
@@ -50,14 +65,15 @@ __device__ void shower::get_boundaries(double& zm, double& zp, double sijk,
 
     // II splittings: x (here, z) and v (here, y)
     case 3:
-      // These are x boundaries
-      // zm = eta / eta_max;
-      // zp = (sijk) / (sijk + 4 * t_c);
-
-      // These are z boundaries
-      t_max = (sijk * (1. - eta) * (1. - eta)) / (4 * eta);
-      zm = 0.5 * (1. + eta - (1. - eta) * sqrt(1. - (t_c / t_max)));
-      zp = 0.5 * (1. + eta + (1. - eta) * sqrt(1. - (t_c / t_max)));
+      frac = (4. * t_c * eta) / (sijk * (1. - eta) * (1. - eta));
+      if (frac > 1.) {
+        // No phase space available
+        zm = 0.;
+        zp = 0.;
+        return;
+      }
+      zm = 0.5 * (1. + eta - (1. - eta) * sqrt(1. - frac));
+      zp = 0.5 * (1. + eta + (1. - eta) * sqrt(1. - frac));
       return;
       break;
   }
