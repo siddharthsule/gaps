@@ -21,7 +21,7 @@ class event {
   // Event ID
   int id = 0;
 
-  // random seed for PRNG, used to keep identical results to CPU Shower
+  // random seed for PRNG, used to keep identical results to the GPU Shower
   unsigned long seed = 0;
 
   // Allows a limited number of particles (adjust max_particles in base.cuh)

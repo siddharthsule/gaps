@@ -127,7 +127,7 @@ __device__ double alpha_s::operator()(double t) const {
 }
 
 // set up kernel on the device
-__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz,
+__global__ void as_setup_kernel(alpha_s* as, double mz, double asmz,
                                 int n_loops, double mb, double mc) {
   /**
    * @brief set up the alpha_s class on the device
@@ -144,7 +144,7 @@ __global__ void as_setup_kernel(alpha_s *as, double mz, double asmz,
 }
 
 // calculate alpha_s on the device for one input
-__global__ void as_value(alpha_s *as, double *as_val, double t) {
+__global__ void as_value(alpha_s* as, double* as_val, double t) {
   /**
    * @brief calculate the strong coupling constant at a given scale
    *

@@ -3,6 +3,15 @@
 
 #include "base.cuh"
 
+/**
+ * PRNG with Linear congruential generator
+ * ---------------------------------------
+ *
+ * To test that the two implementations are equivalent, we can use the random
+ * number generator as the control variable. If the physics is correct, then
+ * everthing should be the same.
+ */
+
 __device__ __inline__ double generate_lcg(unsigned long& current_seed) {
   /**
    * @brief Generate a random number using a Linear Congruential Generator (LCG)

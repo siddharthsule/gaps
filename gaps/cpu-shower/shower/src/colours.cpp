@@ -22,17 +22,21 @@ void shower::make_colours(int current_col, int sf, int flavs[3], int colij[2],
   if (is_fsr(sf)) {
     // q -> qg
     if (flavs[0] != 21) {
-      // q emitter
+      // q -> qg
       if (flavs[0] > 0) {
+        // Quark gets new colour, keeps no anticolour
         coli[0] = new_col;
         coli[1] = 0;
+        // Emitted gluon gets quark's old colour and new anticolour
         colj[0] = colij[0];
         colj[1] = new_col;
       }
       // qbar -> qbar g
       else {
+        // Antiquark keeps no colour, gets new anticolour
         coli[0] = 0;
         coli[1] = new_col;
+        // Emitted gluon gets new colour and antiquark's old anticolour
         colj[0] = new_col;
         colj[1] = colij[1];
       }
@@ -44,19 +48,25 @@ void shower::make_colours(int current_col, int sf, int flavs[3], int colij[2],
         if (colij[0] == colk[1]) {
           // Criss-cross for Colour Single Gluon Dipole
           if (colij[1] == colk[0] && r > 0.5) {
+            // Emitter keeps colour, gets new anticolour
             coli[0] = colij[0];
             coli[1] = new_col;
+            // Emitted gluon gets new colour and emitter's old anticolour
             colj[0] = new_col;
             colj[1] = colij[1];
           } else {
+            // Emitter gets new colour, keeps anticolour
             coli[0] = new_col;
             coli[1] = colij[1];
+            // Emitted gluon gets emitter's old colour and new anticolour
             colj[0] = colij[0];
             colj[1] = new_col;
           }
         } else {
+          // Emitter keeps colour, gets new anticolour
           coli[0] = colij[0];
           coli[1] = new_col;
+          // Emitted gluon gets new colour and emitter's old anticolour
           colj[0] = new_col;
           colj[1] = colij[1];
         }
@@ -65,15 +75,19 @@ void shower::make_colours(int current_col, int sf, int flavs[3], int colij[2],
       else {
         // g -> q qbar
         if (flavs[1] > 0) {
+          // Emitted quark gets gluon's colour, no anticolour
           coli[0] = colij[0];
           coli[1] = 0;
+          // Emitted antiquark gets no colour, gluon's anticolour
           colj[0] = 0;
           colj[1] = colij[1];
         }
         // g -> qbar q
         else {
+          // Emitted antiquark gets no colour, gluon's anticolour
           coli[0] = 0;
           coli[1] = colij[1];
+          // Emitted quark gets gluon's colour, no anticolour
           colj[0] = colij[0];
           colj[1] = 0;
         }
@@ -103,7 +117,7 @@ void shower::make_colours(int current_col, int sf, int flavs[3], int colij[2],
           colj[1] = new_col;
         }
       }
-      // q -> gq (backwards is g -> qq)
+      // q -> gq (backwards is g -> qqbar)
       else {
         if (flavs[0] > 0) {
           // Incoming: gluon gets new colour and quark's anticolour

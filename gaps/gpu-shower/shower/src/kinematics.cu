@@ -178,14 +178,6 @@ __device__ void shower::make_kinematics(vec4* kinematics, const double z,
       pi = pijt * (1. / z);
       pj = pijt * ((1. - y) * (1. - z) / z) + pkt * y - kt;
       pk = pijt * (y * (1. - z) / z) + pkt * (1. - y) + kt;
-      /*
-      // Alternative Map - NOT USING THIS
-      pi = pijt * ((1 - y) / (z - y)) + pkt * ((y / z) * (1. - z) / (z - y)) +
-           kt * (1. / (y - z));
-      pj = pijt * ((1 - z) / (z - y)) + pkt * ((y / z) * (1. - y) / (z - y)) +
-           kt * (1. / (y - z));
-      pk = pkt * ((z - y) / z);
-      */
       break;
 
     // II splittings: x (here, z) and v (here, y) - Boost after emission

@@ -317,18 +317,6 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
       break;
     }
 
-    // printf("Loop Iteration:\n");
-    // printf("dmin = %f\n", dmin);
-    // printf("ii = %d\n", ii);
-    // printf("jj = %d\n", jj);
-    // if (dmin_is_diB) {
-    //   printf("dmin is from diB\n");
-    // } else {
-    //   printf("dmin is from dij_matrix\n");
-    // }
-    // printf("n_particles = %d\n", n_particles);
-    // printf("jet_counter = %d\n", jet_counter);
-
     // If dmin == diB, then we have a final jet. Store the jet and
     // remove the particle from the event
     if (dmin_is_diB) {

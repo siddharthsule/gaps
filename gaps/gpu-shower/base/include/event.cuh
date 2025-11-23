@@ -21,15 +21,15 @@ class event {
   // Event ID
   int id = 0;
 
-  // random seed for PRNG, used to keep identical results to CPU Shower
+  // random seed for PRNG, used to keep identical results to the CPU Shower
   unsigned long seed = 0;
 
   // Allows a limited number of particles (adjust max_particles in base.cuh)
   particle particles[max_particles];
 
   // Counters
-  int n_hard = 0;
-  int n_emission = 0;
+  int n_hard = 0;      // Hard particles - Generated from the Matrix Element
+  int n_emission = 0;  // Emissions - Generated from the Shower
 
   // event validity - momentum and colour conservation
   bool validity = true;

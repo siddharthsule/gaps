@@ -8,9 +8,6 @@ void calculate_mczinc(const event& ev, double* results) {
    * @param results The array to store the results
    */
 
-  // for LHC we know that the electrons are elements 2 and 3 of the event. We
-  // can create the z boson momentum using the invariant mass of the two (?)
-
   if (!ev.get_validity()) {
     return;
   }

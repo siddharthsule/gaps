@@ -64,7 +64,7 @@ double matrix::me2qqZ(int fl, double s) {
 // -----------------------------------------------------------------------------
 // NLO Calculation in one function, not the same in GPU!
 
-void matrix::lhc_nlo(event &ev) {
+void matrix::lhc_nlo(event& ev) {
   /**
    * @brief do lhcnlo (work in progress)
    */
@@ -145,7 +145,7 @@ void matrix::lhc_nlo(event &ev) {
   dxs *= log((root_s * root_s) / s_hat);  // y Sampling
   dxs *= pdf_a * pdf_b;                   // PDFs
   dxs *= lome;                            // ME2
-  dxs *= (1. / pow(pz.m2(), 2));          // Leftover
+  dxs *= (1. / pow(s_hat, 2));            // Leftover
   dxs *= GeV_minus_2_to_pb;               // units
   dxs /= pd[abs(fl) - 1];                 // Flavour Selection
 
@@ -397,31 +397,41 @@ void matrix::lhc_nlo(event &ev) {
     double v_plus_i = 2.;
 
     // -------------------------------------------------------------------------
-    // Now, the Collinear Remnants
+    // Now, the Collinear Term Calculation
 
-    // Four Components to add
-    double c1 = 0.;   // End Points
-    double c2g = 0.;  // PDF Ratios g
-    double c2h = 0.;  // PDF Ratios h
-    double c3 = 0.;   // Deltas
+    /**
+     * As in the paper, we break down the contributions into three components:
+     * - A: delta(1-x) terms
+     * - B(eta): plus function terms
+     * - the g and h functions
+     */
 
     // If our scale is not == pz.m2() this term is non-zero
     double log_mu = log(mu2 / pz.m2());
 
     // -------------------------------------------------------------------------
-    // subtract end-points from the plus functions
-    // i.e. - int{0 -> eta_i} (K + P) d eta', only the non-singular terms
+    // A Term Calculation
+
+    // q -> q g and qbar -> qbar g
+    double delta_q2qg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
+    double delta_qbar2qbarg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
+
+    // Define our A term
+    double A = delta_q2qg + delta_qbar2qbarg;
+
+    // -------------------------------------------------------------------------
+    // B term Calculation
 
     // q -> qg and qbar -> qbar g
-    double ep_q2qg;
-    ep_q2qg = log(1 - eta_q) * log_mu;
+    double ep_q2qg = 0.;
+    ep_q2qg += log(1 - eta_q) * log_mu;
     ep_q2qg += (M_PI * M_PI) / 6;
     ep_q2qg -= pow(log(1. - eta_q), 2.);
     ep_q2qg -= dilogarithm(1. - eta_q);
     ep_q2qg *= 2.;
 
-    double ep_qbar2qbarg;
-    ep_qbar2qbarg = log(1 - eta_qbar) * log_mu;
+    double ep_qbar2qbarg = 0.;
+    ep_qbar2qbarg += log(1 - eta_qbar) * log_mu;
     ep_qbar2qbarg += (M_PI * M_PI) / 6;
     ep_qbar2qbarg -= pow(log(1. - eta_qbar), 2.);
     ep_qbar2qbarg -= dilogarithm(1. - eta_qbar);
@@ -431,13 +441,18 @@ void matrix::lhc_nlo(event &ev) {
     // double ep_q2gqbar = 0.;
     // double ep_qbar2gq = 0.;
 
-    // These are negative
-    c1 = -(ep_q2qg + ep_qbar2qbarg);
+    // Define our B term
+    double B = ep_q2qg + ep_qbar2qbarg;
 
     // -------------------------------------------------------------------------
+    // g and h functions Calculation
     // Now, sample the intergration variable (eta') and pick one of the four
     // processes to evaluate the function for, and add them to the
     // cross-section
+
+    // Initialize the g and h contributions
+    double g_contrib = 0.;
+    double h_contrib = 0.;
 
     // Decides which of the four integrals to do
     int r = static_cast<int>(ev.gen_random() * 4.) + 1;
@@ -470,8 +485,8 @@ void matrix::lhc_nlo(event &ev) {
       h = -(1. + x) * (log((1. - x) / x) + log(1. - x) - log_mu);
       h += (1. - x);
 
-      c2g = g * (pdf_ratio - 1.) * x_jac * 4.;
-      c2h = h * pdf_ratio * x_jac * 4.;
+      g_contrib = g * (pdf_ratio - 1.) * x_jac * 4.;
+      h_contrib = h * pdf_ratio * x_jac * 4.;
     }
 
     // qbar -> qbar g
@@ -488,8 +503,8 @@ void matrix::lhc_nlo(event &ev) {
       h = -(1. + x) * (log((1. - x) / x) + log(1. - x) - log_mu);
       h += (1. - x);
 
-      c2g = g * (pdf_ratio - 1.) * x_jac * 4.;
-      c2h = h * pdf_ratio * x_jac * 4.;
+      g_contrib = g * (pdf_ratio - 1.) * x_jac * 4.;
+      h_contrib = h * pdf_ratio * x_jac * 4.;
     }
 
     // q -> g qbar
@@ -504,11 +519,11 @@ void matrix::lhc_nlo(event &ev) {
       // f = g(x) * (pdf_ratio - 1) + h(x) * pdf_ratio
       g = 0.;
       h = 2. * x * (1. - x);
-      h += (1. - 2. * x + 2. * x * x) *
+      h += (x * x + (1. - x) * (1. - x)) *
            (log((1. - x) / x) + log(1. - x) - log_mu);
 
-      c2g = g * (pdf_ratio - 1.) * x_jac * 4. * k_tr / k_cf;
-      c2h = h * pdf_ratio * x_jac * 4. * k_tr / k_cf;
+      g_contrib = g * (pdf_ratio - 1.) * x_jac * 4. * k_tr / k_cf;
+      h_contrib = h * pdf_ratio * x_jac * 4. * k_tr / k_cf;
     }
 
     // qbar -> g q
@@ -523,28 +538,18 @@ void matrix::lhc_nlo(event &ev) {
       // f = g(x) * (pdf_ratio - 1) + h(x) * pdf_ratio
       g = 0.;
       h = 2. * x * (1. - x);
-      h += (1. - 2. * x + 2. * x * x) *
+      h += (x * x + (1. - x) * (1. - x)) *
            (log((1. - x) / x) + log(1. - x) - log_mu);
 
-      c2g = g * (pdf_ratio - 1.) * x_jac * 4. * k_tr / k_cf;
-      c2h = h * pdf_ratio * x_jac * 4. * k_tr / k_cf;
+      g_contrib = g * (pdf_ratio - 1.) * x_jac * 4. * k_tr / k_cf;
+      h_contrib = h * pdf_ratio * x_jac * 4. * k_tr / k_cf;
     }
 
     // -------------------------------------------------------------------------
-    // Finally, add the delta (1-x) terms
-
-    // q -> q g and qbar -> qbar g
-    double delta_q2qg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
-    double delta_qbar2qbarg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
-
-    // No + terms for qbar -> g q or q -> g qbar
-    // double delta_q2gqbar = 0.;
-    // double delta_qbar2gq = 0.;
-
-    c3 += delta_q2qg + delta_qbar2qbarg;
+    // Calculate C
 
     // Calculate c
-    double c = c1 + c2g + c2h + c3;
+    double c = A - B + g_contrib + h_contrib;
 
     // -------------------------------------------------------------------------
     // Calculate the new cross-section

@@ -18,7 +18,7 @@ __device__ void matrix::setup(int process, bool nlo, double root_s) {
 }
 
 // kernel to set up the matrix object on the device
-__global__ void matrix_setup_kernel(matrix *matrix, int process, bool nlo,
+__global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
                                     double root_s) {
   matrix->setup(process, nlo, root_s);
 }
@@ -27,7 +27,7 @@ __global__ void matrix_setup_kernel(matrix *matrix, int process, bool nlo,
 // main
 
 // function to generate the lo matrix elements + momenta
-void calc_lome(thrust::device_vector<event> &d_events, int process, bool nlo,
+void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
                double root_s, double asmz, int blocks, int threads) {
   /**
    * @brief wrap
@@ -37,7 +37,7 @@ void calc_lome(thrust::device_vector<event> &d_events, int process, bool nlo,
   int n = d_events.size();
 
   // allocate memory for a matrix object on the device
-  matrix *d_matrix;
+  matrix* d_matrix;
   cudaMalloc(&d_matrix, sizeof(matrix));
 
   // set up the device matrix object
@@ -46,7 +46,7 @@ void calc_lome(thrust::device_vector<event> &d_events, int process, bool nlo,
   sync_gpu_and_check("matrix_setup_kernel");
 
   // set up the device alpha_s calculator
-  alpha_s *d_as;
+  alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
   as_setup_kernel<<<1, 1>>>(d_as, mz, asmz);
   sync_gpu_and_check("as_setup_kernel");

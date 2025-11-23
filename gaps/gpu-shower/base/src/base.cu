@@ -1,7 +1,7 @@
 #include "base.cuh"
 
 // sync device and check for errors
-void sync_gpu_and_check(const char *operation) {
+void sync_gpu_and_check(const char* operation) {
   /**
    * @brief Synchronize the device and check for errors.
    */
@@ -22,7 +22,7 @@ void sync_gpu_and_check(const char *operation) {
 }
 
 // debug messages
-__host__ __device__ void debug_msg(const char *message) {
+__host__ __device__ void debug_msg(const char* message) {
   /**
    * @brief Print a debug message.
    */

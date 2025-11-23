@@ -111,8 +111,7 @@ class histo1d {
   // constructor
 
   __host__ __device__ histo1d(int n_bins = max_bins, double xmin = 0.,
-                              double xmax = 1.,
-                              const char* hist_name = "histo1d",
+                              double xmax = 1., const char* hist_name = "hst",
                               bool logspace = false)
       : n_bins(n_bins),
         uflow(xmin - 100., xmin),

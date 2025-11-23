@@ -12,7 +12,7 @@ args = parser.parse_args()
 # Run the simulation
 
 nev = 1000000
-thr = 512
+thr = 128
 filename = 'profile.dat'
 
 if not args.formatting_only:

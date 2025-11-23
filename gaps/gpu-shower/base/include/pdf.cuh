@@ -21,7 +21,7 @@ class pdf_wrapper {
  private:
   // ---------------------------------------------------------------------------
   // member variables
-  CuPDF *pdf;
+  CuPDF* pdf;
 
  public:
   // ---------------------------------------------------------------------------
@@ -34,11 +34,11 @@ class pdf_wrapper {
   // member functions
 
   // wrapper function that calls the kernel
-  void evaluate(int *d_fl, double *d_x, double *d_q2, double *d_xf, int n,
+  void evaluate(int* d_fl, double* d_x, double* d_q2, double* d_xf, int n,
                 int blocks, int threads);
 };
 
 // After evaluating all flavours, filter data to retrieve right value
-__global__ void select_flavour(int *fl, double *xf_in, double *xf_out, int n);
+__global__ void select_flavour(int* fl, double* xf_in, double* xf_out, int n);
 
 #endif  // pdf_cuh_

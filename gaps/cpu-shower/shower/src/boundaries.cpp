@@ -31,7 +31,7 @@ void shower::get_boundaries(double& zm, double& zp, double sijk, double eta,
         zp = 0.;
         return;
       }
-      zp = 0.5 * (1. + sqrt(1. - 4. * t_c / sijk));
+      zp = 0.5 * (1. + sqrt(1. - frac));
       zm = 1. - zp;
       return;
       break;

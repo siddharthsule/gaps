@@ -33,8 +33,8 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
      * a factor. See Catani-Seymour Appendix D.7 or Black Book pages 150 -> 154.
      *
      * The H event cross section is given by:
-     * dxs = drho1 drho2 drho3 drho4 drho5 * 1/(2 s_hat) * 1/(8 pi)
-     *       * s_hat / (16 pi^2) * (|M|^2 - D132 - D231) * (1 - y)
+     * dsigma = drho1 drho2 drho3 drho4 drho5 * 1/(2 s) * 1/(8 pi)
+     *          * s / (16 pi^2) * (|M|^2 - D132 - D231) * (1 - y)
      */
 
     // -------------------------------------------------------------------------

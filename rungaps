@@ -7,11 +7,14 @@ GAPS - Run Script
 -----------------
 This script is used to compile and run the GPU and CPU Shower codes. It
 provides a number of options to control the number of events, the number of
-cores to use, and the type of run to perform. The run types are:
-    - gpu: Run the GPU simulation
-    - cpu: Run the CPU Shower simulation
-    - compare: Run both the GPU and CPU Shower and compare the results
-    - full: Run both the GPU and CPU Shower for a range of event numbers
+cores to use, and the type of run to perform. 
+
+The possible run types are:
+- gpu: Run the GPU Shower (default)
+- cpu: Run the CPU Shower
+- cpu-cluster: Run the CPU Shower with multiple cores
+- compare: Run both the GPU and CPU Showers for comparison
+- tune: Perform kernel tuning for the GPU Shower
 """
 
 # ------------------------------------------------------------------------------

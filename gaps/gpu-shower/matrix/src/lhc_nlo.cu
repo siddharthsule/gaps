@@ -64,7 +64,7 @@ __device__ double matrix::me2qqZ(int fl, double s) const {
 // -----------------------------------------------------------------------------
 // Utility Kernels
 
-__global__ void multiply_dxs_by_pdf(event *events, int n, double *xf) {
+__global__ void multiply_dxs_by_pdf(event* events, int n, double* xf) {
   /**
    * @brief Multiply the cross section of each event by the PDFs
    *
@@ -78,7 +78,7 @@ __global__ void multiply_dxs_by_pdf(event *events, int n, double *xf) {
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // Mutliply by PDF
@@ -89,8 +89,8 @@ __global__ void multiply_dxs_by_pdf(event *events, int n, double *xf) {
 // -----------------------------------------------------------------------------
 // LO Event Generation - pp -> Z
 
-__global__ void lo_event(event *events, int n, matrix *matrix, int *fl_a,
-                         int *fl_b, double *xa, double *xb, double *q2) {
+__global__ void lo_event(event* events, int n, matrix* matrix, int* fl_a,
+                         int* fl_b, double* xa, double* xb, double* q2) {
   /**
    * @brief LO event generation for pp -> Z
    *
@@ -109,7 +109,7 @@ __global__ void lo_event(event *events, int n, matrix *matrix, int *fl_a,
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // We generate an On Shell Z boson, so we cannot run the lo function and use
@@ -211,16 +211,16 @@ __global__ void lo_event(event *events, int n, matrix *matrix, int *fl_a,
 // -----------------------------------------------------------------------------
 // H Event Generation - pp -> Zj
 
-__global__ void h_event(event *events, int n, matrix *matrix, alpha_s *as,
-                        int *fl_a, int *fl_b, double *xa, double *xb,
-                        double *q2pdf) {
+__global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
+                        int* fl_a, int* fl_b, double* xa, double* xb,
+                        double* q2pdf) {
   // ---------------------------------------------
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // ---------------------------------------------------------------------------
@@ -449,9 +449,9 @@ __global__ void h_event(event *events, int n, matrix *matrix, alpha_s *as,
 // -----------------------------------------------------------------------------
 // S Event Generation - pp -> Z (Born + Virtual + Inseration + Collinear)
 
-__global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
-                        int *fl_b, double *xa, double *xb, double *q2,
-                        double *c_term) {
+__global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
+                        int* fl_b, double* xa, double* xb, double* q2,
+                        double* c_term) {
   /**
    * @brief Calculate the c term for each event
    *
@@ -465,7 +465,7 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // If Real Correction, return (already done!)
@@ -498,31 +498,41 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
   int fl = abs(ev.get_particle(0).get_pid());
 
   // ---------------------------------------------------------------------------
-  // Now onto the C Term Generation
+  // Now onto the Collinear Term Calculation
 
-  // C Terms to be Calculated
-  double c1 = 0.;   // End Points
-  double c2g = 0.;  // PDF Ratios g
-  double c2h = 0.;  // PDF Ratios h
-  double c3 = 0.;   // Deltas
+  /**
+   * As in the paper, we break down the contributions into three components:
+   * - A: delta(1-x) terms
+   * - B(eta): plus function terms
+   * - the g and h functions
+   */
 
   // If our scale is not == pz.m2() this term is non-zero
   double log_mu = log(mu2 / pz.m2());
 
   // -------------------------------------------------------------------------
-  // subtract end-points from the plus functions
-  // i.e. - int{0 -> eta_i} (K + P) d eta', only the non-singular terms
+  // A Term Calculation
 
-  // q -> qg: EP = -2 (-pi^2/6 + (log(1 - eta_i))^2 + Li2(1 - eta_i))
-  double ep_q2qg;
-  ep_q2qg = log(1 - eta_q) * log_mu;
+  // q -> q g and qbar -> qbar g
+  double delta_q2qg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
+  double delta_qbar2qbarg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
+
+  // Define our A term
+  double A = delta_q2qg + delta_qbar2qbarg;
+
+  // -------------------------------------------------------------------------
+  // B term Calculation
+
+  // q -> qg and qbar -> qbar g
+  double ep_q2qg = 0.;
+  ep_q2qg += log(1 - eta_q) * log_mu;
   ep_q2qg += (M_PI * M_PI) / 6;
   ep_q2qg -= pow(log(1. - eta_q), 2.);
   ep_q2qg -= dilogarithm(1. - eta_q);
   ep_q2qg *= 2.;
 
-  double ep_qbar2qbarg;
-  ep_qbar2qbarg = log(1 - eta_qbar) * log_mu;
+  double ep_qbar2qbarg = 0.;
+  ep_qbar2qbarg += log(1 - eta_qbar) * log_mu;
   ep_qbar2qbarg += (M_PI * M_PI) / 6;
   ep_qbar2qbarg -= pow(log(1. - eta_qbar), 2.);
   ep_qbar2qbarg -= dilogarithm(1. - eta_qbar);
@@ -532,13 +542,18 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
   // double ep_q2gqbar = 0.;
   // double ep_qbar2gq = 0.;
 
-  // These are negative
-  c1 = -(ep_q2qg + ep_qbar2qbarg);
+  // Define our B term
+  double B = ep_q2qg + ep_qbar2qbarg;
 
   // -------------------------------------------------------------------------
+  // g and h functions Calculation
   // Now, sample the intergration variable (eta') and pick one of the four
   // processes to evaluate the function for, and add them to the
   // cross-section
+
+  // Initialize the g and h contributions
+  double g_contrib = 0.;
+  double h_contrib = 0.;
 
   // Decides which of the four integrals to do
   int r = static_cast<int>(ev.gen_random() * 4.) + 1;
@@ -571,8 +586,8 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
     h = -(1. + x) * (log((1. - x) / x) + log(1. - x) - log_mu);
     h += (1. - x);
 
-    c2g = g * x_jac * 4.;
-    c2h = h * x_jac * 4.;
+    g_contrib = g * x_jac * 4.;
+    h_contrib = h * x_jac * 4.;
   }
 
   // qbar -> qbar g
@@ -589,8 +604,8 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
     h = -(1. + x) * (log((1. - x) / x) + log(1. - x) - log_mu);
     h += (1. - x);
 
-    c2g = g * x_jac * 4.;
-    c2h = h * x_jac * 4.;
+    g_contrib = g * x_jac * 4.;
+    h_contrib = h * x_jac * 4.;
   }
 
   // q -> g qbar
@@ -605,11 +620,11 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
     // f = g(x) * (pdf_ratio - 1) + h(x) * pdf_ratio
     g = 0.;
     h = 2. * x * (1. - x);
-    h +=
-        (1. - 2. * x + 2. * x * x) * (log((1. - x) / x) + log(1. - x) - log_mu);
+    h += (x * x + (1. - x) * (1. - x)) *
+         (log((1. - x) / x) + log(1. - x) - log_mu);
 
-    c2g = g * x_jac * 4. * k_tr / k_cf;
-    c2h = h * x_jac * 4. * k_tr / k_cf;
+    g_contrib = g * x_jac * 4. * k_tr / k_cf;
+    h_contrib = h * x_jac * 4. * k_tr / k_cf;
   }
 
   // qbar -> g q
@@ -624,36 +639,26 @@ __global__ void c_terms(event *events, int n, matrix *matrix, int *fl_a,
     // f = g(x) * (pdf_ratio - 1) + h(x) * pdf_ratio
     g = 0.;
     h = 2. * x * (1. - x);
-    h +=
-        (1. - 2. * x + 2. * x * x) * (log((1. - x) / x) + log(1. - x) - log_mu);
+    h += (x * x + (1. - x) * (1. - x)) *
+         (log((1. - x) / x) + log(1. - x) - log_mu);
 
-    c2g = g * x_jac * 4. * k_tr / k_cf;
-    c2h = h * x_jac * 4. * k_tr / k_cf;
+    g_contrib = g * x_jac * 4. * k_tr / k_cf;
+    h_contrib = h * x_jac * 4. * k_tr / k_cf;
   }
 
   // -------------------------------------------------------------------------
-  // Finally, add the delta (1-x) terms
+  // Store the c term components
 
-  // q -> q g: delta = -5. + 2pi^2/3
-  double delta_q2qg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
-  double delta_qbar2qbarg = -5. + 2 * M_PI * M_PI / 3. - (3. / 2.) * log_mu;
-
-  // No + terms for qbar -> g q or q -> g qbar
-  // double delta_q2gqbar = 0.;
-  // double delta_qbar2gq = 0.;
-
-  c3 = delta_q2qg + delta_qbar2qbarg;
-
-  c_term[4 * idx + 0] = c1;
-  c_term[4 * idx + 1] = c2g;
-  c_term[4 * idx + 2] = c2h;
-  c_term[4 * idx + 3] = c3;
+  c_term[4 * idx + 0] = A;
+  c_term[4 * idx + 1] = B;
+  c_term[4 * idx + 2] = g_contrib;
+  c_term[4 * idx + 3] = h_contrib;
 
   return;
 }
 
-__global__ void bvic_terms(event *events, int n, matrix *matrix, alpha_s *as,
-                           double *c_term, double *xf_a, double *xf_b) {
+__global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
+                           double* c_term, double* xf_a, double* xf_b) {
   /**
    * @brief Combine the c term for each event
    *
@@ -667,7 +672,7 @@ __global__ void bvic_terms(event *events, int n, matrix *matrix, alpha_s *as,
   if (idx >= n) return;
   // ---------------------------------------------
   // Matrix Preamble
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // If Real Correction, return (already done!)
@@ -689,17 +694,17 @@ __global__ void bvic_terms(event *events, int n, matrix *matrix, alpha_s *as,
   double v_plus_i = 2.;
 
   // Get the c term
-  double c1 = c_term[4 * idx + 0];
-  double c2g = c_term[4 * idx + 1];
-  double c2h = c_term[4 * idx + 2];
-  double c3 = c_term[4 * idx + 3];
+  double A = c_term[4 * idx + 0];
+  double B = c_term[4 * idx + 1];
+  double g_contrib = c_term[4 * idx + 2];
+  double h_contrib = c_term[4 * idx + 3];
 
   // Calculate the total c term
   double pdf_ratio = xf_a[idx] / xf_b[idx];
   if (isnan(pdf_ratio) || isinf(pdf_ratio)) {
     pdf_ratio = 0.;
   }
-  double c = c1 + c2g * (pdf_ratio - 1.) + c2h * pdf_ratio + c3;
+  double c = A - B + g_contrib * (pdf_ratio - 1.) + h_contrib * pdf_ratio;
 
   // Combine the B + V + I + C
   double mu2 = ev.get_particle(2).get_mom().m2();  // Scale Choice
@@ -733,28 +738,28 @@ __global__ void bvic_terms(event *events, int n, matrix *matrix, alpha_s *as,
 // -----------------------------------------------------------------------------
 // Overall Wrapping Function
 
-void lhc_nlo(thrust::device_vector<event> &dv_events, matrix *matrix,
-             alpha_s *as, int blocks, int threads) {
+void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
+             alpha_s* as, int blocks, int threads) {
   // Create PDF Evaluator
   pdf_wrapper pdf;
 
   // use a pointer to the device events
-  event *d_events = thrust::raw_pointer_cast(dv_events.data());
+  event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n = dv_events.size();
 
-  double *d_x_a;
+  double* d_x_a;
   cudaMalloc(&d_x_a, n * sizeof(double));
-  double *d_x_b;
+  double* d_x_b;
   cudaMalloc(&d_x_b, n * sizeof(double));
-  int *d_fl_a;
+  int* d_fl_a;
   cudaMalloc(&d_fl_a, n * sizeof(int));
-  int *d_fl_b;
+  int* d_fl_b;
   cudaMalloc(&d_fl_b, n * sizeof(int));
-  double *d_s_hat;
+  double* d_s_hat;
   cudaMalloc(&d_s_hat, n * sizeof(double));
-  double *d_xf_a;
+  double* d_xf_a;
   cudaMalloc(&d_xf_a, n * sizeof(double));
-  double *d_xf_b;
+  double* d_xf_b;
   cudaMalloc(&d_xf_b, n * sizeof(double));
 
   // Run LO Kernel
@@ -780,7 +785,7 @@ void lhc_nlo(thrust::device_vector<event> &dv_events, matrix *matrix,
   // Born + Virtual + Insertion + Collinear
 
   // Create 4xN array for c_terms
-  double *d_c_term;
+  double* d_c_term;
   cudaMalloc(&d_c_term, 4 * n * sizeof(double));
   cudaMemset(d_c_term, 0, 4 * n * sizeof(double));  // Initialize to zero
 

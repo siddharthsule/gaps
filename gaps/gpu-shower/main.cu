@@ -15,18 +15,13 @@
 #include "observables.cuh"
 
 /**
- * GAPS: a GPU-Amplified Parton Shower
- * -----------------------------------
+ * The Main Function
+ * -----------------
  *
- * This program is a simple event generator for e+e- -> partons. It is designed
- * to be a simple example of how to use the GPU to calculate matrix elements and
- * perform parton showering. The program is designed to be a proof of concept as
- * well as a intuitive example of how to use the GPU for event generation.
- *
- * This program is based on S. Höche's "Introduction to Parton Showers" Python
- * tutorial[1]. This program calculates ee -> qq and then showers the partons.
- *
- * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
+ * This file contains the main function for the GPU Shower program.
+ * It is responsible for setting up the event generation, calling the
+ * matrix element calculation, performing the parton showering, and
+ * analyzing the final state particles.
  */
 
 // -----------------------------------------------------------------------------
@@ -195,8 +190,6 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   std::cout << "Histograms written to " << filename << std::endl;
   std::cout << "Timing data written to gpu-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
-
-  // ---------------------------------------------------------------------------
 }
 // -----------------------------------------------------------------------------
 

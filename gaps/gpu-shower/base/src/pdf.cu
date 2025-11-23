@@ -3,7 +3,7 @@
 // -----------------------------------------------------------------------------
 // After evaluating all flavours (below), filter data to retrieve right value
 
-__global__ void select_flavour(int *fl, double *xf_in, double *xf_out, int n) {
+__global__ void select_flavour(int* fl, double* xf_in, double* xf_out, int n) {
   /**
    * @brief Filter the data to retrieve the right value
    *
@@ -43,7 +43,7 @@ __global__ void select_flavour(int *fl, double *xf_in, double *xf_out, int n) {
 // -----------------------------------------------------------------------------
 // wrapper function that calls the kernel
 
-void pdf_wrapper::evaluate(int *d_fl, double *d_x, double *d_q2, double *d_xf,
+void pdf_wrapper::evaluate(int* d_fl, double* d_x, double* d_q2, double* d_xf,
                            int n, int blocks, int threads) {
   /**
    * @brief Evaluate the PDFs for a given set of flavours, x and Q^2 values
@@ -58,12 +58,12 @@ void pdf_wrapper::evaluate(int *d_fl, double *d_x, double *d_q2, double *d_xf,
   // Allocate a flat 2D array on the device
   // Formula: [row][col] -> [row * n + col]
   thrust::device_vector<double> flat_pdf_matrix(11 * n, 0.);
-  double *d_flat = thrust::raw_pointer_cast(flat_pdf_matrix.data());
+  double* d_flat = thrust::raw_pointer_cast(flat_pdf_matrix.data());
 
   // evaluate PDF for all quarks, antiquarks and gluon
   for (int i = 0; i < 11; ++i) {
     // Calculate the correct offset for each row
-    double *current_row = d_flat + i * n;
+    double* current_row = d_flat + i * n;
 
     // Get the flavour - 0 is for gluon, 1-5 for quarks, 6-10 for antiquarks
     int current_flavour;

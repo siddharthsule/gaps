@@ -2,7 +2,7 @@
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-> **Version 2.0.0-beta**: Initial and Final State Shower, MC@NLO Matching
+> **Version 2.0.0**: Initial and Final State Shower, MC@NLO Matching
 
 This is for Codebase for:
 
@@ -15,7 +15,7 @@ The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can
 
 The code is an NLO+Shower generator. It can simulate two processes:
 
-- **Electron-Positron Collisions at LEP @ 91.2 GeV** 
+- **Electron-Positron Collisions at LEP @ 91.2 GeV**
   - Process: $e^+ e^- \to Z/\gamma \to q \bar{q}$ at LO/NLO
   - Observables: Durham Jet Rates and Event Shapes
 
@@ -74,6 +74,6 @@ To learn more about the code and how it all works, see the [documentation](doc/R
 
 ***
 
-### Sid Sule + Mike Seymour, September 2025
+### Sid Sule + Mike Seymour, December 2025
 
 For issues and queries, email: [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)

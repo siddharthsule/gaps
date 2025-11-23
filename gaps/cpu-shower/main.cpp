@@ -15,18 +15,13 @@
 #include "observables.h"
 
 /**
- * GAPS: CPU Shower for Comparison
- * ------------------------------------
+ * The Main Function
+ * -----------------
  *
- * This program is a translation of S. Höche's "Introduction to Parton Showers"
- * Python tutorial[1], with added functionality for parallelisation, a Event
- * class and event shape analyses.
- *
- * The purpose of this program is to compare the performance of the CPU and
- * GPU versions of the shower, and to compare the performance of the CPU with
- * parallelisation and GPU.
- *
- * [1] https://arxiv.org/abs/1411.4085 and MCNET-CTEQ 2021 Tutorial
+ * This file contains the main function for the GPU Shower program.
+ * It is responsible for setting up the event generation, calling the
+ * matrix element calculation, performing the parton showering, and
+ * analyzing the final state particles.
  */
 
 // -----------------------------------------------------------------------------

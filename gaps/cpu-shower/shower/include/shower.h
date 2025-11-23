@@ -20,7 +20,7 @@ class shower {
    * fact that kernel's can't be member functions, the shower class has been
    * removed
    *
-   * *: as possible as a second year phd student can make it ;)
+   * *: as possible as a phd student can make it ;)
    */
 
  private:

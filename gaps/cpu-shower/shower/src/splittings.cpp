@@ -128,8 +128,7 @@ double v_qqg_if(double z, double y) {
 double v_qgq_if(double z, double y) { return k_tr * (1. - 2. * z * (1. - z)); }
 
 double v_ggg_if(double z, double y) {
-  // return k_ca * (1. / (1. - z + y) + (1. - z) / z - 1. + z * (1. - z));
-  return k_ca * (1. / (1. - z + y) + 1. / z - 2. + z * (1. - z));
+  return k_ca * (1. / (1. - z + y) + (1. - z) / z - 1. + z * (1. - z));
 }
 
 // g -> q q backwards is q -> gq!
@@ -206,8 +205,7 @@ double v_qqg_ii(double z, double y) {
 double v_qgq_ii(double z, double y) { return k_tr * (1. - 2. * z * (1. - z)); }
 
 double v_ggg_ii(double z, double y) {
-  // return k_ca * (1. / (1. - z) + (1. - z) / z - 1. + z * (1. - z));
-  return k_ca * (1. / (1. - z) + 1. / z - 2. + z * (1. - z));
+  return k_ca * (1. / (1. - z) + (1. - z) / z - 1. + z * (1. - z));
 }
 
 // g -> q q backwards is q -> gq!

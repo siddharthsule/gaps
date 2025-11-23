@@ -1,8 +1,13 @@
 #include "matrix.cuh"
 
-__global__ void lep_lo(matrix *matrix, event *events, int n) {
+__global__ void lep_lo(matrix* matrix, event* events, int n) {
   /**
    * @brief generate the leading order interaction
+   *
+   * The Leading order differential cross section for e+ e- -> q qbar is
+   * given by:
+   *
+   * dsigma = drho1 drho2 * 1/(2s) * 1/(8 pi) * N_C * 1/4 Sum_spins |M|^2
    *
    * @param matrix matrix element generator
    * @param events array of event records
@@ -12,7 +17,7 @@ __global__ void lep_lo(matrix *matrix, event *events, int n) {
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
-  event &ev = events[idx];
+  event& ev = events[idx];
   // ---------------------------------------------
 
   // Determine the flavour of the quark and antiquark

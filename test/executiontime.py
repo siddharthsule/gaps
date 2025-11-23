@@ -27,7 +27,7 @@ nreps = args.nreps
 n_list = [10000, 100000, 1000000]
 
 # GPU Tuning - best value for Threads per Block
-thr = 512
+thr = 128
 
 # Emission filenames
 em_gpu = 'gpu-emissions.dat'

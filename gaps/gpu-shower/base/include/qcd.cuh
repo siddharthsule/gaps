@@ -47,11 +47,11 @@ class alpha_s {
 };
 
 // setup the alpha_s class
-__global__ void as_setup_kernel(alpha_s *as, double mz, double asmz,
+__global__ void as_setup_kernel(alpha_s* as, double mz, double asmz,
                                 int n_loops = 2, double mb = 4.75,
                                 double mc = 1.27);
 
 // calculate the strong coupling constant
-__global__ void as_value(alpha_s *as, double *as_val, double t);
+__global__ void as_value(alpha_s* as, double* as_val, double t);
 
 #endif  // qcd_cuh_

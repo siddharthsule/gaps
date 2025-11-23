@@ -81,12 +81,12 @@ const double R = 0.4;
 // common functions and debugging
 
 // sync device and check for cuda errors
-void sync_gpu_and_check(const char *operation);
+void sync_gpu_and_check(const char* operation);
 
 // debugging - only debug levels 0 and 1 (true or false)
 const bool debug = false;
 
 // debugging function - available in kernels too!
-__host__ __device__ void debug_msg(const char *msg);
+__host__ __device__ void debug_msg(const char* msg);
 
 #endif  // base_cuh_

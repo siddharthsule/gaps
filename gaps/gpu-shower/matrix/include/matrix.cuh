@@ -57,23 +57,23 @@ class matrix {
 
 // cuda kernels to setup matrix and make lo points
 // tip: cuda kernels cannot be member functions
-__global__ void matrix_setup_kernel(matrix *matrix, int process, bool nlo,
+__global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
                                     double root_s);
 
 // LEP
-__global__ void lep_lo(matrix *matrix, event *events, int n);
-__global__ void lep_nlo(matrix *matrix, alpha_s *as, event *events, int n);
+__global__ void lep_lo(matrix* matrix, event* events, int n);
+__global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n);
 
 // LHC LO
-void lhc_lo(thrust::device_vector<event> &dv_events, matrix *matrix, int blocks,
+void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
             int threads);
 
 // LHC NLO
-void lhc_nlo(thrust::device_vector<event> &d_events, matrix *matrix,
-             alpha_s *as, int blocks, int threads);
+void lhc_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
+             alpha_s* as, int blocks, int threads);
 
 // all tasks wrapped in a function
-void calc_lome(thrust::device_vector<event> &d_events, int process, bool nlo,
+void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
                double root_s, double asmz, int blocks, int threads);
 
 #endif  // matrix_cuh

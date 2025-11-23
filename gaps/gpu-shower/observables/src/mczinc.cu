@@ -1,6 +1,13 @@
 #include "mczinc.cuh"
 
 __global__ void calculate_mczinc(const event* events, double* results, int n) {
+  /**
+   * @brief Calculate the Z Boson Variables, akin to rivet's MC_ZINC
+   *
+   * @param ev The event object
+   * @param results The array to store the results
+   * @param n The number of events
+   */
   // ---------------------------------------------
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
