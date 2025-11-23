@@ -132,7 +132,7 @@ name_mapping = {
     'veto_alg': 'Vetoing Process',
     'xfxQ2': 'PDF 1',
     'setup_pdfratio': 'Setup PDF Ratio Calculation',
-    'do_splitting': 'Do Parton Splitting',
+    'do_splitting': 'Perform the Emission',
     'check_cutoff': 'Checking Shower Cutoff',
     'check_too_many_particles': 'Check for Max Particles Per Event',
     'select_flavour': 'PDF 2',
