@@ -4,7 +4,7 @@
 
 > **Version 2.0.0**: Initial and Final State Shower, MC@NLO Matching
 
-This is for Codebase for:
+This is the Codebase for:
 
 - [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
 - [M. H. Seymour and S. Sule, _An NLO-Matched Initial and Final State Parton Shower on a GPU_, ArXiv:2511.19633 (2025)](https://arxiv.org/abs/2511.19633)
@@ -30,7 +30,7 @@ You will need an NVIDIA GPU with CUDA Compatibility 7.0 [[Guide](https://develop
 
 ## Running the Code
 
-The executable ```rungaps``` is written to simplify the use of the code. One can execute the command:
+The executable `rungaps` is provided to simplify the use of the code. One can execute the command:
 
 ```bash
 ./rungaps
