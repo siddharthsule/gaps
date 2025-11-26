@@ -7,7 +7,7 @@
 This is for Codebase for:
 
 - [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
-- [M. H. Seymour and S. Sule, _An NLO-Matched Initial and Final State Parton Shower on a GPU_, ArXiv:2511.19633](https://arxiv.org/abs/2511.19633)
+- [M. H. Seymour and S. Sule, _An NLO-Matched Initial and Final State Parton Shower on a GPU_, ArXiv:2511.19633 (2025)](https://arxiv.org/abs/2511.19633)
 
 The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be reorganised to run in parallel on a GPU without altering the algorithm itself.
 
