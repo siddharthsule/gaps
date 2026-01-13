@@ -57,6 +57,17 @@ The histograms are saved as Yoda files [[arxiv:2312.15070](https://arxiv.org/abs
 rivet-mkhtml --mc-errs -c test/plots.conf <yoda file>
 ```
 
+## CPU-Only Compilation
+
+If you would like to just use the CPU code, you will need you’ll need a local build of LHAPDF with the CT14lo dataset installed. After this, write the path to LHAPDF when inside the gaps repository using the command
+
+```shell
+# NB: the gaps repo has a folder called gaps
+echo "/path/to/lhapdf/6.5.X" > gaps/lhapdf-gpu/path.txt
+```
+
+After this, you can run the CPU code using `rungaps -r cpu`. The code will be compiled for you.
+
 ## Going Further
 
 You can adjust the following parameters:
