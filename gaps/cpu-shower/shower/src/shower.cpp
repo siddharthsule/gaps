@@ -412,27 +412,49 @@ void shower::run(event& ev, bool nlo_matching) {
     // set the starting shower scale
     double t_start = 10000000.;
     for (int i = 0; i < ev.get_size(); i++) {
-      for (int j = 0; j < ev.get_size(); j++) {
-        if (i == j) {
-          continue;
-        }
+      for (int j = i + 1; j < ev.get_size(); j++) {
 
+        // Skip non-partons
         if (!ev.get_particle(i).is_parton() ||
             !ev.get_particle(j).is_parton()) {
           continue;
         }
 
+        // Check if ij and k are colour connected
+        if (!ev.get_particle(i).is_color_connected(ev.get_particle(j))) {
+          continue;
+        }
+
+        // Get the invariant mass squared
         double t =
             (ev.get_particle(i).get_mom() + ev.get_particle(j).get_mom()).m2();
 
+        // Check if minimum
         if (t < t_start) {
           t_start = t;
         }
       }
     }
 
+    // Count colour connections: gluons have 2, quarks/antiquarks have 1
+    double c_start = 0;
+    for (int i = 0; i < ev.get_size(); i++) {
+      if (!ev.get_particle(i).is_parton()) {
+        continue;
+      }
+      // Gluons (pid=21) have both colour and anticolour
+      if (abs(ev.get_particle(i).get_pid()) == 21) {
+        c_start += 2.;
+      } else {
+        // Quarks and antiquarks have one colour connection
+        c_start += 1.;
+      }
+    }
+    // Each colour line connects two partons, so divide by 2
+    c_start /= 2.;
+
     ev.set_shower_t(t_start);
-    ev.set_shower_c(1);
+    ev.set_shower_c(c_start);
   }
 
   // run the shower
