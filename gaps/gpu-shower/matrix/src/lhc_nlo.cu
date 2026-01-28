@@ -29,125 +29,8 @@ __device__ double dilogarithm(double x) {
 
 // -----------------------------------------------------------------------------
 // LO Event Generation - pp -> Z
-
-__global__ void lo_event(event* events, int n, matrix* matrix, int* fl_a,
-                         int* fl_b, double* xa, double* xb, double* q2) {
-  /**
-   * @brief LO event generation for pp -> Z
-   *
-   * @param events array of event records
-   * @param n number of events
-   * @param matrix pointer to the matrix object
-   * @param fl_a array of flavour indices for parton A
-   * @param fl_b array of flavour indices for parton B
-   * @param xa array of momentum fractions for parton A
-   * @param xb array of momentum fractions for parton B
-   * @param q2 array of invariant mass squared for the events
-   */
-  // ---------------------------------------------
-  // Kernel Preamble
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= n) return;
-  // ---------------------------------------------
-  // Matrix Preamble
-  event& ev = events[idx];
-  // ---------------------------------------------
-
-  // We generate an On Shell Z boson, so we cannot run the lo function and use
-  // output, we must generate the event ourselves (and fix s_hat)
-
-  // LHC: Bias Flavout based on contribution (based on cross section)
-  // Flavours:    [down,       up,         strange,    charm,      bottom    ]
-  // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279]
-  // Cumulatives: [0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000]
-  int fl;
-  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
-  double pc[5] = {0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000};
-  // double pd[5] = {1., 0., 0., 0., 0.};
-  // double pc[5] = {1., 1., 1., 1., 1.};
-  double r = ev.gen_random();
-  for (int i = 0; i < 5; ++i) {
-    if (r < pc[i]) {
-      fl = i + 1;  // Flavors are 1-based
-      break;
-    }
-  }
-
-  // On Shell Boson, so s_hat = mz2
-  double s_hat = mz * mz;
-
-  // So only generate one random number!
-  double rho_1 = ev.gen_random();
-
-  // generate y
-  double lim = fmin(100., 0.5 * log((matrix->root_s * matrix->root_s) / s_hat));
-  double y = -lim + 2. * lim * rho_1;
-
-  // Momentum Fractions
-  double eta_a = sqrt(s_hat) / matrix->root_s * exp(y);
-  double eta_b = sqrt(s_hat) / matrix->root_s * exp(-y);
-
-  // Quark / AntiQuark Momentum
-  double p0 = 0.5 * matrix->root_s;
-  vec4 pa = vec4(eta_a * p0, 0., 0., eta_a * p0);
-  vec4 pb = vec4(eta_b * p0, 0., 0., -eta_b * p0);
-
-  // Two Possibilities: P(q) P(qbar) <-> P(qbar) P(q)
-  // In this case, swap momentum and momentum fraction
-  if (ev.gen_random() < 0.5) {
-    vec4 temp_p = pa;
-    pa = pb;
-    pb = temp_p;
-    double temp_eta = eta_a;
-    eta_a = eta_b;
-    eta_b = temp_eta;
-  }
-
-  // Z Momentum
-  vec4 pz = pa + pb;
-
-  // Generate the particles
-  particle p[3] = {particle(), particle(), particle()};
-  p[0] = particle(fl, pa, 0, 1, eta_a);
-  p[1] = particle(-fl, pb, 1, 0, eta_b);
-  p[2] = particle(23, pz, 0, 0);
-
-  // Calculate the Matrix Element Squared
-  double lome = matrix->me2qqZ(fl, (pa + pb).m2());
-
-  // Store PDF Calculation details
-  fl_a[idx] = fl;
-  fl_b[idx] = -fl;
-  xa[idx] = eta_a;
-  xb[idx] = eta_b;
-  q2[idx] = s_hat;
-
-  // Calculate the Cross Section
-  double dxs;
-  dxs = 2.;  // Two Possible Orientations (P(q) P(qbar) or P(qbar) P(q))
-  dxs *= M_PI;
-  dxs *= log((matrix->root_s * matrix->root_s) / s_hat);  // y Sampling
-  dxs *= lome;                                            // ME2
-  dxs *= (1. / pow(s_hat, 2));                            // Leftover
-  dxs *= GeV_minus_2_to_pb;                               // units
-  dxs /= pd[abs(fl) - 1];                                 // Flavour Selection
-
-  // Set the particles
-  for (int i = 0; i < 3; i++) {
-    ev.set_particle(i, p[i]);
-  }
-  ev.set_hard(3);
-
-  // Store the Matrix Element and Cross Section
-  ev.set_me2(lome);
-  ev.set_dxs(dxs);
-
-  // LO Shower Settings
-  ev.set_shower_t(pz.m2());
-  ev.set_shower_c(1);
-
-  return;
-}
+// NOTE: This kernel is no longer used directly. Instead, lhc_nlo now calls
+// lhc_lo() wrapper which handles LO event generation and PDF evaluation.
 
 // -----------------------------------------------------------------------------
 // H Event Generation - pp -> Zj
@@ -681,7 +564,8 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
 
 void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
              alpha_s* as, int blocks, int threads) {
-  // Create PDF Evaluator
+              
+  // Create PDF Evaluator for NLO corrections
   pdf_wrapper pdf;
 
   // use a pointer to the device events
@@ -703,19 +587,13 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   double* d_xf_b;
   cudaMalloc(&d_xf_b, n * sizeof(double));
 
-  // Run LO Kernel
-  debug_msg("running @lo_event");
-  lo_event<<<blocks, threads>>>(d_events, n, matrix, d_fl_a, d_fl_b, d_x_a,
-                                d_x_b, d_s_hat);
-  sync_gpu_and_check("lo_event");
-
-  // Launch the kernel
+  // H Event Generation - Real Emission Corrections
   debug_msg("running @h_event");
   h_event<<<blocks, threads>>>(d_events, n, matrix, as, d_fl_a, d_fl_b, d_x_a,
                                d_x_b, d_s_hat);
   sync_gpu_and_check("h_event");
 
-  // Evalulate PDFs and multiply to dxs
+  // Evaluate PDFs for H events
   // - Real Emission would have changed the PDF params
   // - If no real Emission, PDF params stay the same as LO
   pdf.evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);

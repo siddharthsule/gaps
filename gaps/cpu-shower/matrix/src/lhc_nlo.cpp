@@ -35,114 +35,28 @@ void matrix::lhc_nlo(event& ev) {
    * @brief do lhcnlo (work in progress)
    */
 
-  // We generate an On Shell Z boson, so we cannot run the lo function and use
-  // output, we must generate the event ourselves (and fix s_hat)
+  // To prevent duplicate code, generate LO event first
+  // we'll use the particles and the me2 from this
+  lhc_lo(ev);
 
-  // ---------------------------------------------------------------------------
-  // LO Event Generation - pp -> Z (-> ee for the analysis code to work!)
-
-  // LHC: Bias Flavout based on contribution (based on cross section)
-  // Flavours:    [down,       up,         strange,    charm,      bottom    ]
-  // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279]
-  // Cumulatives: [0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000]
-  int fl;
-  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
-  double pc[5] = {0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000};
-  // double pd[5] = {1., 0., 0., 0., 0.};
-  // double pc[5] = {1., 1., 1., 1., 1.};
-  double r = ev.gen_random();
-  for (int i = 0; i < 5; ++i) {
-    if (r < pc[i]) {
-      fl = i + 1;  // Flavors are 1-based
-      break;
-    }
-  }
-
-  // On Shell Boson, so s_hat = mz2
-  double s_hat = mz * mz;
-
-  // So only generate one random number!
-  double rho_1 = ev.gen_random();
-
-  // generate y
-  double lim = min(100., 0.5 * log((root_s * root_s) / s_hat));
-  double y = -lim + 2. * lim * rho_1;
-
-  // Momentum Fractions
-  double eta_a = sqrt(s_hat) / root_s * exp(y);
-  double eta_b = sqrt(s_hat) / root_s * exp(-y);
-
-  // Quark / AntiQuark Momentum
-  double p0 = 0.5 * root_s;
-  vec4 pa = vec4(eta_a * p0, 0., 0., eta_a * p0);
-  vec4 pb = vec4(eta_b * p0, 0., 0., -eta_b * p0);
-
-  // Two Possibilities: P(q) P(qbar) <-> P(qbar) P(q)
-  // In this case, swap momentum and momentum fraction
-  if (ev.gen_random() < 0.5) {
-    vec4 temp_p = pa;
-    pa = pb;
-    pb = temp_p;
-    double temp_eta = eta_a;
-    eta_a = eta_b;
-    eta_b = temp_eta;
-  }
-
-  // Z Momentum
-  vec4 pz = pa + pb;
-
-  // Generate the particles
-  particle p[3] = {particle(), particle(), particle()};
-  p[0] = particle(fl, pa, 0, 1, eta_a);
-  p[1] = particle(-fl, pb, 1, 0, eta_b);
-  p[2] = particle(23, pz, 0, 0);
-
-  // Calculate the Matrix Element Squared
-  double lome = me2qqZ(fl, (pa + pb).m2());
-
-  // Evaluate PDFs
-  double pdf_a = pdf->xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
-  double pdf_b = pdf->xfxQ2(-fl, eta_b, s_hat);  // x_b f(x_b, s_hat)
-
-  // Calculate the Cross Section
-  double dxs;
-  dxs = 2.;  // Two Possible Orientations (P(q) P(qbar) or P(qbar) P(q))
-  dxs *= M_PI;
-  dxs *= log((root_s * root_s) / s_hat);  // y Sampling
-  dxs *= pdf_a * pdf_b;                   // PDFs
-  dxs *= lome;                            // ME2
-  dxs *= (1. / pow(s_hat, 2));            // Leftover
-  dxs *= GeV_minus_2_to_pb;               // units
-  dxs /= pd[abs(fl) - 1];                 // Flavour Selection
-
-  // Set the particles
-  for (int i = 0; i < 3; i++) {
-    ev.set_particle(i, p[i]);
-  }
-  ev.set_hard(3);
-
-  // Store the Matrix Element and Cross Section
-  ev.set_me2(lome);
-  ev.set_dxs(dxs);
-
-  // LO Shower Settings
-  ev.set_shower_t(pz.m2());
-  ev.set_shower_c(1);
-
-  // ---------------------------------------------------------------------------
-  // Now do the NLO Component
-
-  // Get the matrix element squared and leading order cross section
+  // Define common variables
   double me2_lo = ev.get_me2();
   double dxs_lo = ev.get_dxs();
+
+  // Flavour biasing array (same as in lhc_lo)
+  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
 
   // Momentum Fractions
   double eta_q = ev.get_particle(0).get_eta();
   double eta_qbar = ev.get_particle(1).get_eta();
 
+  // Flavour of the qqbar pair
+  int fl = abs(ev.get_particle(0).get_pid());
+
   // Scale Choice = mz2, the only final state particle in Born!
-  pz = ev.get_particle(2).get_mom();
+  vec4 pz = ev.get_particle(2).get_mom();
   double mu2 = pz.m2();
+  double s_hat = mu2;  // On-shell Z
 
   // -------------------------------------------------------------------------
   // H Event Generation - pp -> Zj

@@ -61,6 +61,7 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
   }
 
   else if ((process == 2) && nlo) {
+    lhc_lo(d_events, d_matrix, blocks, threads);
     lhc_nlo(d_events, d_matrix, d_as, blocks, threads);
   }
 
