@@ -91,3 +91,44 @@ void pdf_wrapper::evaluate(int* d_fl, double* d_x, double* d_q2, double* d_xf,
 
   return;
 }
+
+// -----------------------------------------------------------------------------
+// Multiply cross section by PDF values
+
+__global__ void multiply_dxs_by_pdf_kernel(event* events, int n, double* xf) {
+  /**
+   * @brief Multiply the cross section of each event by the PDFs
+   *
+   * @param events array of event records
+   * @param n number of events
+   * @param xf array of PDF values
+   */
+  // ---------------------------------------------
+  // Kernel Preamble
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  if (idx >= n) return;
+  // ---------------------------------------------
+  // Matrix Preamble
+  event& ev = events[idx];
+  // ---------------------------------------------
+
+  // Multiply by PDF
+  double pdf = xf[idx];
+  ev.set_dxs(ev.get_dxs() * pdf);
+}
+
+void pdf_wrapper::multiply_dxs_by_pdf(event* events, int n, double* xf,
+                                      int blocks, int threads) {
+  /**
+   * @brief Wrapper for the multiply_dxs_by_pdf kernel
+   *
+   * @param events array of event records
+   * @param n number of events
+   * @param xf array of PDF values
+   * @param blocks number of blocks
+   * @param threads number of threads per block
+   */
+  debug_msg("running @multiply_dxs_by_pdf");
+  multiply_dxs_by_pdf_kernel<<<blocks, threads>>>(events, n, xf);
+  sync_gpu_and_check("multiply_dxs_by_pdf");
+}

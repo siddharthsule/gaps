@@ -21,10 +21,9 @@ class matrix {
   // ---------------------------------------------------------------------------
   // constants
 
-  double mz2, gz2, alpha, sin2tw;
-
  public:
-  double amin, ye, ze, ws;
+  // Standard to Hard Event ratio
+  double ws;
 
   // process, LO/NLO and Energy
   int process = 0;
@@ -46,23 +45,22 @@ class matrix {
   // member functions
 
   // leading order matrix element generation
-  __device__ double me2(int fl, double s, double t) const;
+  __device__ double me2_ee2Zy2qq(int fl, double s, double t) const;
 
   // Matrix Element for q qbar to Z, for LHC NLO
   __device__ double me2qqZ(int fl, double s) const;
 };
 
 // -----------------------------------------------------------------------------
-// kernels and wrappers
+// Wrapper declarations
 
-// cuda kernels to setup matrix and make lo points
-// tip: cuda kernels cannot be member functions
-__global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
-                                    double root_s);
+// LEP LO
+void lep_lo(thrust::device_vector<event>& d_events, matrix* matrix, int blocks,
+            int threads);
 
-// LEP
-__global__ void lep_lo(matrix* matrix, event* events, int n);
-__global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n);
+// LEP NLO
+void lep_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
+             alpha_s* as, int blocks, int threads);
 
 // LHC LO
 void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,

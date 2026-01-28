@@ -3,6 +3,7 @@
 
 // Includes all modules, including LHAPDF
 #include "base.cuh"
+#include "event.cuh"
 
 class pdf_wrapper {
   /**
@@ -36,9 +37,13 @@ class pdf_wrapper {
   // wrapper function that calls the kernel
   void evaluate(int* d_fl, double* d_x, double* d_q2, double* d_xf, int n,
                 int blocks, int threads);
+
+  // Multiply cross section by PDF values
+  void multiply_dxs_by_pdf(event* events, int n, double* xf, int blocks,
+                           int threads);
 };
 
-// After evaluating all flavours, filter data to retrieve right value
-__global__ void select_flavour(int* fl, double* xf_in, double* xf_out, int n);
+
+
 
 #endif  // pdf_cuh_

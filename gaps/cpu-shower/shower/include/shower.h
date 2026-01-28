@@ -46,7 +46,7 @@ class shower {
       : e_proton(root_s / 2.),
         t_c(t_c),
         n_emissions_max(n_emissions_max),
-        as(mz, asmz, (fixed_as ? 0 : 2)) {
+        as(asmz, (fixed_as ? 0 : 2)) {
     as_max = as(t_c);
   }
 

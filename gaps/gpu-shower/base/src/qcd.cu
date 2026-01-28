@@ -1,23 +1,15 @@
 #include "qcd.cuh"
 
 // constructor
-__device__ alpha_s::alpha_s(double mz, double asmz, int n_loops, double mb,
-                            double mc)
+__device__ alpha_s::alpha_s(double asmz, int n_loops)
     : n_loops(n_loops),
-      mc2(mc * mc),
-      mb2(mb * mb),
-      mz2(mz * mz),
       asmz(asmz),
       asmb((*this)(mb2)),
       asmc((*this)(mc2)) {}
 
 // setup
-__device__ void alpha_s::setup(double mz, double asmz, int n_loops, double mb,
-                               double mc) {
+__device__ void alpha_s::setup(double asmz, int n_loops) {
   this->n_loops = n_loops;
-  this->mc2 = mc * mc;
-  this->mb2 = mb * mb;
-  this->mz2 = mz * mz;
   this->asmz = asmz;
   this->asmb = (*this)(mb2);
   this->asmc = (*this)(mc2);
@@ -127,20 +119,16 @@ __device__ double alpha_s::operator()(double t) const {
 }
 
 // set up kernel on the device
-__global__ void as_setup_kernel(alpha_s* as, double mz, double asmz,
-                                int n_loops, double mb, double mc) {
+__global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops) {
   /**
    * @brief set up the alpha_s class on the device
    *
    * @param as the alpha_s class
-   * @param mz the Z boson mass
    * @param asmz the strong coupling constant at the Z boson mass
    * @param n_loops the number of loops for the strong coupling constant
-   * @param mb the bottom quark mass
-   * @param mc the charm quark mass
    */
 
-  as->setup(mz, asmz, n_loops, mb, mc);
+  as->setup(asmz, n_loops);
 }
 
 // calculate alpha_s on the device for one input

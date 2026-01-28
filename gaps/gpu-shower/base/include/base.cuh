@@ -52,10 +52,18 @@ const int k_nf = 5;
 // Charm and Bottom quark masses
 const double mc = 1.30;
 const double mb = 4.75;
+const double mc2 = mc * mc;
+const double mb2 = mb * mb;
 
-// Z Boson: Mass, Width
+// Z Boson: Mass, Width, and derived quantities
 const double mz = 91.1876;
 const double gz = 2.4952;
+const double mz2 = mz * mz;
+const double gz2 = gz * gz;
+
+// Electroweak constants
+const double alpha = 1. / 128.802;
+const double sin2tw = 0.22293;
 
 // PDF: Limits (CT14lo)
 const double pdf_x_min = 1e-9;

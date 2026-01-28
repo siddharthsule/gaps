@@ -40,7 +40,7 @@ void matrix::lep_lo(event& ev) {
   p[3] = particle(-fl, p2, 0, 1);
 
   // Calculate the matrix element
-  double lome = me2(fl, (pa + pb).m2(), (pa - p1).m2());
+  double lome = me2_ee2Zy2qq(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= k_nc;  // Three possible colour states
 
   // Calculate the cross-section

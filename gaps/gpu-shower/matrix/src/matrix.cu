@@ -7,13 +7,6 @@ __device__ void matrix::setup(int process, bool nlo, double root_s) {
   this->process = process;
   this->nlo = nlo;
   this->root_s = root_s;
-  this->mz2 = pow(mz, 2.);
-  this->gz2 = pow(gz, 2.);
-  this->alpha = 1. / 128.802;
-  this->sin2tw = 0.22293;
-  this->amin = 1.e-10;
-  this->ye = 0.5;
-  this->ze = 0.01;
   this->ws = 0.25;
 }
 
@@ -48,26 +41,18 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, mz, asmz);
+  as_setup_kernel<<<1, 1>>>(d_as, asmz);
   sync_gpu_and_check("as_setup_kernel");
 
   // LEP LO
   if ((process == 1) && !nlo) {
-    debug_msg("running @lep_lo");
-    lep_lo<<<blocks, threads>>>(d_matrix,
-                                thrust::raw_pointer_cast(d_events.data()), n);
-    sync_gpu_and_check("lep_lo");
+    lep_lo(d_events, d_matrix, blocks, threads);
   }
 
   // LEP NLO
   else if ((process == 1) && nlo) {
-    debug_msg("running @lep_lo and @lep_nlo");
-    lep_lo<<<blocks, threads>>>(d_matrix,
-                                thrust::raw_pointer_cast(d_events.data()), n);
-    sync_gpu_and_check("lep_lo");
-    lep_nlo<<<blocks, threads>>>(d_matrix, d_as,
-                                 thrust::raw_pointer_cast(d_events.data()), n);
-    sync_gpu_and_check("lep_nlo");
+    lep_lo(d_events, d_matrix, blocks, threads);
+    lep_nlo(d_events, d_matrix, d_as, blocks, threads);
   }
 
   // LHC LO - and just do NLO = LO for now

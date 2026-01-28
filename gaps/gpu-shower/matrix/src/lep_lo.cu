@@ -1,6 +1,6 @@
 #include "matrix.cuh"
 
-__global__ void lep_lo(matrix* matrix, event* events, int n) {
+__global__ void lep_lo_kernel(matrix* matrix, event* events, int n) {
   /**
    * @brief generate the leading order interaction
    *
@@ -48,7 +48,7 @@ __global__ void lep_lo(matrix* matrix, event* events, int n) {
   p[3] = particle(-fl, p2, 0, 1);
 
   // Calculate the matrix element
-  double lome = matrix->me2(fl, (pa + pb).m2(), (pa - p1).m2());
+  double lome = matrix->me2_ee2Zy2qq(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= k_nc;  // Three possible colour states
 
   double dxs =
@@ -64,4 +64,20 @@ __global__ void lep_lo(matrix* matrix, event* events, int n) {
   // Store the Matrix Element and Cross Section
   ev.set_me2(lome);
   ev.set_dxs(dxs);
+}
+
+void lep_lo(thrust::device_vector<event>& d_events, matrix* matrix, int blocks,
+            int threads) {
+  /**
+   * @brief Wrapper for the leading order LEP kernel
+   *
+   * @param d_events device vector of events
+   * @param matrix matrix element generator
+   * @param blocks number of blocks
+   * @param threads number of threads
+   */
+
+  debug_msg("running @lep_lo_kernel");
+  lep_lo_kernel<<<blocks, threads>>>(matrix, thrust::raw_pointer_cast(d_events.data()), d_events.size());
+  sync_gpu_and_check("lep_lo_kernel");
 }

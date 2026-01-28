@@ -1,37 +1,6 @@
 #include "matrix.cuh"
 
 // -----------------------------------------------------------------------------
-// Utility Kernels
-
-__global__ void multiply_dxs_by_pdf_lo(event* events, int n, double* xf) {
-  /**
-   * @brief Multiply the cross section of each event by the PDFs
-   *
-   * @param events array of event records
-   * @param n number of events
-   * @param xf_a array of PDF values
-   *
-   * To improve in a future version:
-   * - This is a copy of the kernel in lhc_nlo.cu, with a slightly different
-   *   name, later to do all different calculations in device functions
-   *   and use one kernel
-   *
-   */
-  // ---------------------------------------------
-  // Kernel Preamble
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= n) return;
-  // ---------------------------------------------
-  // Matrix Preamble
-  event& ev = events[idx];
-  // ---------------------------------------------
-
-  // Multiply by PDF
-  double pdf = xf[idx];
-  ev.set_dxs(ev.get_dxs() * pdf);
-}
-
-// -----------------------------------------------------------------------------
 
 __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
                               int* fl_b, double* x_a, double* x_b,
@@ -139,7 +108,7 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
   p[3] = particle(11, p2, 0, 0);
 
   // Calculate the Matrix Element
-  double lome = matrix->me2(fl, (pa + pb).m2(), (pa - p1).m2());
+  double lome = matrix->me2_ee2Zy2qq(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= 1 / k_nc;  // Three possible initial colour states
 
   // Store PDF Calculation details
@@ -217,8 +186,8 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
   // LHC
   pdf.evaluate(d_fl_a, d_x_a, d_mu2, d_xf_a, n, blocks, threads);
   pdf.evaluate(d_fl_b, d_x_b, d_mu2, d_xf_b, n, blocks, threads);
-  multiply_dxs_by_pdf_lo<<<blocks, threads>>>(d_events, n, d_xf_a);
-  multiply_dxs_by_pdf_lo<<<blocks, threads>>>(d_events, n, d_xf_b);
+  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
+  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
 
   // free memory
   cudaFree(d_x_a);

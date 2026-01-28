@@ -44,8 +44,8 @@ void matrix::lep_nlo(event& ev) {
     double rho_5 = ev.gen_random();
 
     // Generate y, z and phi for the emission
-    double y = rho_3;  // pow(ev.gen_random(), 1. / (1. - ye));
-    double z = rho_4;  // pow(ev.gen_random(), 1. / (1. - ze));
+    double y = rho_3;
+    double z = rho_4;
     double phi = 2. * M_PI * rho_5;
 
     // Randomly determine which parton is the emitter
@@ -99,7 +99,7 @@ void matrix::lep_nlo(event& ev) {
     double y132 = s13 / (s12 + s13 + s23);
     double D132 = 1. / s13 * (2. / (1. - z1 * (1. - y132)) - (1. + z1));
     vec4 p13t = p1 + p3 - p2 * (y132 / (1. - y132));
-    D132 *= me2(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
+    D132 *= me2_ee2Zy2qq(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
     D132 *= k_cf * 8 * M_PI * as(root_s * root_s);
 
     // Subtraction term - antiquark emitter
@@ -107,11 +107,12 @@ void matrix::lep_nlo(event& ev) {
     double y231 = s23 / (s12 + s13 + s23);
     double D231 = 1. / s23 * (2. / (1. - z2 * (1. - y231)) - (1. + z2));
     vec4 p23t = p2 + p3 - p1 * (y231 / (1. - y231));
-    D231 *= me2(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
+    D231 *= me2_ee2Zy2qq(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
     D231 *= k_cf * 8 * M_PI * as(root_s * root_s);
 
     // Veto very small virtualities - no subtraction
-    if (y132 < amin || y231 < amin) {
+    double ymin = 1e-10;
+    if (y132 < ymin || y231 < ymin) {
       ev.set_dxs(0.);
       return;
     }

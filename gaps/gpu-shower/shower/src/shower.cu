@@ -597,7 +597,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, mz, asmz, (fixed_as ? 0 : 2));
+  as_setup_kernel<<<1, 1>>>(d_as, asmz, (fixed_as ? 0 : 2));
   sync_gpu_and_check("as_setup_kernel");
 
   // Calculate as_max = as(t_c)

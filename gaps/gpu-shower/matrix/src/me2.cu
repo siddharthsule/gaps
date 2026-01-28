@@ -1,6 +1,6 @@
 #include "matrix.cuh"
 
-__device__ double matrix::me2(int fl, double s, double t) const {
+__device__ double matrix::me2_ee2Zy2qq(int fl, double s, double t) const {
   /**
    * @brief Generate the matrix element squared for massless 2 -> 2 scattering
    * of e+ e- -> q qbar
@@ -45,4 +45,35 @@ __device__ double matrix::me2(int fl, double s, double t) const {
 
   // Output: 16 pi^2 aEM^2 ( (1+cos^2theta)(3qf + ...) + costheta(4qf...) )
   return pow(4. * M_PI * alpha, 2.) * (term1 + term2);
+}
+
+__device__ double matrix::me2qqZ(int fl, double s) const {
+  /**
+   * @brief Generate the matrix element squared for just q qbar -> Z
+   *
+   * @param fl the flavour of the quark
+   * @param s the Mandelstam s variable
+   */
+
+  // For Comparison with Herwig
+  // alpha = 1. / 128.91;
+  // sin2tw = 0.232;
+
+  // constants A, V, Q
+  double q = (abs(fl) == 2 || abs(fl) == 4) ? 2. / 3. : -1. / 3.;
+  double a = (abs(fl) == 2 || abs(fl) == 4) ? 0.5 : -0.5;
+  double v = a - 2. * q * sin2tw;
+
+  // Fermi Constant \sqrt{2} G_F
+  double root2_gf = (4. * M_PI * alpha) / (mz * mz * sin2tw * (1. - sin2tw));
+
+  // Calculate the Matrix Element
+  double me2;
+  me2 = root2_gf;            // Root 2 G_F
+  me2 *= mz * mz * mz * mz;  // M_Z^4
+  me2 *= (a * a + v * v);    // Couplings
+  me2 *= (1. / 4.);          // spin average
+  me2 *= 1 / k_nc;           // Three possible initial colour states
+
+  return me2;
 }

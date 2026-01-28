@@ -20,10 +20,9 @@ class matrix {
   // ---------------------------------------------------------------------------
   // constants
 
-  double mz2, gz2, alpha, sin2tw;
-
  public:
-  double amin, ye, ze, xe, ve, ws;
+  // Standard to Hard Event ratio
+  double ws;
 
   // process, LO/NLO and Energy
   int process = 0;
@@ -44,23 +43,18 @@ class matrix {
       : process(process),
         nlo(nlo),
         root_s(root_s),
-        mz2(pow(mz, 2.)),
-        gz2(pow(gz, 2.)),
-        alpha(1. / 128.802),
-        sin2tw(0.22293),
-        amin(1.e-10),
         ws(0.25),
-        as(mz, asmz) {}
+        as(asmz) {}
 
   // ---------------------------------------------------------------------------
   // member functions
 
   // Matrix Element for e+e- -> qqbar, used for all LO
-  double me2(int fl, double s, double t) const;
+  double me2_ee2Zy2qq(int fl, double s, double t) const;
 
   // Matrix Element for q qbar to Z, for LHC NLO
   // double me2qqgamma(int fl, double s);
-  double me2qqZ(int fl, double s);
+  double me2qqZ(int fl, double s) const;
 
   // function for unique process
   void lep_lo(event& ev);

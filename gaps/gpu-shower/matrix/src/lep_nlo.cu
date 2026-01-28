@@ -1,6 +1,6 @@
 #include "matrix.cuh"
 
-__global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
+__global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events, int n) {
   /**
    * @brief generate the next-to-leading order interaction e+ e- -> q qbar g
    *
@@ -46,8 +46,8 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     double rho_5 = ev.gen_random();
 
     // Generate y, z and phi for the emission
-    double y = rho_3;  // pow(ev.gen_random(), 1. / (1. - ye));
-    double z = rho_4;  // pow(ev.gen_random(), 1. / (1. - ze));
+    double y = rho_3;
+    double z = rho_4;
     double phi = 2. * M_PI * rho_5;
 
     // Randomly determine which parton is the emitter
@@ -102,7 +102,7 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     double D132 = 1. / s13 * (2. / (1. - z1 * (1. - y132)) - (1. + z1));
     vec4 p13t = p1 + p3 - p2 * (y132 / (1. - y132));
     D132 *=
-        matrix->me2(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
+        matrix->me2_ee2Zy2qq(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
     D132 *= k_cf * 8 * M_PI * (*as)(matrix->root_s * matrix->root_s);
 
     // Subtraction term - antiquark emitter
@@ -111,11 +111,12 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
     double D231 = 1. / s23 * (2. / (1. - z2 * (1. - y231)) - (1. + z2));
     vec4 p23t = p2 + p3 - p1 * (y231 / (1. - y231));
     D231 *=
-        matrix->me2(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
+        matrix->me2_ee2Zy2qq(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
     D231 *= k_cf * 8 * M_PI * (*as)(matrix->root_s * matrix->root_s);
 
     // Veto very small virtualities - no subtraction
-    if (y132 < matrix->amin || y231 < matrix->amin) {
+    double ymin = 1e-10;
+    if (y132 < ymin || y231 < ymin) {
       ev.set_dxs(0.);
       return;
     }
@@ -232,4 +233,22 @@ __global__ void lep_nlo(matrix* matrix, alpha_s* as, event* events, int n) {
 
     return;
   }
+}
+
+void lep_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
+                alpha_s* as, int blocks, int threads) {
+  /**
+   * @brief wrapper for the lep_nlo kernel
+   *
+   * @param d_events device vector of events
+   * @param matrix matrix element generator
+   * @param as alpha_s generator
+   * @param blocks number of blocks
+   * @param threads number of threads
+   */
+  debug_msg("running @lep_nlo_kernel");
+  lep_nlo_kernel<<<blocks, threads>>>(matrix, as,
+                                      thrust::raw_pointer_cast(d_events.data()),
+                                      d_events.size());
+  sync_gpu_and_check("lep_nlo_kernel");
 }

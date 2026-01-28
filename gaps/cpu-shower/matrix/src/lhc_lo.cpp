@@ -95,7 +95,7 @@ void matrix::lhc_lo(event& ev) {
   p[3] = particle(11, p2, 0, 0);
 
   // Calculate the Matrix Element
-  double lome = me2(fl, (pa + pb).m2(), (pa - p1).m2());
+  double lome = me2_ee2Zy2qq(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= 1 / k_nc;  // Three possible initial colour states
 
   // Evaluate PDFs

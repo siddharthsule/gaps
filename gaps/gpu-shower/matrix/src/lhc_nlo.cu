@@ -28,65 +28,6 @@ __device__ double dilogarithm(double x) {
 }
 
 // -----------------------------------------------------------------------------
-// Matrix Element Calculations
-
-__device__ double matrix::me2qqZ(int fl, double s) const {
-  /**
-   * @brief Generate the matrix element squared for just q qbar -> Z
-   *
-   * @param fl the flavour of the quark
-   * @param s the Mandelstam s variable
-   */
-
-  // For Comparison with Herwig
-  // alpha = 1. / 128.91;
-  // sin2tw = 0.232;
-
-  // constants A, V, Q
-  double q = (abs(fl) == 2 || abs(fl) == 4) ? 2. / 3. : -1. / 3.;
-  double a = (abs(fl) == 2 || abs(fl) == 4) ? 0.5 : -0.5;
-  double v = a - 2. * q * sin2tw;
-
-  // Fermi Constant \sqrt{2} G_F
-  double root2_gf = (4. * M_PI * alpha) / (mz * mz * sin2tw * (1. - sin2tw));
-
-  // Calculate the Matrix Element
-  double me2;
-  me2 = root2_gf;            // Root 2 G_F
-  me2 *= mz * mz * mz * mz;  // M_Z^4
-  me2 *= (a * a + v * v);    // Couplings
-  me2 *= (1. / 4.);          // spin average
-  me2 *= 1 / k_nc;           // Three possible initial colour states
-
-  return me2;
-}
-
-// -----------------------------------------------------------------------------
-// Utility Kernels
-
-__global__ void multiply_dxs_by_pdf(event* events, int n, double* xf) {
-  /**
-   * @brief Multiply the cross section of each event by the PDFs
-   *
-   * @param events array of event records
-   * @param n number of events
-   * @param xf_a array of PDF values
-   */
-  // ---------------------------------------------
-  // Kernel Preamble
-  int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  if (idx >= n) return;
-  // ---------------------------------------------
-  // Matrix Preamble
-  event& ev = events[idx];
-  // ---------------------------------------------
-
-  // Mutliply by PDF
-  double pdf = xf[idx];
-  ev.set_dxs(ev.get_dxs() * pdf);
-}
-
-// -----------------------------------------------------------------------------
 // LO Event Generation - pp -> Z
 
 __global__ void lo_event(event* events, int n, matrix* matrix, int* fl_a,
@@ -779,8 +720,8 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   // - If no real Emission, PDF params stay the same as LO
   pdf.evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);
   pdf.evaluate(d_fl_b, d_x_b, d_s_hat, d_xf_b, n, blocks, threads);
-  multiply_dxs_by_pdf<<<blocks, threads>>>(d_events, n, d_xf_a);
-  multiply_dxs_by_pdf<<<blocks, threads>>>(d_events, n, d_xf_b);
+  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
+  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
 
   // Born + Virtual + Insertion + Collinear
 

@@ -22,18 +22,14 @@ class alpha_s {
   // member variables
 
   int n_loops;
-  double mc2, mb2, mz2, asmz, asmb, asmc;
+  double asmz, asmb, asmc;
 
  public:
   // ---------------------------------------------------------------------------
   // constructor
 
-  alpha_s(double mz, double asmz, int n_loops = 2, double mb = 4.75,
-          double mc = 1.3)
+  alpha_s(double asmz, int n_loops = 2)
       : n_loops(n_loops),
-        mc2(mc * mc),
-        mb2(mb * mb),
-        mz2(mz * mz),
         asmz(asmz),
         asmb((*this)(mb2)),
         asmc((*this)(mc2)) {}
