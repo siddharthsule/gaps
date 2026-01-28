@@ -16,8 +16,8 @@ double shower::pdf_ratio(int pid_before, int pid_after, double eta, double z,
    * @return double: PDF Ratio
    */
 
-  double xf_a = pdf->xfxQ2(pid_after, eta / z, t);  // After Emission
-  double xf_b = pdf->xfxQ2(pid_before, eta, t);     // Before Emission
+  double xf_a = pdf.xfxQ2(pid_after, eta / z, t);  // After Emission
+  double xf_b = pdf.xfxQ2(pid_before, eta, t);     // Before Emission
 
   // Ensure PDFs are valid
   if (isnan(xf_a) || isnan(xf_b) || isinf(xf_a) || isinf(xf_b) || xf_a <= 0. ||

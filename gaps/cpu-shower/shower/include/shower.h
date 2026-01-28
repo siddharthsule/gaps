@@ -3,6 +3,7 @@
 
 // event and qcd includes all the necessary headers
 #include "event.h"
+#include "pdf.h"
 #include "qcd.h"
 
 class shower {
@@ -27,7 +28,7 @@ class shower {
   // ---------------------------------------------------------------------------
   // member variables
   alpha_s as;
-  LHAPDF::PDF* pdf = LHAPDF::mkPDF("CT14lo", 0);
+  pdf_wrapper pdf;
 
  public:
   double e_proton;

@@ -128,10 +128,10 @@ void matrix::lhc_nlo(event& ev) {
     // Evaluate the PDFs
     int fl_a = !is_q2qg ? 21 : (ij_is_quark ? fl : -fl);
     int fl_b = ij_is_quark ? -fl : fl;
-    eta_a = ij_is_quark ? eta_q / x : eta_qbar / x;
-    eta_b = ij_is_quark ? eta_qbar : eta_q;
-    pdf_a = pdf->xfxQ2(fl_a, eta_a, mu2);  // x_a f(x_a, mu^2)
-    pdf_b = pdf->xfxQ2(fl_b, eta_b, mu2);  // x_b f(x_b, mu^2)
+    double eta_a = ij_is_quark ? eta_q / x : eta_qbar / x;
+    double eta_b = ij_is_quark ? eta_qbar : eta_q;
+    double pdf_a = pdf.xfxQ2(fl_a, eta_a, mu2);  // x_a f(x_a, mu^2)
+    double pdf_b = pdf.xfxQ2(fl_b, eta_b, mu2);  // x_b f(x_b, mu^2)
 
     // Preamble
     double dxs_nlo;
@@ -354,8 +354,8 @@ void matrix::lhc_nlo(event& ev) {
     // q -> q g
     if (r == 1) {
       // Get the PDF Ratio
-      pdf_ratio = pdf->xfxQ2(fl, eta_q / x, mu2);
-      pdf_ratio /= pdf->xfxQ2(fl, eta_q, mu2);
+      pdf_ratio = pdf.xfxQ2(fl, eta_q / x, mu2);
+      pdf_ratio /= pdf.xfxQ2(fl, eta_q, mu2);
       if (isnan(pdf_ratio) || isinf(pdf_ratio)) {
         pdf_ratio = 0.;
       }
@@ -372,8 +372,8 @@ void matrix::lhc_nlo(event& ev) {
     // qbar -> qbar g
     else if (r == 2) {
       // Get the PDF ratio
-      pdf_ratio = pdf->xfxQ2(-fl, eta_qbar / x, mu2);
-      pdf_ratio /= pdf->xfxQ2(-fl, eta_qbar, mu2);
+      pdf_ratio = pdf.xfxQ2(-fl, eta_qbar / x, mu2);
+      pdf_ratio /= pdf.xfxQ2(-fl, eta_qbar, mu2);
       if (isnan(pdf_ratio) || isinf(pdf_ratio)) {
         pdf_ratio = 0.;
       }
@@ -390,8 +390,8 @@ void matrix::lhc_nlo(event& ev) {
     // q -> g qbar
     else if (r == 3) {
       // Get the PDF Ratio
-      pdf_ratio = pdf->xfxQ2(21, eta_q / x, mu2);
-      pdf_ratio /= pdf->xfxQ2(fl, eta_q, mu2);
+      pdf_ratio = pdf.xfxQ2(21, eta_q / x, mu2);
+      pdf_ratio /= pdf.xfxQ2(fl, eta_q, mu2);
       if (isnan(pdf_ratio) || isinf(pdf_ratio)) {
         pdf_ratio = 0.;
       }
@@ -409,8 +409,8 @@ void matrix::lhc_nlo(event& ev) {
     // qbar -> g q
     else if (r == 4) {
       // Get the PDF Ratio
-      pdf_ratio = pdf->xfxQ2(21, eta_qbar / x, mu2);
-      pdf_ratio /= pdf->xfxQ2(-fl, eta_qbar, mu2);
+      pdf_ratio = pdf.xfxQ2(21, eta_qbar / x, mu2);
+      pdf_ratio /= pdf.xfxQ2(-fl, eta_qbar, mu2);
       if (isnan(pdf_ratio) || isinf(pdf_ratio)) {
         pdf_ratio = 0.;
       }

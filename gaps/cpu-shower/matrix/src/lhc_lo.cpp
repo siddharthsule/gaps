@@ -79,8 +79,8 @@ void matrix::lhc_lo(event& ev) {
   double lome = me2qqZ(fl, (pa + pb).m2());
 
   // Evaluate PDFs
-  double pdf_a = pdf->xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
-  double pdf_b = pdf->xfxQ2(-fl, eta_b, s_hat);  // x_b f(x_b, s_hat)
+  double pdf_a = pdf.xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
+  double pdf_b = pdf.xfxQ2(-fl, eta_b, s_hat);  // x_b f(x_b, s_hat)
 
   // Calculate the Cross Section
   double dxs;
@@ -215,8 +215,8 @@ void matrix::lhc_lo(event& ev) {
 //   lome *= 1 / k_nc;  // Three possible initial colour states
 
 //   // Evaluate PDFs
-//   double pdf_a = pdf->xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
-//   double pdf_b = pdf->xfxQ2(-fl, eta_b, s_hat);  // x_b f(x_b, s_hat)
+//   double pdf_a = pdf.xfxQ2(fl, eta_a, s_hat);   // x_a f(x_a, s_hat)
+//   double pdf_b = pdf.xfxQ2(-fl, eta_b, s_hat);  // x_b f(x_b, s_hat)
 
 //   // Calculate the Cross Section
 //   double dxs;

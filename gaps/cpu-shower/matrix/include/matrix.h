@@ -2,6 +2,7 @@
 #define matrix_h_
 
 #include "event.h"
+#include "pdf.h"
 #include "qcd.h"
 
 class matrix {
@@ -30,7 +31,7 @@ class matrix {
   double root_s = 0.;
 
   // PDF: CT14lo
-  LHAPDF::PDF* pdf = LHAPDF::mkPDF("CT14lo", 0);
+  pdf_wrapper pdf;
 
   // Alpha S Calculator for CS NLO
   alpha_s as;
