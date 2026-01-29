@@ -43,10 +43,11 @@ class shower {
   // constructor
 
   shower(double root_s, double t_c, double asmz, bool fixed_as,
-         int n_emissions_max)
+         int n_emissions_max, const std::string& pdf_name = "CT14lo")
       : e_proton(root_s / 2.),
         t_c(t_c),
         n_emissions_max(n_emissions_max),
+        pdf(pdf_name),
         as(asmz, (fixed_as ? 0 : 2)) {
     as_max = as(t_c);
   }

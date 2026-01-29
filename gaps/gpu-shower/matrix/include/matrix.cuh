@@ -63,15 +63,16 @@ void lep_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
              alpha_s* as, int blocks, int threads);
 
 // LHC LO
-void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
-            int threads);
+void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
+            pdf_wrapper* pdf, int blocks, int threads);
 
 // LHC NLO
 void lhc_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
-             alpha_s* as, int blocks, int threads);
+             alpha_s* as, pdf_wrapper* pdf, int blocks, int threads);
 
 // all tasks wrapped in a function
 void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
-               double root_s, double asmz, int blocks, int threads);
+               double root_s, double asmz, int blocks, int threads,
+               const std::string& pdf_name = "CT14lo");
 
 #endif  // matrix_cuh

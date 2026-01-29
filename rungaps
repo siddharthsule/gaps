@@ -97,6 +97,17 @@ def parse_arguments():
                    default=1000,
                    help='set the maximum number of emissions, including the MC@NLO Emission (default: 1000)')
 
+    # PDF sets
+    p.add_argument('-me2pdf', '--me2pdf',
+                   type=str,
+                   default='CT14lo',
+                   help='set the PDF for matrix element calculation (default: CT14lo)')
+
+    p.add_argument('-showerpdf', '--showerpdf',
+                   type=str,
+                   default='CT14lo',
+                   help='set the PDF for parton shower (default: CT14lo)')
+
     # Run options
     p.add_argument('-n', '--nevents',
                    type=int,

@@ -21,7 +21,8 @@ __global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
 
 // function to generate the lo matrix elements + momenta
 void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
-               double root_s, double asmz, int blocks, int threads) {
+               double root_s, double asmz, int blocks, int threads,
+               const std::string& pdf_name) {
   /**
    * @brief wrap
    */
@@ -44,6 +45,9 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
   as_setup_kernel<<<1, 1>>>(d_as, asmz);
   sync_gpu_and_check("as_setup_kernel");
 
+  // set up the pdf evaluator (for LHC processes)
+  pdf_wrapper pdf(pdf_name);
+
   // LEP LO
   if ((process == 1) && !nlo) {
     lep_lo(d_events, d_matrix, blocks, threads);
@@ -57,12 +61,12 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
 
   // LHC LO - and just do NLO = LO for now
   else if ((process == 2) && !nlo) {
-    lhc_lo(d_events, d_matrix, blocks, threads);
+    lhc_lo(d_events, d_matrix, &pdf, blocks, threads);
   }
 
   else if ((process == 2) && nlo) {
-    lhc_lo(d_events, d_matrix, blocks, threads);
-    lhc_nlo(d_events, d_matrix, d_as, blocks, threads);
+    lhc_lo(d_events, d_matrix, &pdf, blocks, threads);
+    lhc_nlo(d_events, d_matrix, d_as, &pdf, blocks, threads);
   }
 
   return;

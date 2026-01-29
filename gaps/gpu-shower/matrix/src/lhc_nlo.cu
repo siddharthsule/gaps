@@ -563,11 +563,8 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
 // Overall Wrapping Function
 
 void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
-             alpha_s* as, int blocks, int threads) {
+             alpha_s* as, pdf_wrapper* pdf, int blocks, int threads) {
               
-  // Create PDF Evaluator for NLO corrections
-  pdf_wrapper pdf;
-
   // use a pointer to the device events
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n = dv_events.size();
@@ -596,10 +593,10 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   // Evaluate PDFs for H events
   // - Real Emission would have changed the PDF params
   // - If no real Emission, PDF params stay the same as LO
-  pdf.evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);
-  pdf.evaluate(d_fl_b, d_x_b, d_s_hat, d_xf_b, n, blocks, threads);
-  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
-  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
+  pdf->evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);
+  pdf->evaluate(d_fl_b, d_x_b, d_s_hat, d_xf_b, n, blocks, threads);
+  pdf->multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
+  pdf->multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
 
   // Born + Virtual + Insertion + Collinear
 
@@ -615,8 +612,8 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   sync_gpu_and_check("c_terms");
 
   // Evaluate PDFs for collinear terms - reuse existing arrays
-  pdf.evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);
-  pdf.evaluate(d_fl_b, d_x_b, d_s_hat, d_xf_b, n, blocks, threads);
+  pdf->evaluate(d_fl_a, d_x_a, d_s_hat, d_xf_a, n, blocks, threads);
+  pdf->evaluate(d_fl_b, d_x_b, d_s_hat, d_xf_b, n, blocks, threads);
 
   // Do BVIC
   debug_msg("running @bvic_terms");

@@ -125,8 +125,8 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
 // -----------------------------------------------------------------------------
 // Wrapper to do the Kernels and External LHAPDF calculation
 
-void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
-            int threads) {
+void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
+            pdf_wrapper* pdf, int blocks, int threads) {
   /**
    * @brief run the hadronic_dxs conversion
    *
@@ -137,9 +137,6 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
    * @param threads number of threads per block
    *
    */
-
-  // set up the pdf evaluator
-  pdf_wrapper pdf;
 
   // use a pointer to the device events
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
@@ -166,10 +163,10 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix, int blocks,
   sync_gpu_and_check("lhc_lo_no_pdf");
 
   // LHC
-  pdf.evaluate(d_fl_a, d_x_a, d_mu2, d_xf_a, n, blocks, threads);
-  pdf.evaluate(d_fl_b, d_x_b, d_mu2, d_xf_b, n, blocks, threads);
-  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
-  pdf.multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
+  pdf->evaluate(d_fl_a, d_x_a, d_mu2, d_xf_a, n, blocks, threads);
+  pdf->evaluate(d_fl_b, d_x_b, d_mu2, d_xf_b, n, blocks, threads);
+  pdf->multiply_dxs_by_pdf(d_events, n, d_xf_a, blocks, threads);
+  pdf->multiply_dxs_by_pdf(d_events, n, d_xf_b, blocks, threads);
 
   // free memory
   cudaFree(d_x_a);

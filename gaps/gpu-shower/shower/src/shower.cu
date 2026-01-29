@@ -602,7 +602,7 @@ struct is_not_end_shower {
 void run_shower(thrust::device_vector<event>& dv_events, double root_s,
                 bool nlo_matching, bool do_partitioning, double t_c,
                 double asmz, bool fixed_as, int n_emissions_max, int blocks,
-                int threads) {
+                int threads, const std::string& pdf_name) {
   /**
    * @brief Run the shower on the events
    *
@@ -637,7 +637,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   sync_gpu_and_check("shower_setup_kernel");
 
   // set up the pdf evaluator
-  pdf_wrapper pdf;
+  pdf_wrapper pdf(pdf_name);
 
   /**
    * Shower Variables - useful to store as collective

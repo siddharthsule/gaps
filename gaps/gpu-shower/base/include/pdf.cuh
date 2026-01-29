@@ -28,7 +28,10 @@ class pdf_wrapper {
   // ---------------------------------------------------------------------------
   // constructor and destructor
 
-  pdf_wrapper() : pdf(new CuPDF("CT14lo", 0)) { LHAPDF::setVerbosity(0); }
+  pdf_wrapper(const std::string& name = "CT14lo", int member = 0)
+      : pdf(new CuPDF(name, member)) {
+    LHAPDF::setVerbosity(0);
+  }
   ~pdf_wrapper() { delete pdf; }
 
   // ---------------------------------------------------------------------------

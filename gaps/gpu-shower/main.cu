@@ -49,7 +49,8 @@ __global__ void set_seed_kernel(event* events, int id_offset, int n) {
 
 void run_generator(int process, bool nlo, double root_s, double asmz,
                    bool fixed_as, bool no_shower, double t_c,
-                   int n_emissions_max, int n, int id_offset,
+                   int n_emissions_max, std::string me2pdf,
+                   std::string showerpdf, int n, int id_offset,
                    std::string filename, bool do_partitioning, int threads) {
   /**
    * @brief Run the event generator
@@ -62,6 +63,8 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
    * @param no_shower whether to skip the shower section
    * @param t_c the shower cutoff in GeV
    * @param n_emissions_max the maximum number of emissions
+   * @param me2pdf the PDF set name for matrix element calculation
+   * @param showerpdf the PDF set name for parton shower
    * @param n the number of events to generate
    * @param id_offset the offset for the event id
    * @param filename the name of the file to store the histograms
@@ -89,7 +92,8 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   set_seed_kernel<<<blocks, threads>>>(d_events, id_offset, n);
 
   // Output LHAPDF settings
-  std::cout << " - Using LHAPDF with CT14lo set" << std::endl;
+  std::cout << " - Using LHAPDF with ME2 PDF: " << me2pdf << std::endl;
+  std::cout << " - Using LHAPDF with Shower PDF: " << showerpdf << std::endl;
   LHAPDF::setVerbosity(0);
 
   // Extra line to add space
@@ -102,7 +106,7 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   auto start = std::chrono::high_resolution_clock::now();
 
   // Calculate the leading order cross section and kinematics
-  calc_lome(dv_events, process, nlo, root_s, asmz, blocks, threads);
+  calc_lome(dv_events, process, nlo, root_s, asmz, blocks, threads, me2pdf);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
@@ -119,7 +123,7 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
     start = std::chrono::high_resolution_clock::now();
 
     run_shower(dv_events, root_s, nlo, do_partitioning, t_c, asmz, fixed_as,
-               n_emissions_max, blocks, threads);
+               n_emissions_max, blocks, threads, showerpdf);
 
     end = std::chrono::high_resolution_clock::now();
     diff_sh = end - start;
@@ -226,20 +230,26 @@ int main(int argc, char* argv[]) {
   // 8 - The maximum number of emissions
   int n_emissions_max = atoi(argv[8]);
 
-  // 9 - The Number of events
-  int n_events = atoi(argv[9]);
+  // 9 - ME2 PDF name
+  std::string me2pdf = argv[9];
 
-  // 10 - The Event Number Offset
-  int id_offset = atoi(argv[10]);
+  // 10 - Shower PDF name
+  std::string showerpdf = argv[10];
 
-  // 11 - Storage file name
-  std::string storage_file = argv[11];
+  // 11 - The Number of events
+  int n_events = atoi(argv[11]);
 
-  // 12 - Do partitioning
-  bool do_partitioning = atoi(argv[12]);
+  // 12 - The Event Number Offset
+  int id_offset = atoi(argv[12]);
 
-  // 13 - Threads per block
-  int threads = atoi(argv[13]);
+  // 13 - Storage file name
+  std::string storage_file = argv[13];
+
+  // 14 - Do partitioning
+  bool do_partitioning = atoi(argv[14]);
+
+  // 15 - Threads per block
+  int threads = atoi(argv[15]);
 
   // if more than max_events, run in batches
   if (n_events > max_events) {
@@ -249,8 +259,8 @@ int main(int argc, char* argv[]) {
 
   // run the generator
   run_generator(process, nlo, root_s, asmz, fixed_as, no_shower, t_c,
-                n_emissions_max, n_events, id_offset, storage_file,
-                do_partitioning, threads);
+                n_emissions_max, me2pdf, showerpdf, n_events, id_offset,
+                storage_file, do_partitioning, threads);
   return 0;
 }
 // -----------------------------------------------------------------------------

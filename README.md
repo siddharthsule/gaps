@@ -2,7 +2,7 @@
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-> **Version 2.0.0**: Initial and Final State Shower, MC@NLO Matching
+> **Version 2.1.0**: Replace LHC LO Process, PDF choices
 
 This is the Codebase for:
 
@@ -20,8 +20,7 @@ The code is an NLO+Shower generator. It can simulate two processes:
   - Observables: Durham Jet Rates and Event Shapes
 
 - **Z Production at the LHC @ 13 TeV**
-  - LO Process:  $p p \to Z/\gamma \to e^+ e^-$
-  - NLO Process: $p p \to Z$
+  - NLO Process: $p p \to Z$ at LO/NLO
   - Observables: $Z$ Observables and Anti-$k_T$ Jets
 
 ## Requirements
@@ -77,9 +76,12 @@ You can adjust the following parameters:
 - `-noshower`: Skip the shower section (hard subprocess only)
 - `-t_c`: Adjust the Shower Cutoff
 - `-n_em_max`: Limit the number of emissions, including the MC@NLO Emission
+- `-me2pdf` and `-showerpdf`: Change PDF from CT14lo (install first!)
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
 - `-nsys, -codecarbon, -gprof`: Profiling Tools
+
+The LHC LO process $pp \to Z/\gamma \to e^+e^-$ has been replaced with $pp \to Z$, as it is a better complementary to the NLO process. If needed, the old code can be uncommented in `lhc_lo.cpp/.cu`.
 
 To learn more about the code and how it all works, see the [documentation](doc/README.md).
 

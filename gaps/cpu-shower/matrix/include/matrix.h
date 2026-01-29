@@ -40,11 +40,12 @@ class matrix {
   // ---------------------------------------------------------------------------
   // constructor
   matrix(int process = 1, bool nlo = false, double root_s = 91.2,
-         double asmz = 0.118)
+         double asmz = 0.118, const std::string& pdf_name = "CT14lo")
       : process(process),
         nlo(nlo),
         root_s(root_s),
         ws(0.25),
+        pdf(pdf_name),
         as(asmz) {}
 
   // ---------------------------------------------------------------------------

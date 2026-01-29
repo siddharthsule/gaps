@@ -17,6 +17,8 @@ def prepare_runparams(runtype, args):
     - noshower: 1 if skip shower, 0 if run shower
     - t_c: The Shower cutoff in GeV
     - n_emissions_max: The maximum number of emissions
+    - me2pdf: PDF set name for matrix element calculation
+    - showerpdf: PDF set name for parton shower
     - nevents: The number of events to generate
     - Event Number Offset: The offset for the event number (default 0)
     - Output filename: The name of the output file
@@ -55,19 +57,25 @@ def prepare_runparams(runtype, args):
     # 7 - Add the maximum number of emissions
     params.append(str(args.n_emissions_max))
 
-    # 8 - Add the number of events
+    # 8 - Add ME2 PDF name
+    params.append(args.me2pdf)
+
+    # 9 - Add Shower PDF name
+    params.append(args.showerpdf)
+
+    # 10 - Add the number of events
     params.append(str(args.nevents))
 
-    # 9 - Add Event Number Offset - will be adjusted in run_cpu_cluster
+    # 11 - Add Event Number Offset - will be adjusted in run_cpu_cluster
     params.append('0')
 
-    # 10 - Add Storage file name
+    # 12 - Add Storage file name
     if runtype == 'cpu':
         params.append('cpu.yoda')
     elif runtype == 'gpu':
         params.append('gpu.yoda')
 
-    # 11 - If GPU and Threads Given
+    # 13 - If GPU and Threads Given
     if runtype == 'gpu':
 
         # Add partitioning flag
@@ -129,9 +137,9 @@ def run_cpu_cluster(ncpu, args):
         params = prepare_runparams('cpu', args)
 
         # adjust output filename and offset
-        params[8] = str(this_proc_events)
-        params[9] = str(offset)
-        params[10] = output_filename
+        params[10] = str(this_proc_events)
+        params[11] = str(offset)
+        params[12] = output_filename
 
         # Path to the executable
         exe_path = ['./gaps/cpu-shower/bin/cpu-shower']
