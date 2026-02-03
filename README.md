@@ -76,7 +76,7 @@ You can adjust the following parameters:
 - `-noshower`: Skip the shower section (hard subprocess only)
 - `-t_c`: Adjust the Shower Cutoff
 - `-n_em_max`: Limit the number of emissions, including the MC@NLO Emission
-- `-me2pdf` and `-showerpdf`: Change PDF from CT14lo (install first!)
+- `-me2pdf` and `-showerpdf`: Change PDF (default: CT14lo). Also update range in base.h!
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
 - `-nsys, -codecarbon, -gprof`: Profiling Tools
