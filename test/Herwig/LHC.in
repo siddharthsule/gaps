@@ -5,45 +5,54 @@
 # usage: Herwig read LHC.in
 ##################################################
 
+read snippets/Matchbox.in
 read snippets/PPCollider.in
 
 ##################################################
 # Technical parameters for this run
 ##################################################
 cd /Herwig/Generators
-
-# sqrt(s) = 13000 GeV
-set EventGenerator:EventHandler:LuminosityFunction:Energy 13000.0
+set EventGenerator:EventHandler:LuminosityFunction:Energy 13000*GeV
 
 ##################################################
-# LHC physics parameters (override defaults here) 
-##################################################
-cd /Herwig/Cuts/
-insert Cuts:TwoCuts 0 LeptonPairMassCut
-set LeptonPairMassCut:MinMass 60*GeV
-set LeptonPairMassCut:MaxMass 120*GeV
-
-##################################################
-# Z Boson cuts - For Testing
-##################################################
-# cd /Herwig/Cuts/
-# set ZBosonKtCut:MaxRapidity 0.0
-# set ZBosonKtCut:MinRapidity 0.0
-# insert Cuts:OneCuts[0] ZBosonCut
-# set ZBosonCut:YRange 0.1 0.5
-# set /Herwig/Cuts/Cuts:YHatMin -4.5
-# set /Herwig/Cuts/Cuts:YHatMax 4.5
-
-##################################################
-# Matrix Elements for hadron-hadron collisions 
+# Matrix Elements for p-p collisions 
 # (by default only gamma/Z switched on)
 ##################################################
-cd /Herwig/MatrixElements/
 
-# Drell-Yan Z/gamma
-insert SubProcess:MatrixElements[0] MEqq2gZ2ff
-set MEqq2gZ2ff:Process Electron # qq -> ee
-set MEqq2gZ2ff:SpinCorrelations No # Simple
+## Model assumptions
+read Matchbox/StandardModelLike.in
+read Matchbox/DiagonalCKM.in
+read Matchbox/MadGraph-OpenLoops.in
+#read Matchbox/MCatNLO-DipoleShower.in # Additional Tune here - Do Manually!
+
+## Set the order of the couplings
+cd /Herwig/MatrixElements/Matchbox
+set Factory:OrderInAlphaS 0
+set Factory:OrderInAlphaEW 1
+set Factory:SpinCorrelations No
+# set Factory:ShowerApproximation DipoleMatching
+set /Herwig/EventHandlers/EventHandler:Weighted Yes
+set /Herwig/Couplings/NLOAlphaS:input_scale 91.1876*GeV
+set /Herwig/Couplings/NLOAlphaS:input_alpha_s 0.118
+set /Herwig/Model:QCD/RunningAlphaS /Herwig/Couplings/NLOAlphaS
+
+# Verbose output
+set /Herwig/Samplers/Sampler:Verbose Yes
+
+## Select the process
+read Matchbox/OnShellZProduction.in
+set /Herwig/Particles/Z0:Stable Stable
+do Factory:Process p p -> Z0
+
+# LHC LO!!!
+set Factory:VirtualContributions Off
+set Factory:RealContributions Off
+set Factory:ShowerApproximation NULL
+
+# Set the scale
+cd  /Herwig/MatrixElements/Matchbox/
+set Scales/FixedScale:FixedScale 91.2*GeV
+set Factory:ScaleChoice Scales/FixedScale
 
 ##################################################
 #  Switch off Any QED radiation
@@ -179,5 +188,7 @@ insert /Herwig/Analysis/Rivet:Analyses 0 GAPS_LHC
 ##################################################
 # Save run for later usage with 'Herwig run'
 ##################################################
+do /Herwig/MatrixElements/Matchbox/Factory:ProductionMode
+
 cd /Herwig/Generators
 saverun LHC EventGenerator

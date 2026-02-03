@@ -1,8 +1,8 @@
 # -*- ThePEG-repository -*-
 
 ##################################################
-# Example generator based on LEP parameters
-# usage: Herwig read LEPNLO.in
+# Example generator based on LHC parameters
+# usage: Herwig read LHCNLO.in
 ##################################################
 
 read snippets/Matchbox.in
@@ -16,8 +16,7 @@ cd /Herwig/Generators
 set EventGenerator:EventHandler:LuminosityFunction:Energy 13000*GeV
 
 ##################################################
-# Matrix Elements for e-e collisions 
-# (by default only gamma/Z switched on)
+# Matrix Elements for p-p collisions 
 ##################################################
 
 ## Model assumptions
@@ -83,7 +82,7 @@ set /Herwig/Particles/b:NominalMass 0.*GeV
 set /Herwig/Particles/bbar:NominalMass 0.*GeV
 
 ##################################################
-# PDFs - Not Needed for LEP
+# PDFs
 ##################################################
 set /Herwig/Partons/HardLOPDF:PDFName CT14lo
 set /Herwig/Partons/HardNLOPDF:PDFName CT14lo
