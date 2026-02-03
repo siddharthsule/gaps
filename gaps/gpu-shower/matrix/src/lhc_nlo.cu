@@ -50,6 +50,12 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   // ---------------------------------------------------------------------------
   // Is this an H Event? If not, return
   if (ev.gen_random() > matrix->ws) {
+    // Set flavour to 0 so PDF evaluation returns 1.0 (no effect on dxs)
+    fl_a[idx] = 0;
+    fl_b[idx] = 0;
+    xa[idx] = 0.5;
+    xb[idx] = 0.5;
+    q2pdf[idx] = 1000.;
     return;
   }
 
@@ -294,9 +300,9 @@ __global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
 
   // If Real Correction, return (already done!)
   if (ev.get_size() == 4) {
-    // Place with nonsense values that won't be used (Avoids PDF Error)
-    fl_a[idx] = 1;
-    fl_b[idx] = 1;
+    // Set flavour to 0 so PDF evaluation returns 1.0 (no effect on dxs)
+    fl_a[idx] = 0;
+    fl_b[idx] = 0;
     xa[idx] = 0.5;
     xb[idx] = 0.5;
     q2[idx] = 1000.;

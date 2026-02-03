@@ -18,6 +18,12 @@ __global__ void select_flavour(int* fl, double* xf_in, double* xf_out, int n) {
   if (idx >= n) return;
   // ---------------------------------------------
 
+  // Flavour 0 is a flag for don't eval, set PDF to 1
+  if (fl[idx] == 0) {
+    xf_out[idx] = 1.0;
+    return;
+  }
+
   // Convert Flavour to Row
   int fl_row = (fl[idx] == 21) ? 0
                : (fl[idx] > 0) ? fl[idx]
