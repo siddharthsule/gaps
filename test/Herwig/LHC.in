@@ -45,8 +45,8 @@ set /Herwig/Particles/Z0:Stable Stable
 do Factory:Process p p -> Z0
 
 # LHC LO!!!
-set Factory:VirtualContributions Off
-set Factory:RealContributions Off
+set Factory:VirtualContributions No
+set Factory:RealContributions No
 set Factory:ShowerApproximation NULL
 
 # Set the scale
