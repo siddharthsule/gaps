@@ -29,10 +29,7 @@ class alpha_s {
   // constructor
 
   alpha_s(double asmz, int n_loops = 2)
-      : n_loops(n_loops),
-        asmz(asmz),
-        asmb((*this)(mb2)),
-        asmc((*this)(mc2)) {}
+      : n_loops(n_loops), asmz(asmz), asmb((*this)(mb2)), asmc((*this)(mc2)) {}
 
   // ---------------------------------------------------------------------------
   // member functions

@@ -413,7 +413,6 @@ void shower::run(event& ev, bool nlo_matching) {
     double t_start = 10000000.;
     for (int i = 0; i < ev.get_size(); i++) {
       for (int j = i + 1; j < ev.get_size(); j++) {
-
         // Skip non-partons
         if (!ev.get_particle(i).is_parton() ||
             !ev.get_particle(j).is_parton()) {

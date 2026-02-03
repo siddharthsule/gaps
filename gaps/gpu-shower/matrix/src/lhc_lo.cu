@@ -3,8 +3,7 @@
 // -----------------------------------------------------------------------------
 
 __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
-                              int* fl_b, double* xa, double* xb,
-                              double* q2) {
+                              int* fl_b, double* xa, double* xb, double* q2) {
   /**
    * @brief generate the leading order interaction p p -> Z
    *
@@ -187,9 +186,10 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
  * For the purposes of a suitable comparsion to NLO, the LO process has been
  * rewritten to just do pp -> Z, onshell Z. If needed, the old function is here
  * and can be uncommented.
-*/
+ */
 
-// __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
+// __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int*
+// fl_a,
 //                               int* fl_b, double* x_a, double* x_b,
 //                               double* mu2) {
 //   /**
@@ -213,11 +213,13 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
 //   // ---------------------------------------------
 
 //   // LHC: Bias Flavour based on contribution (based on cross section)
-//   // Flavours:    [down,       up,         strange,    charm,      bottom    ]
-//   // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279]
-//   // Cumulatives: [0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000]
-//   double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
-//   double pc[5] = {0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000};
+//   // Flavours:    [down,       up,         strange,    charm,      bottom ]
+//   // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033,
+//   0.02870279]
+//   // Cumulatives: [0.36677679, 0.80186718, 0.91861688,
+//   0.97129721, 1.00000000] double pd[5] = {0.36677679, 0.43509039, 0.11674970,
+//   0.05268033, 0.02870279}; double pc[5] = {0.36677679, 0.80186718,
+//   0.91861688, 0.97129721, 1.00000000};
 
 //   // For unbiased Flavour Production
 //   // double pd[5] = {0.2, 0.2, 0.2, 0.2, 0.2};
@@ -260,9 +262,11 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
 //   double eta_b = sqrt(s_hat) / matrix->root_s * exp(-y);
 //   // Quark / AntiQuark Momentum
 //   vec4 pa =
-//       vec4(eta_a * 0.5 * matrix->root_s, 0., 0., eta_a * 0.5 * matrix->root_s);
+//       vec4(eta_a * 0.5 * matrix->root_s, 0., 0., eta_a * 0.5 *
+//       matrix->root_s);
 //   vec4 pb =
-//       vec4(eta_b * 0.5 * matrix->root_s, 0., 0., -eta_b * 0.5 * matrix->root_s);
+//       vec4(eta_b * 0.5 * matrix->root_s, 0., 0., -eta_b * 0.5 *
+//       matrix->root_s);
 //   // Z Momentum
 //   vec4 q = pa + pb;
 //   // Z Rest Frame

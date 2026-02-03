@@ -78,6 +78,7 @@ void lep_lo(thrust::device_vector<event>& d_events, matrix* matrix, int blocks,
    */
 
   debug_msg("running @lep_lo_kernel");
-  lep_lo_kernel<<<blocks, threads>>>(matrix, thrust::raw_pointer_cast(d_events.data()), d_events.size());
+  lep_lo_kernel<<<blocks, threads>>>(
+      matrix, thrust::raw_pointer_cast(d_events.data()), d_events.size());
   sync_gpu_and_check("lep_lo_kernel");
 }

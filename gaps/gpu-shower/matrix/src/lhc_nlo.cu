@@ -564,7 +564,6 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
 
 void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
              alpha_s* as, pdf_wrapper* pdf, int blocks, int threads) {
-              
   // use a pointer to the device events
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n = dv_events.size();

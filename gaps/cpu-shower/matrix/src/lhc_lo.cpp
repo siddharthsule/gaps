@@ -114,7 +114,7 @@ void matrix::lhc_lo(event& ev) {
  * For the purposes of a suitable comparsion to NLO, the LO process has been
  * rewritten to just do pp -> Z, onshell Z. If needed, the old function is here
  * and can be uncommented.
-*/
+ */
 
 // void matrix::lhc_lo(event& ev) {
 //   /**
@@ -132,11 +132,13 @@ void matrix::lhc_lo(event& ev) {
 //    */
 
 //   // LHC: Bias Flavour based on contribution (based on cross section)
-//   // Flavours:    [down,       up,         strange,    charm,      bottom    ]
-//   // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279]
-//   // Cumulatives: [0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000]
-//   double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
-//   double pc[5] = {0.36677679, 0.80186718, 0.91861688, 0.97129721, 1.00000000};
+//   // Flavours:    [down,       up,         strange,    charm,      bottom ]
+//   // Percentages: [0.36677679, 0.43509039, 0.11674970, 0.05268033,
+//   0.02870279]
+//   // Cumulatives: [0.36677679, 0.80186718, 0.91861688,
+//   0.97129721, 1.00000000] double pd[5] = {0.36677679, 0.43509039, 0.11674970,
+//   0.05268033, 0.02870279}; double pc[5] = {0.36677679, 0.80186718,
+//   0.91861688, 0.97129721, 1.00000000};
 
 //   // For unbiased Flavour Production
 //   // double pd[5] = {0.2, 0.2, 0.2, 0.2, 0.2};

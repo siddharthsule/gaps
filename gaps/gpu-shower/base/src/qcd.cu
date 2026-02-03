@@ -2,10 +2,7 @@
 
 // constructor
 __device__ alpha_s::alpha_s(double asmz, int n_loops)
-    : n_loops(n_loops),
-      asmz(asmz),
-      asmb((*this)(mb2)),
-      asmc((*this)(mc2)) {}
+    : n_loops(n_loops), asmz(asmz), asmb((*this)(mb2)), asmc((*this)(mc2)) {}
 
 // setup
 __device__ void alpha_s::setup(double asmz, int n_loops) {

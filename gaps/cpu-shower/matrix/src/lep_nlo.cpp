@@ -99,7 +99,8 @@ void matrix::lep_nlo(event& ev) {
     double y132 = s13 / (s12 + s13 + s23);
     double D132 = 1. / s13 * (2. / (1. - z1 * (1. - y132)) - (1. + z1));
     vec4 p13t = p1 + p3 - p2 * (y132 / (1. - y132));
-    D132 *= me2_ee2Zy2qq(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
+    D132 *=
+        me2_ee2Zy2qq(fl, Q2, (ev.get_particle(0).get_mom() - p13t).m2()) * k_nc;
     D132 *= k_cf * 8 * M_PI * as(root_s * root_s);
 
     // Subtraction term - antiquark emitter
@@ -107,7 +108,8 @@ void matrix::lep_nlo(event& ev) {
     double y231 = s23 / (s12 + s13 + s23);
     double D231 = 1. / s23 * (2. / (1. - z2 * (1. - y231)) - (1. + z2));
     vec4 p23t = p2 + p3 - p1 * (y231 / (1. - y231));
-    D231 *= me2_ee2Zy2qq(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
+    D231 *=
+        me2_ee2Zy2qq(fl, Q2, (ev.get_particle(1).get_mom() - p23t).m2()) * k_nc;
     D231 *= k_cf * 8 * M_PI * as(root_s * root_s);
 
     // Veto very small virtualities - no subtraction

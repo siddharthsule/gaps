@@ -25,7 +25,8 @@ ncpu = args.ncpu
 nreps = args.nreps
 
 # Different Values of Events
-n_list = [10000, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000]
+n_list = [10000, 100000, 200000, 300000, 400000,
+          500000, 600000, 700000, 800000, 900000, 1000000]
 
 # GPU Tuning - best value for Threads per Block
 thr = 128
@@ -92,6 +93,7 @@ def f(t, a, p, c):
     """
     return a * t ** p + c
 
+
 def reduced_chi2(y_obs, y_exp, y_err, num_params):
     """
     Calculate the reduced chi-squared statistic.
@@ -99,6 +101,7 @@ def reduced_chi2(y_obs, y_exp, y_err, num_params):
     chi2 = np.sum(((y_obs - y_exp) / y_err) ** 2)
     dof = len(y_obs) - num_params
     return chi2 / dof
+
 
 if option == 'plot':
     # First, ensure CPU and GPU files exist
@@ -110,10 +113,8 @@ if option == 'plot':
         print(f"Error: {em_gpu} not found.")
         exit(1)
 
-
     gpu = pd.read_csv("../" + em_gpu, header=0, delimiter=',')
     cpu = pd.read_csv("../" + em_cpu, header=0, delimiter=',')
-
 
     # print("GPU Emissions Data:")
     # print(gpu)
@@ -162,10 +163,8 @@ if option == 'plot':
 
         return median, iqr_values
 
-
     gpu_med, gpu_iqr = median_and_iqr(gpu)
     cpu_med, cpu_iqr = median_and_iqr(cpu)
-
 
     # print("CPU Median and IQR:")
     # print(cpu_med)
@@ -184,7 +183,8 @@ if option == 'plot':
     a_cpu_time, p_cpu_time, c_cpu_time = popt_cpu_time
 
     # Fit CPU energy data
-    popt_cpu_energy, _ = curve_fit(f, n_array, cpu_med[:, 1], p0=[1.0, 1.0, 0.0])
+    popt_cpu_energy, _ = curve_fit(
+        f, n_array, cpu_med[:, 1], p0=[1.0, 1.0, 0.0])
     a_cpu_energy, p_cpu_energy, c_cpu_energy = popt_cpu_energy
 
     # Fit GPU time data
@@ -192,30 +192,38 @@ if option == 'plot':
     a_gpu_time, p_gpu_time, c_gpu_time = popt_gpu_time
 
     # Fit GPU energy data
-    popt_gpu_energy, _ = curve_fit(f, n_array, gpu_med[:, 1], p0=[1.0, 1.0, 0.0])
+    popt_gpu_energy, _ = curve_fit(
+        f, n_array, gpu_med[:, 1], p0=[1.0, 1.0, 0.0])
     a_gpu_energy, p_gpu_energy, c_gpu_energy = popt_gpu_energy
 
     # Try Linear fit from 100k to 1M for GPU time
-    popt_linear_gpu_time, _ = curve_fit(lambda x, m, c: m * x + c, n_array, gpu_med[:, 0], p0=[1e-6, 0.0])
+    popt_linear_gpu_time, _ = curve_fit(
+        lambda x, m, c: m * x + c, n_array, gpu_med[:, 0], p0=[1e-6, 0.0])
     m_linear_gpu_time, c_linear_gpu_time = popt_linear_gpu_time
-    popt_linear_gpu_energy, _ = curve_fit(lambda x, m, c: m * x + c, n_array, gpu_med[:, 1], p0=[1e-9, 0.0])
+    popt_linear_gpu_energy, _ = curve_fit(
+        lambda x, m, c: m * x + c, n_array, gpu_med[:, 1], p0=[1e-9, 0.0])
     m_linear_gpu_energy, c_linear_gpu_energy = popt_linear_gpu_energy
-
 
     print("Fitting Power Law to Execution Time and Energy Data")
     print("f(n) = a * n^p + c, mainly interested in p exponent")
     print("")
     print("CPU:")
-    print(f"  Execution :  p = {p_cpu_time:.2f}, reduced chi2 = {reduced_chi2(cpu_med[:,0], f(n_array, *popt_cpu_time), cpu_iqr[:,0], len(popt_cpu_time)):.2f}")
-    print(f"  Energy    :  p = {p_cpu_energy:.2f}, reduced chi2 = {reduced_chi2(cpu_med[:,1], f(n_array, *popt_cpu_energy), cpu_iqr[:,1], len(popt_cpu_energy)):.2f}")
+    print(
+        f"  Execution :  p = {p_cpu_time:.2f}, reduced chi2 = {reduced_chi2(cpu_med[:, 0], f(n_array, *popt_cpu_time), cpu_iqr[:, 0], len(popt_cpu_time)):.2f}")
+    print(
+        f"  Energy    :  p = {p_cpu_energy:.2f}, reduced chi2 = {reduced_chi2(cpu_med[:, 1], f(n_array, *popt_cpu_energy), cpu_iqr[:, 1], len(popt_cpu_energy)):.2f}")
     print("")
     print("GPU:")
-    print(f"  Execution :  p = {p_gpu_time:.2f}, reduced chi2 = {reduced_chi2(gpu_med[:,0], f(n_array, *popt_gpu_time), gpu_iqr[:,0], len(popt_gpu_time)):.2f}")
-    print(f"  Energy    :  p = {p_gpu_energy:.2f}, reduced chi2 = {reduced_chi2(gpu_med[:,1], f(n_array, *popt_gpu_energy), gpu_iqr[:,1], len(popt_gpu_energy)):.2f}")
+    print(
+        f"  Execution :  p = {p_gpu_time:.2f}, reduced chi2 = {reduced_chi2(gpu_med[:, 0], f(n_array, *popt_gpu_time), gpu_iqr[:, 0], len(popt_gpu_time)):.2f}")
+    print(
+        f"  Energy    :  p = {p_gpu_energy:.2f}, reduced chi2 = {reduced_chi2(gpu_med[:, 1], f(n_array, *popt_gpu_energy), gpu_iqr[:, 1], len(popt_gpu_energy)):.2f}")
     print("")
     print("GPU (linear fit)")
-    print(f"  Execution :  m = {m_linear_gpu_time:.6f}, reduced chi2 = {reduced_chi2(gpu_med[:,0], m_linear_gpu_time * n_array + c_linear_gpu_time, gpu_iqr[:,0], len(popt_linear_gpu_time)):.2f}")
-    print(f"  Energy    :  m = {m_linear_gpu_energy:.9f}, reduced chi2 = {reduced_chi2(gpu_med[:,1], m_linear_gpu_energy * n_array + c_linear_gpu_energy, gpu_iqr[:,1], len(popt_linear_gpu_energy)):.2f}")
+    print(
+        f"  Execution :  m = {m_linear_gpu_time:.6f}, reduced chi2 = {reduced_chi2(gpu_med[:, 0], m_linear_gpu_time * n_array + c_linear_gpu_time, gpu_iqr[:, 0], len(popt_linear_gpu_time)):.2f}")
+    print(
+        f"  Energy    :  m = {m_linear_gpu_energy:.9f}, reduced chi2 = {reduced_chi2(gpu_med[:, 1], m_linear_gpu_energy * n_array + c_linear_gpu_energy, gpu_iqr[:, 1], len(popt_linear_gpu_energy)):.2f}")
     print("")
 
     # Generate smooth curves for plotting
@@ -225,25 +233,37 @@ if option == 'plot':
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
 
     # Plot CPU data
-    ax1.errorbar(n_array, cpu_med[:, 0], yerr=cpu_iqr[:, 0], fmt='o', label='CPU', color='C0')
-    ax2.errorbar(n_array, cpu_med[:, 1], yerr=cpu_iqr[:, 1], fmt='o', label='CPU', color='C0')
+    ax1.errorbar(
+        n_array, cpu_med[:, 0], yerr=cpu_iqr[:, 0], fmt='o', label='CPU', color='C0')
+    ax2.errorbar(
+        n_array, cpu_med[:, 1], yerr=cpu_iqr[:, 1], fmt='o', label='CPU', color='C0')
 
     # Plot GPU data
-    ax1.errorbar(n_array, gpu_med[:, 0], yerr=gpu_iqr[:, 0], fmt='o', label='GPU', color='C2')
-    ax2.errorbar(n_array, gpu_med[:, 1], yerr=gpu_iqr[:, 1], fmt='o', label='GPU', color='C2')
+    ax1.errorbar(
+        n_array, gpu_med[:, 0], yerr=gpu_iqr[:, 0], fmt='o', label='GPU', color='C2')
+    ax2.errorbar(
+        n_array, gpu_med[:, 1], yerr=gpu_iqr[:, 1], fmt='o', label='GPU', color='C2')
 
     # Plotting the fits
-    ax1.plot(n_smooth, f(n_smooth, a_gpu_time, p_gpu_time, c_gpu_time), '--', color='C2', alpha=0.4)
-    ax1.plot(n_smooth, f(n_smooth, a_cpu_time, p_cpu_time, c_cpu_time), '--', color='C0', alpha=0.4)
-    ax2.plot(n_smooth, f(n_smooth, a_gpu_energy, p_gpu_energy, c_gpu_energy), '--', color='C2', alpha=0.4)
-    ax2.plot(n_smooth, f(n_smooth, a_cpu_energy, p_cpu_energy, c_cpu_energy), '--', color='C0', alpha=0.4)
+    ax1.plot(n_smooth, f(n_smooth, a_gpu_time, p_gpu_time,
+             c_gpu_time), '--', color='C2', alpha=0.4)
+    ax1.plot(n_smooth, f(n_smooth, a_cpu_time, p_cpu_time,
+             c_cpu_time), '--', color='C0', alpha=0.4)
+    ax2.plot(n_smooth, f(n_smooth, a_gpu_energy, p_gpu_energy,
+             c_gpu_energy), '--', color='C2', alpha=0.4)
+    ax2.plot(n_smooth, f(n_smooth, a_cpu_energy, p_cpu_energy,
+             c_cpu_energy), '--', color='C0', alpha=0.4)
 
     # Under the plots write the power law exponents (based on fit)
     x = 700000
-    ax1.text(x, f(x, a_cpu_time, p_cpu_time, c_cpu_time)+8, f"p = {p_cpu_time:.2f}", rotation=30*p_cpu_time, fontsize=8)
-    ax1.text(x, f(x, a_gpu_time, p_gpu_time, c_gpu_time)-8, f"p = {p_gpu_time:.2f}", rotation=20*p_gpu_time, fontsize=8)
-    ax2.text(x, f(x, a_cpu_energy, p_cpu_energy, c_cpu_energy)+0.0008, f"p = {p_cpu_energy:.2f}", rotation=30*p_cpu_energy, fontsize=8)
-    ax2.text(x, f(x, a_gpu_energy, p_gpu_energy, c_gpu_energy)-0.0005, f"p = {p_gpu_energy:.2f}", rotation=15*p_gpu_energy, fontsize=8)
+    ax1.text(x, f(x, a_cpu_time, p_cpu_time, c_cpu_time)+8,
+             f"p = {p_cpu_time:.2f}", rotation=30*p_cpu_time, fontsize=8)
+    ax1.text(x, f(x, a_gpu_time, p_gpu_time, c_gpu_time)-8,
+             f"p = {p_gpu_time:.2f}", rotation=20*p_gpu_time, fontsize=8)
+    ax2.text(x, f(x, a_cpu_energy, p_cpu_energy, c_cpu_energy)+0.0008,
+             f"p = {p_cpu_energy:.2f}", rotation=30*p_cpu_energy, fontsize=8)
+    ax2.text(x, f(x, a_gpu_energy, p_gpu_energy, c_gpu_energy)-0.0005,
+             f"p = {p_gpu_energy:.2f}", rotation=15*p_gpu_energy, fontsize=8)
 
     # Set the labels and scales for the plots
     ax1.set_xlabel('Number of events')
