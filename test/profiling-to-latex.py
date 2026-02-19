@@ -191,15 +191,21 @@ pdf1_df = df.loc[df['Name'] == 'PDF 1']
 pdf2_df = df.loc[df['Name'] == 'PDF 2']
 pdf3_df = df.loc[df['Name'] == 'PDF 3']
 
-# Combine the rows
-combined_row = pdf1_df.sum(
-    numeric_only=True) + pdf2_df.sum(numeric_only=True) + pdf3_df.sum(numeric_only=True)
-combined_row['Name'] = 'PDF (11 Evaluations + Selection)'
-combined_row['Instances'] = pdf2_df['Instances'].values[0]
+# Combine the rows (only if any PDF rows exist)
+if not (pdf1_df.empty and pdf2_df.empty and pdf3_df.empty):
+    combined_row = pdf1_df.sum(
+        numeric_only=True) + pdf2_df.sum(numeric_only=True) + pdf3_df.sum(numeric_only=True)
+    combined_row['Name'] = 'PDF (11 Evaluations + Selection)'
+    # Use select_flavour (PDF 2) instances as the total instances when available
+    if not pdf2_df.empty:
+        combined_row['Instances'] = int(pdf2_df['Instances'].iloc[0])
+    else:
+        instances_candidates = pd.concat([pdf1_df['Instances'], pdf3_df['Instances']])
+        combined_row['Instances'] = int(instances_candidates.iloc[0]) if not instances_candidates.empty else 0
 
-# Remove original rows and add combined row
-df = df[~df['Name'].isin(['PDF 1', 'PDF 2', 'PDF 3'])]
-df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
+    # Remove original rows and add combined row
+    df = df[~df['Name'].isin(['PDF 1', 'PDF 2', 'PDF 3'])]
+    df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
 
 # ------------------------------------------------------------------------------
 # Combine NLO 1, 2, 3, and 4 rows into a single row
@@ -209,15 +215,18 @@ nlo2_df = df.loc[df['Name'] == 'NLO 2']
 nlo3_df = df.loc[df['Name'] == 'NLO 3']
 nlo4_df = df.loc[df['Name'] == 'NLO 4']
 
-# Combine the rows
-combined_row = nlo1_df.sum(numeric_only=True) + nlo2_df.sum(numeric_only=True) + \
-    nlo3_df.sum(numeric_only=True) + nlo4_df.sum(numeric_only=True)
-combined_row['Name'] = 'NLO Event Generation'
-combined_row['Instances'] = nlo1_df['Instances'].values[0]
+# Combine the rows (only if any NLO rows exist)
+if not (nlo1_df.empty and nlo2_df.empty and nlo3_df.empty and nlo4_df.empty):
+    combined_row = nlo1_df.sum(numeric_only=True) + nlo2_df.sum(numeric_only=True) + \
+        nlo3_df.sum(numeric_only=True) + nlo4_df.sum(numeric_only=True)
+    combined_row['Name'] = 'NLO Event Generation'
+    # Pick instances from the first available NLO row
+    instances_candidates = pd.concat([nlo1_df['Instances'], nlo2_df['Instances'], nlo3_df['Instances'], nlo4_df['Instances']])
+    combined_row['Instances'] = int(instances_candidates.iloc[0]) if not instances_candidates.empty else 0
 
-# Remove original rows and add combined row
-df = df[~df['Name'].isin(['NLO 1', 'NLO 2', 'NLO 3', 'NLO 4'])]
-df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
+    # Remove original rows and add combined row
+    df = df[~df['Name'].isin(['NLO 1', 'NLO 2', 'NLO 3', 'NLO 4'])]
+    df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
 
 # ------------------------------------------------------------------------------
 # Generate LaTeX table

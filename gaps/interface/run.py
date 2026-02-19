@@ -100,7 +100,7 @@ def run(runtype, args):
 
     # If Nsys Profiling
     if args.nsysprofile:
-        profile = ['nsys', 'profile', '--stats=true']
+        profile = ['nsys', 'profile', '--trace=cuda,nvtx,osrt', '--stats=true']
         command = profile + command
 
     # Run the command
