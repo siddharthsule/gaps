@@ -1,4 +1,15 @@
 #include "pdf.cuh"
+#include <LHAPDF/CuPDF.h>
+
+// -----------------------------------------------------------------------------
+// Constructor and destructor for pdf_wrapper
+
+pdf_wrapper::pdf_wrapper(const std::string& name, int member)
+    : pdf(new CuPDF(name, member)) {
+  LHAPDF::setVerbosity(0);
+}
+
+pdf_wrapper::~pdf_wrapper() { delete pdf; }
 
 // -----------------------------------------------------------------------------
 // After evaluating all flavours (below), filter data to retrieve right value

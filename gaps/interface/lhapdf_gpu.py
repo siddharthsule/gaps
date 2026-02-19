@@ -63,11 +63,12 @@ def install_lhapdf():
     os.chdir(install_dir)
 
     # Replace some of the files (Sid's Dirty Hack)
-    os.chdir('include/LHAPDF')
-    subprocess.run(['cp', '../../../CuPDF.h', '.'])
-    subprocess.run(['cp', '../../../Cu1Dinterpolators.h', '.'])
-    subprocess.run(['cp', '../../../CuInterpolator.h', '.'])
-    os.chdir(install_dir)
+    # Not needed after v2.1!!!!!!!!!!!!
+    # os.chdir('include/LHAPDF')
+    # subprocess.run(['cp', '../../../CuPDF.h', '.'])
+    # subprocess.run(['cp', '../../../Cu1Dinterpolators.h', '.'])
+    # subprocess.run(['cp', '../../../CuInterpolator.h', '.'])
+    # os.chdir(install_dir)
 
     # Place the CT14lo tar.gz in share/LHAPDF and extract it
     os.chdir('share/LHAPDF')

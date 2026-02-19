@@ -1,9 +1,20 @@
 #ifndef pdf_cuh_
 #define pdf_cuh_
 
-// Includes all modules, including LHAPDF
 #include "base.cuh"
 #include "event.cuh"
+#include <string>
+
+/**
+ * How to avoid the header-only nature of LHAPDF from stopping us? We can
+ * define the class here, and implement everything in the .cu file. This
+ * way, the PDF evaluation kernel is written to device once only!
+ *
+*/
+class CuPDF;
+namespace LHAPDF {
+  void setVerbosity(int);
+}
 
 class pdf_wrapper {
   /**
@@ -28,11 +39,9 @@ class pdf_wrapper {
   // ---------------------------------------------------------------------------
   // constructor and destructor
 
-  pdf_wrapper(const std::string& name = "CT14lo", int member = 0)
-      : pdf(new CuPDF(name, member)) {
-    LHAPDF::setVerbosity(0);
-  }
-  ~pdf_wrapper() { delete pdf; }
+  // Define the constructor in pdf.cu
+  pdf_wrapper(const std::string& name = "CT14lo", int member = 0);
+  ~pdf_wrapper();
 
   // ---------------------------------------------------------------------------
   // member functions

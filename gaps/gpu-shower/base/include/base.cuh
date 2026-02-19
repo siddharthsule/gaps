@@ -28,9 +28,6 @@
 #include <thrust/host_vector.h>
 #include <thrust/partition.h>
 
-// LHAPDF
-#include <LHAPDF/CuPDF.h>
-
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
 
