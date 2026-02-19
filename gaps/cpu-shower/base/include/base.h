@@ -44,9 +44,6 @@ using std::sin;
 using std::sqrt;
 using std::tan;
 
-// LHAPDF
-#include <LHAPDF/LHAPDF.h>
-
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
 
