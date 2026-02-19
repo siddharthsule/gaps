@@ -30,7 +30,7 @@ def logo():
     print_blue(" ##        ##  ##        ##  ##            ##        ## ")
     print_blue("  ##########   ##        ##  ##             ##########  ")
     print_blue("                                                        ")
-    print_green("          a GPU-Amplified Parton Shower, v2.0.0         ")
+    print_green("          a GPU-Amplified Parton Shower, v2.1.0         ")
     print("--------------------------------------------------------")
 
 # ------------------------------------------------------------------------------
