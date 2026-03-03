@@ -87,6 +87,6 @@ To learn more about the code and how it all works, see the [documentation](doc/R
 
 ***
 
-### Sid Sule + Mike Seymour, November 2025
+### Sid Sule + Mike Seymour, March 2026
 
 For issues and queries, email: [siddharth.sule@manchester.ac.uk](mailto:siddharth.sule@manchester.ac.uk)
