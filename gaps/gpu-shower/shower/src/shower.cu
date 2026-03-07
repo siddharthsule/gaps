@@ -771,9 +771,9 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
     if (do_partitioning &&
         completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
 
-      // Stop when number of events left is less than 5000, the typical number
-      // of cores in a GPU, as partiitioning becomes unneccessary
-      if (static_cast<int>(n_events * (1 / pow(2, p))) >= 5000) {
+      // Stop at 25k, below this, the overhead of partitioning outweighs the 
+      // benefits, increasing execution time.
+      if (static_cast<int>(n_events * (1 / pow(2, p))) >= 25000) {
         std::cerr << std::endl;
         std::cerr << "partition at " << completed << "/" << n_events
                   << std::endl;

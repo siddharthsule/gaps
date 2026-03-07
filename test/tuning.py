@@ -26,7 +26,7 @@ nev_str = ["10^4", "10^5", "10^6"]
 threads_per_block = [32, 64, 128, 256, 512]
 
 # ------------------------------------------------------------------------------
-# Run Tune with and without partitioning
+# Run Tune with partitioning
 
 if not args.plotting_only:
 
@@ -38,11 +38,6 @@ if not args.plotting_only:
         "./rungaps -p LHC -nlo -codecarbon -r tune -do_partitioning yes", shell=True)
     os.rename("gpu-time.dat", "gpu-time-part.dat")
 
-    # Run without Partitioning
-    subprocess.run(
-        "./rungaps -p LHC -nlo -codecarbon -r tune -do_partitioning no", shell=True)
-    os.rename("gpu-time.dat", "gpu-time-nopart.dat")
-
     # Return to original directory
     os.chdir('test')
 
@@ -51,7 +46,9 @@ if not args.plotting_only:
 
 
 def get_data_and_iqr(df):
-
+    """
+    Calculate the median and interquartile range (IQR) of the data.
+    """
     # Make an empty dataframe to store the values
     dat = pd.DataFrame(np.zeros((len(nev), len(threads_per_block))),
                        index=nev, columns=threads_per_block)
@@ -64,21 +61,23 @@ def get_data_and_iqr(df):
         # Get the values
         values = df[i:i+args.nreps]
 
-        # Remove values orders of magnitude larger/smaller than the median
-        median = values.median()
-        values = values[values < 10 * median]
-        values = values[values > 0.1 * median]
+        # Remove outliers using IQR method (Tukey's fences)
+        q1 = values.quantile(0.25)
+        q3 = values.quantile(0.75)
+        iqr_val = q3 - q1
+        lower_bound = q1 - 1.5 * iqr_val
+        upper_bound = q3 + 1.5 * iqr_val
 
-        # Remove extremely differing values that might affect the statistics
-        values = values[values < values.quantile(0.95)]
-        values = values[values > values.quantile(0.05)]
+        values_filtered = values[(values >= lower_bound)
+                                 & (values <= upper_bound)]
 
-        # Remove any negative values
-        values = values[values > 0]
-
-        # Calculate the median and iqr
-        median = values.median()
-        iqr_value = iqr(values)
+        # Use filtered data if enough points remain, otherwise use original
+        if len(values_filtered) >= 3:
+            median = values_filtered.median()
+            iqr_value = iqr(values_filtered)
+        else:
+            median = values.median()
+            iqr_value = iqr(values)
 
         # Determine the row and column indices
         # Total combinations = len(nev) * len(threads_per_block)
@@ -92,10 +91,10 @@ def get_data_and_iqr(df):
 
     # Print the results
     print(dat)
-    print(dat_iqr)
+    print(dat_iqr/2)
 
     # Return
-    return dat, dat_iqr
+    return dat, dat_iqr/2
 
 
 def plot_data(dat, dat_iqr, ax1, ax2, color='C2', label_prefix=''):
@@ -128,44 +127,24 @@ if args.no_plotting:
 mpl.rc_file("mplstyleerc")
 
 # Get the data for GPU
-nopart = pd.read_csv('../gpu-time-nopart.dat', header=None, delimiter=',')
 part = pd.read_csv('../gpu-time-part.dat', header=None, delimiter=',')
 
 # Isolate the last column (assuming that's the time data we want)
-nopart_data = nopart.iloc[:, -1]
 part_data = part.iloc[:, -1]
 
 # Plot
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7, 5), sharex=True)
 
-# Process and plot both datasets
-datasets = [
-    (nopart_data, 'C2', 'No Partitioning'),
-    (part_data, '#92D050', 'Partitioning')
-]
+# Process and plot data
+dat, dat_iqr = get_data_and_iqr(part_data)
+plot_data(dat, dat_iqr, ax1, ax2, color='C2', label_prefix='Partitioning')
 
-# Store all data for setting consistent y-limits
-all_data = []
+# Set fixed y-limits for both plots
+ax1.set_ylim(53, 63)
+ax1.set_yticks(np.arange(53, 64, 2))
 
-for df, color, label_prefix in datasets:
-    dat, dat_iqr = get_data_and_iqr(df)
-    all_data.append(dat)
-    plot_data(dat, dat_iqr, ax1, ax2,
-              color=color, label_prefix=label_prefix)
-
-# Set consistent y-limits based on all data
-if all_data:
-    # Upper part - for 1,000,000 events (row 2)
-    all_row2_min = min(np.min(data.iloc[2, :]) for data in all_data)
-    all_row2_max = max(np.max(data.iloc[2, :]) for data in all_data)
-    ax1.set_ylim(all_row2_min - 5, all_row2_max + 12)
-
-    # Lower part - for 10,000 and 100,000 events (rows 0 and 1)
-    all_lower_min = min(min(np.min(data.iloc[0, :]), np.min(
-        data.iloc[1, :])) for data in all_data)
-    all_lower_max = max(max(np.max(data.iloc[0, :]), np.max(
-        data.iloc[1, :])) for data in all_data)
-    ax2.set_ylim(all_lower_min - 1, all_lower_max + 1)
+ax2.set_ylim(2, 12)
+ax2.set_yticks(np.arange(2, 13, 2))
 
 # Hide the spines between ax1 and ax2
 ax1.spines.bottom.set_visible(False)
@@ -184,9 +163,7 @@ ax2.plot([0, 1], [1, 1], transform=ax2.transAxes, **kwargs)
 ax2.set_xlabel('Threads per block, $N_T$')
 fig.supylabel('Execution time (s)', fontsize=11)
 
-# Get handles and labels from ax1 for legend
-handles, labels = ax1.get_legend_handles_labels()
-ax1.legend(handles, labels, loc='upper right', ncol=2)
+ax1.legend(loc='upper right')
 
 ax1.grid(True, alpha=0.3)
 ax2.grid(True, alpha=0.3)

@@ -56,6 +56,7 @@ test/Herwig/*.info
 # Plots of pdf ratios
 pdfratio-plots/
 heatmap-data/
+heatmap-data.tar.gz
 
 # Any pt plots
 pt.pdf
