@@ -168,18 +168,18 @@ df.loc[df['Name'].str.contains('__parallel_for', case=False, na=False) & (
     df['Instances'] > below) & (df['Instances'] < above), 'Name'] = 'PDF 3'
 
 # ------------------------------------------------------------------------------
-# Combine everything with 16 instances into Event Record Partitioning
+# Combine everything with 5 instances into Event Record Partitioning
 
-# Get entries with 16 instances
-mini_df = df.loc[df['Instances'] == 16]
+# Get entries with 5 instances
+mini_df = df.loc[df['Instances'] == 5]
 
 # Create combined row
 total_row = mini_df.sum(numeric_only=True)
 total_row['Name'] = 'Event Record Partitioning'
-total_row['Instances'] = 16
+total_row['Instances'] = 5
 
 # Remove original rows and add combined row
-df = df[df['Instances'] != 16]
+df = df[df['Instances'] != 5]
 total_row_df = pd.DataFrame([total_row])
 df = pd.concat([df, total_row_df], ignore_index=True)
 
