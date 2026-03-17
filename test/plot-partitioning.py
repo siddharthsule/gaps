@@ -35,17 +35,17 @@ ax[0].grid(alpha=0.3)
 # Add zoomed inset to first plot
 axins = inset_axes(ax[0], width="15%", height="20%",
                    loc='lower center', borderpad=2)
-axins.plot(nopart_10k[:, 0], nopart_10k[:, 1], color='C2')
+# axins.plot(nopart_10k[:, 0], nopart_10k[:, 1], color='C2')
 axins.plot(part_10k[:, 0], part_10k[:, 1], color='#92D050')
 # Set the zoom region (adjust these values to highlight your desired area)
-x1, x2, y1, y2 = 1.15, 1.23, 4900, 5100  # Example zoom region
+x1, x2, y1, y2 = 1.15, 1.23, 4800, 5200  # Example zoom region
 axins.set_xlim(x1, x2)
 axins.set_ylim(y1, y2)
 axins.grid(alpha=0.3)
 axins.set_xticks([])
 axins.set_yticks([])
 # Draw rectangle and connecting lines
-mark_inset(ax[0], axins, loc1=2, loc2=3, fc="none", ec="0.5")
+mark_inset(ax[0], axins, loc1=1, loc2=3, fc="none", ec="0.5")
 
 # plot 100k
 ax[1].plot(nopart_100k[:, 0], nopart_100k[:, 1],
@@ -64,6 +64,21 @@ ax[1].set_xlabel('Time (seconds)')
 ax[1].set_ylabel('Completed Events')
 ax[1].legend()
 ax[1].grid(alpha=0.3)
+
+# Add zoomed inset to second plot
+axins = inset_axes(ax[1], width="15%", height="20%",
+                   loc='lower center', borderpad=2)
+# axins.plot(nopart_10k[:, 0], nopart_10k[:, 1], color='C2')
+axins.plot(part_100k[:, 0], part_100k[:, 1], color='#92D050')
+# Set the zoom region (adjust these values to highlight your desired area)
+x1, x2, y1, y2 = 3.75, 4.05, 48000, 52000  # Example zoom region
+axins.set_xlim(x1, x2)
+axins.set_ylim(y1, y2)
+axins.grid(alpha=0.3)
+axins.set_xticks([])
+axins.set_yticks([])
+# Draw rectangle and connecting lines
+mark_inset(ax[1], axins, loc1=1, loc2=3, fc="none", ec="0.5")
 
 # plot 1m
 ax[2].plot(nopart_1m[:, 0], nopart_1m[:, 1],
@@ -87,6 +102,21 @@ ax[2].set_ylabel('Completed Events')
 ax[2].legend()
 ax[2].grid(alpha=0.3)
 
+# Add zoomed inset to second plot
+axins = inset_axes(ax[2], width="15%", height="20%",
+                   loc='lower center', borderpad=2)
+# axins.plot(nopart_10k[:, 0], nopart_10k[:, 1], color='C2')
+axins.plot(part_1m[:, 0], part_1m[:, 1], color='#92D050')
+# Set the zoom region (adjust these values to highlight your desired area)
+x1, x2, y1, y2 = 28, 29.5, 480000, 520000  # Example zoom region
+axins.set_xlim(x1, x2)
+axins.set_ylim(y1, y2)
+axins.grid(alpha=0.3)
+axins.set_xticks([])
+axins.set_yticks([])
+# Draw rectangle and connecting lines
+mark_inset(ax[2], axins, loc1=1, loc2=3, fc="none", ec="0.5")
+
 # Save the figure
 fig.tight_layout()
-fig.savefig('partitoning-results.pdf')
+fig.savefig('partitioning-results.pdf')
