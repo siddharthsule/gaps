@@ -95,11 +95,11 @@ class shower {
 
   // pdf ratio calc
   bool check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
-                      double k_eta, double z) const;
+                      double k_eta, double z, double y) const;
   double pdf_ratio(int pid_before, int pid_after, double eta, double z,
                    double t) const;
   double get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
-                       double k_eta, double z, double t) const;
+                       double k_eta, double z, double y, double t) const;
   double get_pdf_max(int sf, double ij_eta = 0.) const;
 
   // jacobian

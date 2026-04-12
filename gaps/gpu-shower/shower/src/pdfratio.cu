@@ -37,6 +37,7 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
   int ij = static_cast<int>(winner[7 * idx + 1]);
   int k = static_cast<int>(winner[7 * idx + 2]);
   double z = winner[7 * idx + 4];
+  double y = winner[7 * idx + 5];
 
   // No need to fill if FF
   if (shower->is_ff(sf)) return;
@@ -65,7 +66,7 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
     case 1:
       flavours_a[idx] = k_pid;
       flavours_b[idx] = k_pid;
-      x_a[idx] = k_eta / z;
+      x_a[idx] = k_eta / y;
       x_b[idx] = k_eta;
       q2[idx] = t;
       break;
@@ -123,8 +124,8 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
 // Check if the momentum fraction is valid before calculating
 
 __device__ bool shower::check_mom_frac(int sf, int ij_pid, int k_pid,
-                                       double ij_eta, double k_eta,
-                                       double z) const {
+                                       double ij_eta, double k_eta, double z,
+                                       double y) const {
   /**
    * @brief Check if the momentum fraction is valid before calculating the pdf
    * ratio
@@ -135,6 +136,7 @@ __device__ bool shower::check_mom_frac(int sf, int ij_pid, int k_pid,
    * @param ij_eta Momentum Fraction of the emitter
    * @param k_eta Momentum Fraction of the spectator
    * @param z Splitting Variable
+   * @param y Splitting Variable
    * @return true: If the momentum fraction is valid
    */
 
@@ -144,8 +146,8 @@ __device__ bool shower::check_mom_frac(int sf, int ij_pid, int k_pid,
   switch (splitting_case) {
     // FI splittings: z and x (here, y)
     case 1:
-      return (k_eta < z) && (k_eta > pdf_x_min) && (k_eta < pdf_x_max) &&
-             (k_eta / z > pdf_x_min) && (k_eta / z < pdf_x_max);
+      return (k_eta < y) && (k_eta > pdf_x_min) && (k_eta < pdf_x_max) &&
+             (k_eta / y > pdf_x_min) && (k_eta / y < pdf_x_max);
       break;
 
     // IF splittings: x (here, z) and u (here, y)

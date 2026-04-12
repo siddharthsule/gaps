@@ -391,9 +391,10 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
   double pdf_ratio(1.), pdf_max(1.);
   if (!shower->is_ff(sf)) {
     // Check Momentum Fraction
-    if (!(shower->check_mom_frac(
-            sf, ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
-            ev.get_particle(ij).get_eta(), ev.get_particle(k).get_eta(), z))) {
+    if (!(shower->check_mom_frac(sf, ev.get_particle(ij).get_pid(),
+                                 ev.get_particle(k).get_pid(),
+                                 ev.get_particle(ij).get_eta(),
+                                 ev.get_particle(k).get_eta(), z, y))) {
       return;
     }
 
@@ -770,8 +771,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
     // Partition the events based on completion at 50%, 75%, 87.5%, etc.
     if (do_partitioning &&
         completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
-
-      // Stop at 25k, below this, the overhead of partitioning outweighs the 
+      // Stop at 25k, below this, the overhead of partitioning outweighs the
       // benefits, increasing execution time.
       if (static_cast<int>(n_events * (1 / pow(2, p))) >= 25000) {
         std::cerr << std::endl;

@@ -250,14 +250,14 @@ void shower::generate_splitting(event& ev) {
       if (!(check_mom_frac(sf, ev.get_particle(ij).get_pid(),
                            ev.get_particle(k).get_pid(),
                            ev.get_particle(ij).get_eta(),
-                           ev.get_particle(k).get_eta(), z))) {
+                           ev.get_particle(k).get_eta(), z, y))) {
         continue;
       }
 
       // Get PDF Ratio
       pdf_ratio = get_pdf_ratio(
           sf, ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
-          ev.get_particle(ij).get_eta(), ev.get_particle(k).get_eta(), z, t);
+          ev.get_particle(ij).get_eta(), ev.get_particle(k).get_eta(), z, y, t);
 
       // cancel emission if pdf_ratio is nan, inf, or less than 0
       if (isnan(pdf_ratio) || isinf(pdf_ratio) || pdf_ratio <= 0.) {

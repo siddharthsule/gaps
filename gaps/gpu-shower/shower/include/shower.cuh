@@ -73,7 +73,7 @@ class shower {
 
   // pdf ratio calc
   __device__ bool check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
-                                 double k_eta, double z) const;
+                                 double k_eta, double z, double y) const;
   __device__ double get_pdf_max(int sf, double ij_eta = 0.) const;
 
   // jacobian

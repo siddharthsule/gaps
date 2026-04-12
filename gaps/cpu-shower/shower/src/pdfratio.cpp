@@ -33,7 +33,7 @@ double shower::pdf_ratio(int pid_before, int pid_after, double eta, double z,
 // Wrapper to get the right pdf ratio
 
 double shower::get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
-                             double k_eta, double z, double t) const {
+                             double k_eta, double z, double y, double t) const {
   /**
    * @brief Get the appropriate pdf ratio for the given splitting
    *
@@ -43,6 +43,7 @@ double shower::get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
    * @param ij_eta Momentum Fraction of the emitter
    * @param k_eta Momentum Fraction of the spectator
    * @param z Splitting Variable
+   * @param y Splitting Variable
    * @param t Evolution Variable
    * @return double: PDF Ratio
    */
@@ -62,7 +63,7 @@ double shower::get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
   switch (splitting_case) {
     // FI splittings: z and x (here, y)
     case 1:
-      return pdf_ratio(k_pid, k_pid, k_eta, z, t);
+      return pdf_ratio(k_pid, k_pid, k_eta, y, t);
       break;
 
     // IF splittings: x (here, z) and u (here, y)
@@ -103,7 +104,7 @@ double shower::get_pdf_ratio(int sf, int ij_pid, int k_pid, double ij_eta,
 // Check if the momentum fraction is valid before calculating
 
 bool shower::check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
-                            double k_eta, double z) const {
+                            double k_eta, double z, double y) const {
   /**
    * @brief Check if the momentum fraction is valid before calculating the pdf
    * ratio
@@ -114,6 +115,7 @@ bool shower::check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
    * @param ij_eta Momentum Fraction of the emitter
    * @param k_eta Momentum Fraction of the spectator
    * @param z Splitting Variable
+   * @param y Splitting Variable
    * @return true: If the momentum fraction is valid
    */
 
@@ -123,8 +125,8 @@ bool shower::check_mom_frac(int sf, int ij_pid, int k_pid, double ij_eta,
   switch (splitting_case) {
     // FI splittings: z and x (here, y)
     case 1:
-      return (k_eta < z) && (k_eta > pdf_x_min) && (k_eta < pdf_x_max) &&
-             (k_eta / z > pdf_x_min) && (k_eta / z < pdf_x_max);
+      return (k_eta < y) && (k_eta > pdf_x_min) && (k_eta < pdf_x_max) &&
+             (k_eta / y > pdf_x_min) && (k_eta / y < pdf_x_max);
       break;
 
     // IF splittings: x (here, z) and u (here, y)
