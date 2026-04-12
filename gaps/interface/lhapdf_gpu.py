@@ -2,8 +2,6 @@
 
 import os
 import subprocess
-import shutil
-import tarfile
 
 
 def install_lhapdf():
@@ -40,35 +38,33 @@ def install_lhapdf():
     # Change to the src directory
     os.chdir('src')
 
-    # Get GPU LHAPDF - From GIT
-    # subprocess.run(['git', 'clone', '-b', 'kokkos_version',
-    #                'https://gitlab.com/hepcedar/lhapdf.git'])
-    # os.chdir('lhapdf')
+    # Get GPU LHAPDF - From GITLAB
+    subprocess.run(['git', 'clone', '-b', 'kokkos_version',
+                   'https://gitlab.com/hepcedar/lhapdf.git'])
+    if not os.path.exists('lhapdf'):
+        print("------------------------------------------------")
+        print("Error: Failed to clone LHAPDF repository!")
+        print("Sometimes running ./rungaps.sh again can fix this issue.")
+        print("If the issue persists, please manually clone the repository:")
+        print("\t git clone -b kokkos_version https://gitlab.com/hepcedar/lhapdf.git")
+        print("------------------------------------------------")
+        return False
+    os.chdir('lhapdf')
 
-    # Get GPU LHAPDF - From tarball in our codebase
-    shutil.copyfile('../../lhapdf-kokkos_version.tar.bz2', 'temp.tar.bz2')
-    with tarfile.open('temp.tar.bz2', 'r:bz2') as tar:
-        tar.extractall()
-    os.chdir('lhapdf-kokkos_version')
+    # Checkout specific commit for stability
+    subprocess.run(
+        ['git', 'checkout', 'ced1118b3a288117c68631df7bad784aae2a6f25'])
 
     # Reconf and Configure
     subprocess.run(['autoreconf', '-vi'])
-    subprocess.run(['./configure', f'--prefix={install_dir}'])
+    subprocess.run(
+        ['./configure', f'--prefix={install_dir}', '--disable-python'])
 
-    # Make and Install
     subprocess.run(['make', '-j'])
     subprocess.run(['make', 'install'])
 
     # Change to the install directory
     os.chdir(install_dir)
-
-    # Replace some of the files (Sid's Dirty Hack)
-    # Not needed after v2.1!!!!!!!!!!!!
-    # os.chdir('include/LHAPDF')
-    # subprocess.run(['cp', '../../../CuPDF.h', '.'])
-    # subprocess.run(['cp', '../../../Cu1Dinterpolators.h', '.'])
-    # subprocess.run(['cp', '../../../CuInterpolator.h', '.'])
-    # os.chdir(install_dir)
 
     # Place the CT14lo tar.gz in share/LHAPDF and extract it
     os.chdir('share/LHAPDF')
