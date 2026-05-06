@@ -172,8 +172,8 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
     dxs_nlo *= 2.;  // two orientations
   }
 
-  // 2 x types of event
-  dxs_nlo *= 2.;
+  // Choose between Quark and AntiQuark + Which Proc
+  dxs_nlo *= 4.;
 
   // Adjust dxs for the nlo weighting
   if (matrix->ws != 0.) dxs_nlo /= matrix->ws;

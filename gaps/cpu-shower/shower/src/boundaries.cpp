@@ -78,8 +78,9 @@ void shower::get_boundaries(double& zm, double& zp, double sijk, double eta,
       return;
       break;
   }
-  zm = 0.;
-  zp = 1.;
+  // Just in case, return unphysical boundaries
+  zm = -1.;
+  zp = -1.;
   return;
 }
 

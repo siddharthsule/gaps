@@ -69,6 +69,9 @@ void shower::select_winner(event& ev, double* winner) const {
 
         // phase space limits
         double zm, zp;
+
+        // If FI, send eta_k for the limits
+        // If IF/II, send eta_ij
         double eta = is_fi(sf) ? ev.get_particle(k).get_eta()
                                : ev.get_particle(ij).get_eta();
         get_boundaries(zm, zp, sijk, eta, sf);
@@ -281,8 +284,10 @@ void shower::generate_splitting(event& ev) {
       pdf_ratio *= z;
 
       // Mutliply by (t - m2) / t for ISR to account for quark masses
-      int fl = abs(ev.get_particle(ij).get_pid());
-      pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+      if (is_isr(sf)) {
+        int fl = abs(ev.get_particle(ij).get_pid());
+        pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+      }
 
       // -----------------------------------------------------------------------
       /*

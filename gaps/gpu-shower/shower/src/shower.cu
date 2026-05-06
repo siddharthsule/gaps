@@ -183,6 +183,9 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
 
         // phase space limits
         double zm, zp;
+
+        // If FI, send eta_k for the limits
+        // If IF/II, send eta_ij
         double eta = shower->is_fi(sf) ? ev.get_particle(k).get_eta()
                                        : ev.get_particle(ij).get_eta();
         shower->get_boundaries(zm, zp, sijk, eta, sf);
@@ -432,8 +435,10 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
     pdf_ratio *= z;
 
     // Mutliply by (t - m2) / t for ISR to account for quark masses
-    int fl = abs(ev.get_particle(ij).get_pid());
-    pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+    if (shower->is_isr(sf)) {
+      int fl = abs(ev.get_particle(ij).get_pid());
+      pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
+    }
   }
 
   // Jacobian
