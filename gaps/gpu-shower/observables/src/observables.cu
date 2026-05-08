@@ -9,13 +9,12 @@
 
 __global__ void validate_events(event* events, int* invalid, int n) {
   /**
-   * @brief Analyze the event and store the results
+   * @brief Validate the event
    *
-   * This function first validates the event, then calculates the observables
-   * for the corresponding process. The results are then stored in the
-   * histograms and written to a file.
+   * This function checks if the event is valid and sets the validity flag
+   * accordingly.
    *
-   * @param ev The event object
+   * @param events The array of event objects
    * @param invalid The number of invalid events
    * @param n The number of events
    */
@@ -44,7 +43,7 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
    * @brief Fill the histograms with the results of the analysis
    *
    * @param an The analysis object
-   * @param ev The event object
+   * @param events The events array
    * @param results The array to store the results
    * @param process The process number
    * @param n The number of events
@@ -99,7 +98,6 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[16].fill(results[20 * idx + 17], ev.get_dxs());
     an->hists[17].fill(results[20 * idx + 18], ev.get_dxs());
     an->hists[18].fill(results[20 * idx + 19], ev.get_dxs());
-    an->hists[19].fill(results[20 * idx + 20], ev.get_dxs());
 
     // Forward-Backward Asymmetry testing
     // an->hists[3].fill(-results[20 * idx + 3], -ev.get_dxs());

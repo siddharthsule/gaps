@@ -26,7 +26,7 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   /**
    * @brief Calculate the Event Shapes for LEP
    *
-   * @param ev The event object
+   * @param events The events array
    * @param results The array to store the results
    * @param n The number of events
    */

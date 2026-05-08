@@ -352,7 +352,7 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
   event& ev = events[idx];
   // ---------------------------------------------
 
-  // set to false, only set to true if accpeted
+  // set to false, only set to true if accepted
   accept_emission[idx] = false;
 
   // Get the shower evolution variable

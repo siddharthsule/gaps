@@ -23,7 +23,7 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
   /**
    * @brief Cluster the event int jets using the Durham algorithm for LEP
    *
-   * @param ev The event object
+   * @param events The events array
    * @param results The array to store the results
    */
   // ---------------------------------------------
@@ -176,7 +176,7 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
 
 __device__ void bubble_sort_pt(vec4* moms, int n_moms) {
   /**
-   * @brief Bubble Sort the Momenta in Descending Order of p()
+   * @brief Bubble Sort the Momenta in Descending Order of pt()
    *
    * @param moms The array of momenta
    * @param n_moms The number of momenta
@@ -234,7 +234,7 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
   /**
    * @brief Cluster the event int jets using the Gen-kt algorithm for LHC
    *
-   * @param ev The event object
+   * @param events The events array
    * @param results The array to store the results
    */
   // ---------------------------------------------

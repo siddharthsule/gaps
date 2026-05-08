@@ -73,7 +73,7 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
    *          * ln(s/s_hat) * 1/(2 s_hat) 1/(8pi) * 2 * 1/N_c
    *          * 1/4 Sum_spins |M|^2
    *
-   * @param ev the event object
+   * @param events The events array
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -282,6 +282,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
 
   // flavour of the qqbar pair
   int fl = abs(ev.get_particle(0).get_pid());
+  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
 
   // ---------------------------------------------------------------------------
   // Now onto the H Event Generation
@@ -364,8 +365,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   dxs_nlo *= (1. - x_min) * (1. - x);                           // x, v Sampling
   dxs_nlo *= 1. / (16. * M_PI);
   dxs_nlo *= 1. / pz.m2();  // Leftover
-  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
-  dxs_nlo /= pd[ev.get_particle(0).get_pid() - 1];  // Flavour Selection
+  dxs_nlo /= pd[fl - 1];    // Flavour Selection
   dxs_nlo *= GeV_minus_2_to_pb;                     // units
 
   // Subtraction
@@ -748,7 +748,7 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
   double dxs_nlo = ev.get_dxs() * (1. + coeff * (v_plus_i + c));
 
   // Adjust dxs for the nlo weighting ws
-  dxs_nlo /= (1. - matrix->ws);
+  if ((1. - matrix->ws) != 0.) dxs_nlo /= (1. - matrix->ws);
 
   if (isnan(dxs_nlo)) {
     dxs_nlo = 0.;

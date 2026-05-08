@@ -4,7 +4,7 @@ __global__ void calculate_mczinc(const event* events, double* results, int n) {
   /**
    * @brief Calculate the Z Boson Variables, akin to rivet's MC_ZINC
    *
-   * @param ev The event object
+   * @param events The events array
    * @param results The array to store the results
    * @param n The number of events
    */

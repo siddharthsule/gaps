@@ -24,7 +24,16 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
                double root_s, double asmz, int blocks, int threads,
                const std::string& pdf_name) {
   /**
-   * @brief wrap
+   * @brief wrapper for matrix element calculation
+   *
+   * @param d_events device vector of events
+   * @param process LHC or LEP (1 or 2)
+   * @param nlo whether to calculate NLO corrections
+   * @param root_s center of mass energy
+   * @param asmz alpha_s at mz
+   * @param blocks number of CUDA thread blocks
+   * @param threads number of CUDA threads per block
+   * @param pdf_name PDF set name
    */
 
   // number of events - can get from d_events.size()

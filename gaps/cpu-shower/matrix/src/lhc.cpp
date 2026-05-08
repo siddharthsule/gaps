@@ -286,7 +286,7 @@ void matrix::lhc_nlo(event& ev) {
     dxs_nlo *= (1. - x_min) * (1. - x);           // x,v Sampling
     dxs_nlo *= 1. / (16. * M_PI);
     dxs_nlo *= 1. / pz.m2();       // Leftover
-    dxs_nlo /= pd[abs(fl) - 1];    // Flavour Selection (=1, down quark only)
+    dxs_nlo /= pd[abs(fl) - 1];    // Flavour Selection
     dxs_nlo *= GeV_minus_2_to_pb;  // units
 
     // Subtraction
