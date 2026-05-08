@@ -216,7 +216,7 @@ __device__ void shower::ii_boost_after_emission(event& ev,
 
   // temporary momenta for the boost
   for (int i = 0; i < ev.get_size(); i++) {
-    // Avoid initial state partons
+    // Avoid initial state particles
     if (ev.get_particle(i).is_initial()) {
       continue;
     }

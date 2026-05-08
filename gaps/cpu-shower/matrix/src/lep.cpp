@@ -113,7 +113,7 @@ void matrix::lep_nlo(event& ev) {
    * - H Event: There is an emission in the LO system
    * - S Evennt: The LO and Virtual Contributions
    *
-   * @params ev the event object
+   * @param ev the event object
    */
 
   // To prevent duplicate code, generate LO event first

@@ -17,8 +17,9 @@ __global__ void shower_setup_kernel(shower* sh, double root_s, double t_c,
    * @brief Set up the shower object on the device
    *
    * @param sh The shower object
-   * @param as The alpha_s object
    * @param root_s The root s energy
+   * @param t_c The cutoff scale
+   * @param as_max The maximum value of alpha_s
    */
   // ---------------------------------------------
   // Kernel Preamble

@@ -188,8 +188,8 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
    * @brief run the hadronic_dxs conversion
    *
    * @param dv_events device vector of event records
-   * @param proces LHC, DIS or LEP
-   * @param root_s partonic centre of mass energy
+   * @param matrix matrix element generator
+   * @param pdf PDF evaluator
    * @param blocks number of blocks to use
    * @param threads number of threads per block
    *
@@ -244,6 +244,23 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
 __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
                         int* fl_a, int* fl_b, double* xa, double* xb,
                         double* q2pdf) {
+  /**
+   * @brief Generate the real-emission (H-event) contribution for pp -> Zj
+   *
+   * Each event is randomly designated an H-event with probability ws.
+   * H-events carry the real NLO correction: q qbar -> Z g and g q -> Z q.
+   * S-events (the complement) are handled by c_terms and bvic_terms.
+   *
+   * @param events array of event records
+   * @param n number of events
+   * @param matrix matrix element generator
+   * @param as alpha_s calculator
+   * @param fl_a flavour of the PDF-a parton (output, for external evaluation)
+   * @param fl_b flavour of the PDF-b parton (output, for external evaluation)
+   * @param xa momentum fraction of parton a (output)
+   * @param xb momentum fraction of parton b (output)
+   * @param q2pdf factorisation scale squared (output)
+   */
   // ---------------------------------------------
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -776,6 +793,20 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
 
 void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
              alpha_s* as, pdf_wrapper* pdf, int blocks, int threads) {
+  /**
+   * @brief Run the NLO correction kernels for pp -> Z
+   *
+   * Calls h_event (real correction), c_terms (collinear subtraction integrals),
+   * and bvic_terms (Born + virtual + insertion + collinear combination),
+   * interleaved with external LHAPDF PDF evaluations.
+   *
+   * @param dv_events device vector of event records
+   * @param matrix matrix element generator
+   * @param as alpha_s calculator
+   * @param pdf PDF evaluator
+   * @param blocks number of CUDA thread blocks
+   * @param threads number of CUDA threads per block
+   */
   // use a pointer to the device events
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n = dv_events.size();

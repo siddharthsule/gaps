@@ -139,7 +139,7 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
    * - H Event: There is an emission in the LO system
    * - S Evennt: The LO and Virtual Contributions
    *
-   * @params ev the event object
+   * @param ev the event object
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -151,7 +151,7 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
   // define common variables
   double me2_lo = ev.get_me2();
   double dxs_lo = ev.get_dxs();
-  double dxs_nlo = dxs_lo;
+  double dxs_nlo;
 
   // Do ee -> qqbar g based on the probability ws (1/4 events)
   if (ev.gen_random() < matrix->ws) {
@@ -345,7 +345,7 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
     // -------------------------------------------------------------------------
     // Calculate the NLO cross-section, params[0] = ecms
 
-    // Calculate the NLO cross-section
+    // Calculate the factor to adjust the cross-section
     double factor = k_cf * (*as)(matrix->root_s * matrix->root_s) / M_PI;
     dxs_nlo = dxs_lo * (1. + factor);
 
