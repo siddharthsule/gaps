@@ -265,8 +265,7 @@ void matrix::lep_nlo(event& ev) {
     }
 
     // Add the gluon to the event
-    ev.set_particle(4, g);
-    ev.set_hard(5);
+    ev.add_emission(g);
 
     // Set the new cross-section
     ev.set_dxs(dxs_nlo);

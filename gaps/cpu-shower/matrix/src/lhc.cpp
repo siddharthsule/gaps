@@ -379,10 +379,7 @@ void matrix::lhc_nlo(event& ev) {
     ev.set_particle_mom(2, pz);
 
     // Add the gluon to the event
-    ev.set_particle(3, em);
-
-    // increment emissions (important) !!!!!!
-    ev.increment_emissions();
+    ev.add_emission(em);
 
     if (isnan(dxs_nlo)) {
       dxs_nlo = 0.;

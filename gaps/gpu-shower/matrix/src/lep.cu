@@ -296,8 +296,7 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
     }
 
     // Add the gluon to the event
-    ev.set_particle(4, g);
-    ev.set_hard(5);
+    ev.add_emission(g);
 
     // Set the new cross-section
     ev.set_dxs(dxs_nlo);

@@ -475,10 +475,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   ev.set_particle_mom(2, pz);
 
   // Add the gluon to the event
-  ev.set_particle(3, em);
-
-  // increment emissions (important) !!!!!!
-  ev.increment_emissions();
+  ev.add_emission(em);
 
   if (isnan(dxs_nlo)) {
     dxs_nlo = 0.;

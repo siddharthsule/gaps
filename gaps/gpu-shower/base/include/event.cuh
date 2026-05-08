@@ -333,6 +333,20 @@ class event {
     shower_c++;
   }
 
+  // add emission particle (sets particle and increments emissions)
+  __device__ void add_emission(particle p) {
+    /**
+     * @brief add an emission particle to the event record. This sets the
+     * particle at index n_hard + n_emission and increments the number of
+     * emissions and the shower colour counter.
+     *
+     * @param p the emission particle to add
+     */
+    particles[n_hard + n_emission] = p;
+    n_emission++;
+    shower_c++;
+  }
+
   // set end_shower flag
   __device__ void shower_has_ended(bool end_shower) {
     /**

@@ -545,10 +545,7 @@ __global__ void do_splitting(shower* shower, event* events, int n,
 
   // add emitted particle
   particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
-  ev.set_particle(ev.get_size(), em);
-
-  // increment emissions (important) !!!!!
-  ev.increment_emissions();
+  ev.add_emission(em);
 
   // II Only - Lorentz Boost the new final state
   if (shower->is_ii(sf)) {

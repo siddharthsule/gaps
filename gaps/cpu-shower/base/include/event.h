@@ -269,6 +269,20 @@ class event {
     particles[i].set_eta(eta);
   }
 
+  void add_emission(particle p) {
+    /**
+     * @brief append a new emission to the event record and increment the
+     * emission counter. Equivalent to set_particle(get_size(), p) followed
+     * by increment_emissions().
+     *
+     * @param p the particle to add
+     */
+
+    particles[n_hard + n_emission] = p;
+    n_emission++;
+    shower_c++;
+  }
+
   void set_hard(int n_hard) {
     /**
      * @brief set the number of hard particles in the event record
