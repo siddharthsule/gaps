@@ -1,6 +1,63 @@
 #include "matrix.cuh"
 
 // -----------------------------------------------------------------------------
+// Emulating DiLog
+
+__device__ double dilogarithm(double x) {
+  /**
+   * @brief calculate the dilogarithm of x
+   *
+   * Li2(x) = Sum_{n=1}^{inf} (x^n)/(n^2)
+   *
+   * We do this for until a precision of 1e-10 is reached
+   *
+   * @param x the value to calculate the dilogarithm of
+   * @return double the dilogarithm of x
+   */
+
+  double sum = 0;
+  for (int n = 1; n < 100; n++) {
+    double temp = pow(x, n) / (n * n);
+    if (fabs(temp) < 1e-12) {
+      break;
+    }
+    sum += temp;
+  }
+
+  return sum;
+}
+__device__ double matrix::me2qqZ(int fl, double s) const {
+  /**
+   * @brief Generate the matrix element squared for just q qbar -> Z
+   *
+   * @param fl the flavour of the quark
+   * @param s the Mandelstam s variable
+   */
+
+  // For Comparison with Herwig
+  // alpha = 1. / 128.91;
+  // sin2tw = 0.232;
+
+  // constants A, V, Q
+  double q = (abs(fl) == 2 || abs(fl) == 4) ? 2. / 3. : -1. / 3.;
+  double a = (abs(fl) == 2 || abs(fl) == 4) ? 0.5 : -0.5;
+  double v = a - 2. * q * sin2tw;
+
+  // Fermi Constant \sqrt{2} G_F
+  double root2_gf = (4. * M_PI * alpha) / (mz * mz * sin2tw * (1. - sin2tw));
+
+  // Calculate the Matrix Element
+  double me2;
+  me2 = root2_gf;            // Root 2 G_F
+  me2 *= mz * mz * mz * mz;  // M_Z^4
+  me2 *= (a * a + v * v);    // Couplings
+  me2 *= (1. / 4.);          // spin average
+  me2 *= 1 / k_nc;           // Three possible initial colour states
+
+  return me2;
+}
+
+// -----------------------------------------------------------------------------
 // LO Event Generation - pp -> Z
 
 __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
@@ -180,38 +237,6 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
 
   return;
 }
-
-// -----------------------------------------------------------------------------
-// Emulating DiLog
-
-__device__ double dilogarithm(double x) {
-  /**
-   * @brief calculate the dilogarithm of x
-   *
-   * Li2(x) = Sum_{n=1}^{inf} (x^n)/(n^2)
-   *
-   * We do this for until a precision of 1e-10 is reached
-   *
-   * @param x the value to calculate the dilogarithm of
-   * @return double the dilogarithm of x
-   */
-
-  double sum = 0;
-  for (int n = 1; n < 100; n++) {
-    double temp = pow(x, n) / (n * n);
-    if (fabs(temp) < 1e-12) {
-      break;
-    }
-    sum += temp;
-  }
-
-  return sum;
-}
-
-// -----------------------------------------------------------------------------
-// LO Event Generation - pp -> Z
-// NOTE: This kernel is no longer used directly. Instead, lhc_nlo now calls
-// lhc_lo() wrapper which handles LO event generation and PDF evaluation.
 
 // -----------------------------------------------------------------------------
 // H Event Generation - pp -> Zj
