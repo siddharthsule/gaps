@@ -272,8 +272,7 @@ class event {
   void add_emission(particle p) {
     /**
      * @brief append a new emission to the event record and increment the
-     * emission counter. Equivalent to set_particle(get_size(), p) followed
-     * by increment_emissions().
+     * emission counter.
      *
      * @param p the particle to add
      */
@@ -341,15 +340,6 @@ class event {
      */
 
     this->shower_c = shower_c;
-  }
-
-  void increment_emissions() {
-    /**
-     * @brief increment the number of emissions and the shower colour counter
-     */
-
-    n_emission++;
-    shower_c++;
   }
 
   void shower_has_ended(bool end_shower) {

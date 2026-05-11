@@ -66,20 +66,19 @@ class alpha_s {
 
     double tref, asref, b0;
 
-    // Threshold Matching is OFF - massless quarks!
-    // if (t >= mb2) {
-    tref = mz2;
-    asref = asmz;
-    b0 = beta0(5) / (2. * M_PI);
-    // } else if (t >= mc2) {
-    //   tref = mb2;
-    //   asref = asmb;
-    //   b0 = beta0(4) / (2. * M_PI);
-    // } else {
-    //   tref = mc2;
-    //   asref = asmc;
-    //   b0 = beta0(3) / (2. * M_PI);
-    // }
+    if (t >= mb2) {
+      tref = mz2;
+      asref = asmz;
+      b0 = beta0(5) / (2. * M_PI);
+    } else if (t >= mc2) {
+      tref = mb2;
+      asref = asmb;
+      b0 = beta0(4) / (2. * M_PI);
+    } else {
+      tref = mc2;
+      asref = asmc;
+      b0 = beta0(3) / (2. * M_PI);
+    }
     return 1. / (1. / asref + b0 * log(t / tref));
   }
 
@@ -94,23 +93,22 @@ class alpha_s {
 
     double tref, asref, b0, b1, w;
 
-    // Threshold Matching is OFF - massless quarks!
-    // if (t >= mb2) {
-    tref = mz2;
-    asref = asmz;
-    b0 = beta0(5) / (2. * M_PI);
-    b1 = beta1(5) / pow(2. * M_PI, 2);
-    // } else if (t >= mc2) {
-    //   tref = mb2;
-    //   asref = asmb;
-    //   b0 = beta0(4) / (2. * M_PI);
-    //   b1 = beta1(4) / pow(2. * M_PI, 2);
-    // } else {
-    //   tref = mc2;
-    //   asref = asmc;
-    //   b0 = beta0(3) / (2. * M_PI);
-    //   b1 = beta1(3) / pow(2. * M_PI, 2);
-    // }
+    if (t >= mb2) {
+      tref = mz2;
+      asref = asmz;
+      b0 = beta0(5) / (2. * M_PI);
+      b1 = beta1(5) / pow(2. * M_PI, 2);
+    } else if (t >= mc2) {
+      tref = mb2;
+      asref = asmb;
+      b0 = beta0(4) / (2. * M_PI);
+      b1 = beta1(4) / pow(2. * M_PI, 2);
+    } else {
+      tref = mc2;
+      asref = asmc;
+      b0 = beta0(3) / (2. * M_PI);
+      b1 = beta1(3) / pow(2. * M_PI, 2);
+    }
     w = 1. + b0 * asref * log(t / tref);
     return asref / w * (1. - b1 / b0 * asref * log(w) / w);
   }
@@ -124,6 +122,15 @@ class alpha_s {
      * @param t the scale
      * @return the strong coupling constant
      */
+
+    // Freeze the scale to 1 GeV^2 if lower
+    if (t < 1.) {
+      t = 1.;
+    }
+
+    // Snap to threshold to avoid floating-point jitter at boundaries
+    t = (fabs(t - mb2) < 1e-6 * mb2) ? mb2 : t;
+    t = (fabs(t - mc2) < 1e-6 * mc2) ? mc2 : t;
 
     switch (n_loops) {
       case 0:

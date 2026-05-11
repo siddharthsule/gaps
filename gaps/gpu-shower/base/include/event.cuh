@@ -323,17 +323,6 @@ class event {
     this->shower_c = shower_c;
   }
 
-  // increment number of emissions and shower_c (important!)
-  __device__ void increment_emissions() {
-    /**
-     * @brief increment the number of emissions and the shower colour counter
-     */
-
-    n_emission++;
-    shower_c++;
-  }
-
-  // add emission particle (sets particle and increments emissions)
   __device__ void add_emission(particle p) {
     /**
      * @brief add an emission particle to the event record. This sets the
