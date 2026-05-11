@@ -99,7 +99,7 @@ class histo1d {
    * between the GPU and CPU versions of the code.
    */
 
-  char name[20];
+  char name[40];
   bin1d bins[max_bins];
   int n_bins;  // Actual number of bins used
   bin1d uflow;
@@ -119,11 +119,11 @@ class histo1d {
         total(xmin - 100., xmax + 100.),
         scale(1.) {
     // copy the name to the name variable
-    for (int i = 0; i < 19; ++i) {
+    for (int i = 0; i < 39; ++i) {
       name[i] = hist_name[i];
       if (hist_name[i] == '\0') break;
     }
-    name[19] = '\0';  // Ensure null-termination
+    name[39] = '\0';  // Ensure null-termination
 
     // Option 1: Linear spacing
     if (!logspace) {
