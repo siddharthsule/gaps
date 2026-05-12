@@ -604,8 +604,9 @@ struct is_not_end_shower {
 
 void run_shower(thrust::device_vector<event>& dv_events, double root_s,
                 bool nlo_matching, bool do_partitioning, double t_c,
-                double asmz, bool fixed_as, int n_emissions_max, int blocks,
-                int threads, const std::string& pdf_name) {
+                double asmz, bool fixed_as, bool use_cmw,
+                int n_emissions_max, int blocks, int threads,
+                const std::string& pdf_name) {
   /**
    * @brief Run the shower on the events
    *
@@ -622,7 +623,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, asmz, (fixed_as ? 0 : 2));
+  as_setup_kernel<<<1, 1>>>(d_as, asmz, (fixed_as ? 0 : 2), use_cmw);
   sync_gpu_and_check("as_setup_kernel");
 
   // Calculate as_max = as(t_c)

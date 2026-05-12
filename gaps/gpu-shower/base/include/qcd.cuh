@@ -22,30 +22,33 @@ class alpha_s {
   // member variables
 
   int n_loops;
+    bool use_cmw;
   double asmz, asmb, asmc;
 
  public:
   // ---------------------------------------------------------------------------
   // constructor
 
-  __device__ alpha_s(double asmz, int n_loops = 2);
+  __device__ alpha_s(double asmz, int n_loops = 2, bool use_cmw = false);
 
   // ---------------------------------------------------------------------------
   // member functions
 
   // setup function for device code
-  __device__ void setup(double asmz, int n_loops = 2);
+  __device__ void setup(double asmz, int n_loops = 2, bool use_cmw = false);
 
   // all the required functions to calculate the strong coupling constant
   __device__ double beta0(int nf) const;
   __device__ double beta1(int nf) const;
   __device__ double as1(double t) const;
   __device__ double as2(double t) const;
+  __device__ double k_cmw(double t) const;
   __device__ double operator()(double t) const;
 };
 
 // setup the alpha_s class
-__global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops = 2);
+__global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops = 2,
+                                bool use_cmw = false);
 
 // calculate the strong coupling constant
 __global__ void as_value(alpha_s* as, double* as_val, double t);

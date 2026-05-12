@@ -22,14 +22,15 @@ class alpha_s {
   // member variables
 
   int n_loops;
+    bool use_cmw;
   double asmz, asmb, asmc;
 
  public:
   // ---------------------------------------------------------------------------
   // constructor
 
-  alpha_s(double asmz, int n_loops = 2)
-      : n_loops(n_loops), asmz(asmz), asmb((*this)(mb2)), asmc((*this)(mc2)) {}
+    alpha_s(double asmz, int n_loops = 2, bool use_cmw = false)
+      : n_loops(n_loops), use_cmw(use_cmw), asmz(asmz), asmb((*this)(mb2)), asmc((*this)(mc2)) {}
 
   // ---------------------------------------------------------------------------
   // member functions
@@ -113,6 +114,31 @@ class alpha_s {
     return asref / w * (1. - b1 / b0 * asref * log(w) / w);
   }
 
+  double k_cmw(double t) const {
+    /**
+     * @brief calculate the CMW scheme conversion factor
+     *
+     * @param nf the number of flavours
+     * @return the CMW scheme conversion factor
+     */
+
+    // Do threshold matching for the number of flavours
+    int nf;
+    if (t >= mb2) {
+      nf = 5;
+    } else if (t >= mc2) {
+      nf = 4;
+    } else {
+      nf = 3;
+    }
+
+    // Do the numerical guards too
+    nf = (fabs(t - mb2) < 1e-6 * mb2) ? 5 : nf;
+    nf = (fabs(t - mc2) < 1e-6 * mc2) ? 4 : nf;
+
+    return (67. / 18. - M_PI * M_PI / 6.) * k_ca - 10. / 9. * k_tr * nf;
+  }
+
   double operator()(double t) const {
     /**
      * @brief wrapper/call operator for the strong coupling constant. This
@@ -132,16 +158,29 @@ class alpha_s {
     t = (fabs(t - mb2) < 1e-6 * mb2) ? mb2 : t;
     t = (fabs(t - mc2) < 1e-6 * mc2) ? mc2 : t;
 
+    // First, calculate alpha_s
+    double as_value;
     switch (n_loops) {
       case 0:
-        return asmz;  // No running coupling, for fixas tests
+        as_value = asmz;  // No running coupling, for fixas tests
+        break;
       case 1:
-        return as1(t);
+        as_value = as1(t);
+        break;
       case 2:
-        return as2(t);
+        as_value = as2(t);
+        break;
       default:
-        return as2(t);  // Default to 2-loop calculation
+        as_value = as2(t);  // Default to 2-loop calculation
+        break;
     }
+
+    // Next, convert to CMW scheme if needed
+    if (use_cmw) {
+      double k_cmw_val = k_cmw(t);
+      as_value *= 1. + k_cmw_val * as_value / (2. * M_PI);
+    }
+    return as_value;
   }
 };
 

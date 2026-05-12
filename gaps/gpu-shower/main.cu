@@ -108,7 +108,8 @@ void run_generator(const params& p) {
     start = std::chrono::high_resolution_clock::now();
 
     run_shower(dv_events, p.root_s, p.nlo, p.do_partitioning, p.t_c, p.asmz,
-               p.fixed_as, p.n_emissions_max, blocks, p.threads, p.showerpdf);
+               p.fixed_as, p.use_cmw, p.n_emissions_max, blocks, p.threads,
+               p.showerpdf);
 
     end = std::chrono::high_resolution_clock::now();
     diff_sh = end - start;

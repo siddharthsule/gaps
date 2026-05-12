@@ -1,12 +1,17 @@
 #include "qcd.cuh"
 
 // constructor
-__device__ alpha_s::alpha_s(double asmz, int n_loops)
-    : n_loops(n_loops), asmz(asmz), asmb((*this)(mb2)), asmc((*this)(mc2)) {}
+__device__ alpha_s::alpha_s(double asmz, int n_loops, bool use_cmw)
+    : n_loops(n_loops),
+      use_cmw(use_cmw),
+      asmz(asmz),
+      asmb((*this)(mb2)),
+      asmc((*this)(mc2)) {}
 
 // setup
-__device__ void alpha_s::setup(double asmz, int n_loops) {
+__device__ void alpha_s::setup(double asmz, int n_loops, bool use_cmw) {
   this->n_loops = n_loops;
+  this->use_cmw = use_cmw;
   this->asmz = asmz;
   this->asmb = (*this)(mb2);
   this->asmc = (*this)(mc2);
@@ -92,6 +97,31 @@ __device__ double alpha_s::as2(double t) const {
   return asref / w * (1. - b1 / b0 * asref * log(w) / w);
 }
 
+__device__ double alpha_s::k_cmw(double t) const {
+  /**
+   * @brief calculate the CMW scheme conversion factor
+   *
+   * @param nf the number of flavours
+   * @return the CMW scheme conversion factor
+   */
+
+  // Do threshold matching for the number of flavours
+  int nf;
+  if (t >= mb2) {
+    nf = 5;
+  } else if (t >= mc2) {
+    nf = 4;
+  } else {
+    nf = 3;
+  }
+
+  // Do the numerical guards too
+  nf = (fabs(t - mb2) < 1e-6 * mb2) ? 5 : nf;
+  nf = (fabs(t - mc2) < 1e-6 * mc2) ? 4 : nf;
+
+  return (67. / 18. - M_PI * M_PI / 6.) * k_ca - 10. / 9. * k_tr * nf;
+}
+
 __device__ double alpha_s::operator()(double t) const {
   /**
    * @brief wrapper/call operator for the strong coupling constant. This
@@ -111,20 +141,35 @@ __device__ double alpha_s::operator()(double t) const {
   t = (fabs(t - mb2) < 1e-6 * mb2) ? mb2 : t;
   t = (fabs(t - mc2) < 1e-6 * mc2) ? mc2 : t;
 
+  // First calculate alpha_s
+  double as_value;
   switch (n_loops) {
     case 0:
-      return asmz;  // No running coupling, for fixas tests
+      as_value = asmz;  // No running coupling, for fixas tests
+      break;
     case 1:
-      return as1(t);
+      as_value = as1(t);
+      break;
     case 2:
-      return as2(t);
+      as_value = as2(t);
+      break;
     default:
-      return as2(t);  // Default to 2-loop calculation
+      as_value = as2(t);  // Default to 2-loop calculation
+  }
+
+  // Next, convert to CMW scheme if needed
+  if (use_cmw) {
+  double k_cmw_val = k_cmw(t);
+  return as_value * (1. + k_cmw_val * as_value / (2 * M_PI));
+  }
+  else {
+    return as_value;
   }
 }
 
 // set up kernel on the device
-__global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops) {
+__global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops,
+                                bool use_cmw) {
   /**
    * @brief set up the alpha_s class on the device
    *
@@ -133,7 +178,7 @@ __global__ void as_setup_kernel(alpha_s* as, double asmz, int n_loops) {
    * @param n_loops the number of loops for the strong coupling constant
    */
 
-  as->setup(asmz, n_loops);
+  as->setup(asmz, n_loops, use_cmw);
 }
 
 // calculate alpha_s on the device for one input

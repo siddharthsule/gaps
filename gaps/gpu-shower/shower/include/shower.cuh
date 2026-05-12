@@ -125,7 +125,8 @@ __global__ void check_too_many_particles(event* events, int n_emissions_max,
 // all tasks wrapped into a function
 void run_shower(thrust::device_vector<event>& dv_events, double root_s,
                 bool nlo_matching, bool do_partitioning, double t_c,
-                double asmz, bool fixed_as, int n_emissions_max, int blocks,
-                int threads, const std::string& pdf_name = "CT14lo");
+                double asmz, bool fixed_as, bool use_cmw,
+                int n_emissions_max, int blocks, int threads,
+                const std::string& pdf_name = "CT14lo");
 
 #endif  // shower_cuh_

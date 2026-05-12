@@ -16,6 +16,7 @@ class params {
   double root_s;             // Center of mass energy
   double asmz;               // Strong coupling constant at Z mass
   bool fixed_as;             // Whether to use fixed strong coupling
+  bool use_cmw;              // Whether to apply CMW scheme conversion
   bool no_shower;            // Whether to skip the shower section
   double t_c;                // Shower cutoff in GeV
   int n_emissions_max;       // Maximum number of emissions
@@ -32,14 +33,15 @@ class params {
     root_s = atof(argv[3]);
     asmz = atof(argv[4]);
     fixed_as = atoi(argv[5]);
-    no_shower = atoi(argv[6]);
-    t_c = atof(argv[7]);
-    n_emissions_max = atoi(argv[8]);
-    me2pdf = argv[9];
-    showerpdf = argv[10];
-    n_events = atoi(argv[11]);
-    id_offset = atoi(argv[12]);
-    storage_file = argv[13];
+    use_cmw = atoi(argv[6]);
+    no_shower = atoi(argv[7]);
+    t_c = atof(argv[8]);
+    n_emissions_max = atoi(argv[9]);
+    me2pdf = argv[10];
+    showerpdf = argv[11];
+    n_events = atoi(argv[12]);
+    id_offset = atoi(argv[13]);
+    storage_file = argv[14];
   }
 };
 

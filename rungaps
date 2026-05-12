@@ -82,6 +82,10 @@ def parse_arguments():
                    action='store_true',
                    help='fix the strong coupling to asmz (default: False)')
 
+    p.add_argument('-cmw', '--use_cmw',
+                   action='store_true',
+                   help='use the CMW scheme for the strong coupling (default: False)')
+
     p.add_argument('-noshower', '--noshower',
                    action='store_true',
                    help='skip the shower section (default: False)')
