@@ -43,15 +43,13 @@ __device__ double shower::calculate_y(double t, double z, double sijk,
 __device__ double shower::calculate_t(double z, double y, double sijk,
                                       int sf) const {
   /**
-   * @brief Generate the post-emission kinematics for the given splitting
+   * @brief Calculate t(z,y) for the given splitting
    *
-   * @param kinematics: Array to store the post-emission momenta
    * @param z: Splitting variable
-   * @param y: y(t,z) value
-   * @param phi: Azimuthal angle
-   * @param pijt: Emitter momentum
-   * @param pkt: Spectator momentum
+   * @param y: auxiliary variable (splitting-case dependent)
+   * @param sijk: Invariant mass of the emitter and spectator
    * @param sf: Splitting function code
+   * @return double: t value
    */
 
   // 0 = FF, 1 = FI, 2 = IF, 3 = II

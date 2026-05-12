@@ -104,7 +104,7 @@ __global__ void prep_shower(event* events, bool nlo_matching, int n);
 __global__ void select_winner_split_func(shower* shower, event* events, int n,
                                          double* winner);
 
-__global__ void check_cutoff(event* events, int* d_completed, double cutoff,
+__global__ void check_cutoff(event* events, shower* shower, int* d_completed,
                              int n);
 
 __global__ void setup_pdfratio(shower* shower, event* events, int n,
@@ -113,14 +113,14 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
 
 __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
                          double* xf_a, double* xf_b, bool* accept_emission,
-                         double* winner, int* d_evaluations,
-                         int* d_overestimate_error);
+                         double* winner);
 
 __global__ void do_splitting(shower* shower, event* events, int n,
                              bool* accept_emission, double* winner);
 
-__global__ void check_too_many_particles(event* events,
-                                         int* d_too_many_particles, int n);
+__global__ void check_too_many_particles(event* events, int n_emissions_max,
+                                         int* d_too_many_particles,
+                                         int* d_completed, int n);
 
 // all tasks wrapped into a function
 void run_shower(thrust::device_vector<event>& dv_events, double root_s,
