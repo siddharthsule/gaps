@@ -137,7 +137,7 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
    *
    * There are two types of events possible
    * - H Event: There is an emission in the LO system
-   * - S Evennt: The LO and Virtual Contributions
+   * - S Event: The LO and Virtual Contributions
    *
    * @param matrix matrix element generator
    * @param as alpha_s generator

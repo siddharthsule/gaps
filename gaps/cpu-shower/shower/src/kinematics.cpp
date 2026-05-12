@@ -44,7 +44,7 @@ double shower::calculate_t(double z, double y, double sijk, int sf) const {
    * @brief Calculate t(z,y) for the given splitting
    *
    * @param z: Splitting variable
-   * @param y: Momentum fraction of the spectator
+   * @param y: auxiliary variable (splitting-case dependent)
    * @param sijk: Invariant mass of the emitter and spectator
    * @param sf: Splitting function code
    * @return double: t value
