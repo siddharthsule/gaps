@@ -2,6 +2,7 @@
 #define matrix_cuh
 
 #include "event.cuh"
+#include "interface.cuh"
 #include "pdf.cuh"
 #include "qcd.cuh"
 
@@ -71,8 +72,7 @@ void lhc_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
              alpha_s* as, pdf_wrapper* pdf, int blocks, int threads);
 
 // all tasks wrapped in a function
-void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
-               double root_s, double asmz, int blocks, int threads,
-               const std::string& pdf_name = "CT14lo");
+void calc_lome(thrust::device_vector<event>& d_events, const params& p,
+               int blocks);
 
 #endif  // matrix_cuh

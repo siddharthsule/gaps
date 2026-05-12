@@ -3,6 +3,7 @@
 
 #include "event.cuh"
 #include "histogram.cuh"
+#include "interface.cuh"
 
 // add analyses here
 #include "eventshapes.cuh"
@@ -86,7 +87,7 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
                             int process, int n);
 
 // analysis wrapped in a function
-void do_analysis(thrust::device_vector<event>& d_events, std::string filename,
-                 int process, int blocks, int threads);
+void do_analysis(thrust::device_vector<event>& d_events, const params& p,
+                 int blocks);
 
 #endif  // observables_cuh_

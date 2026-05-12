@@ -602,11 +602,8 @@ struct is_not_end_shower {
 
 // -----------------------------------------------------------------------------
 
-void run_shower(thrust::device_vector<event>& dv_events, double root_s,
-                bool nlo_matching, bool do_partitioning, double t_c,
-                double asmz, bool fixed_as, bool use_cmw,
-                int n_emissions_max, int blocks, int threads,
-                const std::string& pdf_name) {
+void run_shower(thrust::device_vector<event>& dv_events, const params& p,
+                int blocks) {
   /**
    * @brief Run the shower on the events
    *
@@ -623,13 +620,13 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, asmz, (fixed_as ? 0 : 2), use_cmw);
+  as_setup_kernel<<<1, 1>>>(d_as, p.asmz, (p.fixed_as ? 0 : 2), p.use_cmw);
   sync_gpu_and_check("as_setup_kernel");
 
   // Calculate as_max = as(t_c)
   double* d_as_max;
   cudaMalloc(&d_as_max, sizeof(double));
-  as_value<<<1, 1>>>(d_as, d_as_max, t_c);
+  as_value<<<1, 1>>>(d_as, d_as_max, p.t_c);
   sync_gpu_and_check("as_value");
   double as_max;
   cudaMemcpy(&as_max, d_as_max, sizeof(double), cudaMemcpyDeviceToHost);
@@ -637,11 +634,11 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   // set up the shower
   shower* d_shower;
   cudaMalloc(&d_shower, sizeof(shower));
-  shower_setup_kernel<<<1, 1>>>(d_shower, root_s, t_c, as_max);
+  shower_setup_kernel<<<1, 1>>>(d_shower, p.root_s, p.t_c, as_max);
   sync_gpu_and_check("shower_setup_kernel");
 
   // set up the pdf evaluator
-  pdf_wrapper pdf(pdf_name);
+  pdf_wrapper pdf(p.showerpdf);
 
   /**
    * Shower Variables - useful to store as collective
@@ -696,7 +693,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   // prepare the shower
 
   debug_msg("running @prep_shower");
-  prep_shower<<<blocks, threads>>>(d_events, nlo_matching, n_events);
+  prep_shower<<<blocks, p.threads>>>(d_events, p.nlo, n_events);
   sync_gpu_and_check("prep_shower");
 
   // ---------------------------------------------------------------------------
@@ -708,7 +705,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
 
   // (Varying) kernel size and partition factor
   int n = n_events;
-  int p = 1;
+  int part_step = 1;
 
   while (completed < n_events) {
     // run all the kernels here...
@@ -717,51 +714,54 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
     // check if there are too many particles (do first in case of H event)
 
     debug_msg("running @check_too_many_particles");
-    check_too_many_particles<<<blocks, threads>>>(
-        d_events, n_emissions_max, d_too_many_particles, d_completed, n);
+    check_too_many_particles<<<blocks, p.threads>>>(
+        d_events, p.n_emissions_max, d_too_many_particles, d_completed, n);
     sync_gpu_and_check("check_too_many_particles");
 
     // -------------------------------------------------------------------------
     // select the winner kernel
 
     debug_msg("running @select_winner_split_func");
-    select_winner_split_func<<<blocks, threads>>>(d_shower, d_events, n,
-                                                  d_winner);
+    select_winner_split_func<<<blocks, p.threads>>>(d_shower, d_events, n,
+                                                    d_winner);
     sync_gpu_and_check("select_winner_split_func");
 
     // -------------------------------------------------------------------------
     // check cutoff
 
     debug_msg("running @check_cutoff");
-    check_cutoff<<<blocks, threads>>>(d_events, d_shower, d_completed, n);
+    check_cutoff<<<blocks, p.threads>>>(d_events, d_shower, d_completed, n);
     sync_gpu_and_check("check_cutoff");
 
     // -------------------------------------------------------------------------
     // calculate pdf of ij and i using LHAPDF
 
-    debug_msg("running @setup_pdfratio");
-    setup_pdfratio<<<blocks, threads>>>(d_shower, d_events, n, d_flavours_a,
-                                        d_flavours_b, d_x_a, d_x_b, d_q2,
-                                        d_winner);
-    sync_gpu_and_check("setup_pdfratio");
+    // Skip for LEP
+    if (p.process != 1) {
+      debug_msg("running @setup_pdfratio");
+      setup_pdfratio<<<blocks, p.threads>>>(d_shower, d_events, n, d_flavours_a,
+                                            d_flavours_b, d_x_a, d_x_b, d_q2,
+                                            d_winner);
+      sync_gpu_and_check("setup_pdfratio");
 
-    pdf.evaluate(d_flavours_a, d_x_a, d_q2, d_xf_a, n, blocks, threads);
-    pdf.evaluate(d_flavours_b, d_x_b, d_q2, d_xf_b, n, blocks, threads);
+      pdf.evaluate(d_flavours_a, d_x_a, d_q2, d_xf_a, n, blocks, p.threads);
+      pdf.evaluate(d_flavours_b, d_x_b, d_q2, d_xf_b, n, blocks, p.threads);
+    }
 
     // -------------------------------------------------------------------------
     // veto algorithm
 
     debug_msg("running @veto_alg");
-    veto_alg<<<blocks, threads>>>(d_shower, d_as, d_events, n, d_xf_a, d_xf_b,
-                                  d_accept_emission, d_winner);
+    veto_alg<<<blocks, p.threads>>>(d_shower, d_as, d_events, n, d_xf_a, d_xf_b,
+                                    d_accept_emission, d_winner);
     sync_gpu_and_check("veto_alg");
 
     // -------------------------------------------------------------------------
     // splitting algorithm
 
     debug_msg("running @do_splitting");
-    do_splitting<<<blocks, threads>>>(d_shower, d_events, n, d_accept_emission,
-                                      d_winner);
+    do_splitting<<<blocks, p.threads>>>(d_shower, d_events, n,
+                                        d_accept_emission, d_winner);
     sync_gpu_and_check("do_splitting");
 
     // -------------------------------------------------------------------------
@@ -773,11 +773,11 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
     // -------------------------------------------------------------------------
 
     // Partition the events based on completion at 50%, 75%, 87.5%, etc.
-    if (do_partitioning &&
-        completed >= static_cast<int>(n_events * (1 - 1 / pow(2, p)))) {
+    if (p.do_partitioning &&
+        completed >= static_cast<int>(n_events * (1 - 1 / pow(2, part_step)))) {
       // Stop at 25k, below this, the overhead of partitioning outweighs the
       // benefits, increasing execution time.
-      if (static_cast<int>(n_events * (1 / pow(2, p))) >= 25000) {
+      if (static_cast<int>(n_events * (1 / pow(2, part_step))) >= 25000) {
         std::cerr << std::endl;
         std::cerr << "partition at " << completed << "/" << n_events
                   << std::endl;
@@ -793,7 +793,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
         n = n_events - completed;
 
         // Increment the partitioning step
-        p++;
+        part_step++;
       }
     }
 
@@ -812,7 +812,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
   cudaMemcpy(&too_many_particles, d_too_many_particles, sizeof(int),
              cudaMemcpyDeviceToHost);
   if (too_many_particles > 0) {
-    if (max_particles < n_emissions_max) {
+    if (max_particles < p.n_emissions_max) {
       std::cerr << "Warning: " << too_many_particles
                 << " events surpassed the maximum number of particles"
                 << std::endl;

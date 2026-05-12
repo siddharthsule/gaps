@@ -90,8 +90,7 @@ void run_generator(const params& p) {
   auto start = std::chrono::high_resolution_clock::now();
 
   // Calculate the leading order cross section and kinematics
-  calc_lome(dv_events, p.process, p.nlo, p.root_s, p.asmz, blocks, p.threads,
-            p.me2pdf);
+  calc_lome(dv_events, p, blocks);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
@@ -107,9 +106,7 @@ void run_generator(const params& p) {
     std::cout << "Showering partons..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    run_shower(dv_events, p.root_s, p.nlo, p.do_partitioning, p.t_c, p.asmz,
-               p.fixed_as, p.use_cmw, p.n_emissions_max, blocks, p.threads,
-               p.showerpdf);
+    run_shower(dv_events, p, blocks);
 
     end = std::chrono::high_resolution_clock::now();
     diff_sh = end - start;
@@ -124,7 +121,7 @@ void run_generator(const params& p) {
   start = std::chrono::high_resolution_clock::now();
 
   // analysis
-  do_analysis(dv_events, p.storage_file, p.process, blocks, p.threads);
+  do_analysis(dv_events, p, blocks);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;

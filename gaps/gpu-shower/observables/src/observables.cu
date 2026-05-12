@@ -142,8 +142,8 @@ void write_xsec(double xsec, double xsec_err, const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 // run the above kernels
-void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
-                 int process, int blocks, int threads) {
+void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
+                 int blocks) {
   /**
    * @brief Run the analysis
    *
@@ -156,7 +156,7 @@ void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
   analysis *h_an, *d_an;
 
   // allocate memory for the device analysis object
-  h_an = new analysis(process);
+  h_an = new analysis(p.process);
   cudaMalloc(&d_an, sizeof(analysis));
   cudaMemcpy(d_an, h_an, sizeof(analysis), cudaMemcpyHostToDevice);
 
@@ -169,7 +169,7 @@ void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
   cudaMalloc(&d_invalid, sizeof(int));
   cudaMemset(d_invalid, 0, sizeof(int));
 
-  validate_events<<<blocks, threads>>>(d_events, d_invalid, n_events);
+  validate_events<<<blocks, p.threads>>>(d_events, d_invalid, n_events);
   sync_gpu_and_check("validate_events");
 
   int h_invalid;
@@ -190,32 +190,32 @@ void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
   thrust::device_vector<double> dv_results(20 * n_events, -50.);
   double* d_results = thrust::raw_pointer_cast(dv_results.data());
 
-  if (process == 1) {
-    cluster_durham<<<blocks, threads>>>(d_events, d_results, n_events);
+  if (p.process == 1) {
+    cluster_durham<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("cluster_durham");
 
-    calculate_ev_shapes<<<blocks, threads>>>(d_events, d_results, n_events);
+    calculate_ev_shapes<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("calculate_ev_shapes");
   }
 
-  else if (process == 2) {
-    calculate_mczinc<<<blocks, threads>>>(d_events, d_results, n_events);
+  else if (p.process == 2) {
+    calculate_mczinc<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("calculate_mczinc");
 
-    cluster_genkt<<<blocks, threads>>>(d_events, d_results, n_events);
+    cluster_genkt<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("cluster_genkt");
   }
 
   // do the analysis
-  fill_histos<<<blocks, threads>>>(d_an, d_events, d_results, process,
-                                   n_events);
+  fill_histos<<<blocks, p.threads>>>(d_an, d_events, d_results, p.process,
+                                     n_events);
   sync_gpu_and_check("fill_histos");
 
   // copy the results back to the host
   cudaMemcpy(h_an, d_an, sizeof(analysis), cudaMemcpyDeviceToHost);
 
   // remove existing file
-  std::remove(filename.c_str());
+  std::remove(p.storage_file.c_str());
 
   // Calculate cross-section
   double xsec = h_an->wtot / h_an->ntot;      // Cross-section in pb
@@ -225,12 +225,12 @@ void do_analysis(thrust::device_vector<event>& dv_events, std::string filename,
   printf("Total cross-section: %.2e nb\n", xsec / 1000.);
 
   // Write cross-section in YODA format
-  write_xsec(xsec, xsec_err, filename);
+  write_xsec(xsec, xsec_err, p.storage_file);
 
   for (auto& hist : h_an->hists) {
     if (hist.name[0] != 'h') {
       hist.scale_w(1. / h_an->wtot);
-      write(hist, filename);
+      write(hist, p.storage_file);
     }
   }
 

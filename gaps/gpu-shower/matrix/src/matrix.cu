@@ -20,9 +20,8 @@ __global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
 // main
 
 // function to generate the lo matrix elements + momenta
-void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
-               double root_s, double asmz, int blocks, int threads,
-               const std::string& pdf_name) {
+void calc_lome(thrust::device_vector<event>& d_events, const params& p,
+               int blocks) {
   /**
    * @brief wrapper for matrix element calculation
    *
@@ -45,37 +44,37 @@ void calc_lome(thrust::device_vector<event>& d_events, int process, bool nlo,
 
   // set up the device matrix object
   debug_msg("running @matrix_setup_kernel");
-  matrix_setup_kernel<<<1, 1>>>(d_matrix, process, nlo, root_s);
+  matrix_setup_kernel<<<1, 1>>>(d_matrix, p.process, p.nlo, p.root_s);
   sync_gpu_and_check("matrix_setup_kernel");
 
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
-  as_setup_kernel<<<1, 1>>>(d_as, asmz);
+  as_setup_kernel<<<1, 1>>>(d_as, p.asmz);
   sync_gpu_and_check("as_setup_kernel");
 
   // set up the pdf evaluator (for LHC processes)
-  pdf_wrapper pdf(pdf_name);
+  pdf_wrapper pdf(p.me2pdf);
 
   // LEP LO
-  if ((process == 1) && !nlo) {
-    lep_lo(d_events, d_matrix, blocks, threads);
+  if ((p.process == 1) && !p.nlo) {
+    lep_lo(d_events, d_matrix, blocks, p.threads);
   }
 
   // LEP NLO
-  else if ((process == 1) && nlo) {
-    lep_lo(d_events, d_matrix, blocks, threads);
-    lep_nlo(d_events, d_matrix, d_as, blocks, threads);
+  else if ((p.process == 1) && p.nlo) {
+    lep_lo(d_events, d_matrix, blocks, p.threads);
+    lep_nlo(d_events, d_matrix, d_as, blocks, p.threads);
   }
 
   // LHC LO - and just do NLO = LO for now
-  else if ((process == 2) && !nlo) {
-    lhc_lo(d_events, d_matrix, &pdf, blocks, threads);
+  else if ((p.process == 2) && !p.nlo) {
+    lhc_lo(d_events, d_matrix, &pdf, blocks, p.threads);
   }
 
-  else if ((process == 2) && nlo) {
-    lhc_lo(d_events, d_matrix, &pdf, blocks, threads);
-    lhc_nlo(d_events, d_matrix, d_as, &pdf, blocks, threads);
+  else if ((p.process == 2) && p.nlo) {
+    lhc_lo(d_events, d_matrix, &pdf, blocks, p.threads);
+    lhc_nlo(d_events, d_matrix, d_as, &pdf, blocks, p.threads);
   }
 
   return;

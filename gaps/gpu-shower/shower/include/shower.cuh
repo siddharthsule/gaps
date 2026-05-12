@@ -1,6 +1,7 @@
 #ifndef shower_cuh_
 #define shower_cuh_
 
+#include "interface.cuh"
 #include "pdf.cuh"
 #include "qcd.cuh"
 
@@ -123,10 +124,7 @@ __global__ void check_too_many_particles(event* events, int n_emissions_max,
                                          int* d_completed, int n);
 
 // all tasks wrapped into a function
-void run_shower(thrust::device_vector<event>& dv_events, double root_s,
-                bool nlo_matching, bool do_partitioning, double t_c,
-                double asmz, bool fixed_as, bool use_cmw,
-                int n_emissions_max, int blocks, int threads,
-                const std::string& pdf_name = "CT14lo");
+void run_shower(thrust::device_vector<event>& dv_events, const params& p,
+                int blocks);
 
 #endif  // shower_cuh_
