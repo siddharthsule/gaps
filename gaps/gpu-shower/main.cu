@@ -14,6 +14,9 @@
 // jet and event shape analysis
 #include "observables.cuh"
 
+// interface for input
+#include "interface.cuh"
+
 /**
  * The Main Function
  * -----------------
@@ -47,29 +50,11 @@ __global__ void set_seed_kernel(event* events, int id_offset, int n) {
   double dummy = ev.gen_random();
 }
 
-void run_generator(int process, bool nlo, double root_s, double asmz,
-                   bool fixed_as, bool no_shower, double t_c,
-                   int n_emissions_max, std::string me2pdf,
-                   std::string showerpdf, int n, int id_offset,
-                   std::string filename, bool do_partitioning, int threads) {
+void run_generator(const params& p) {
   /**
    * @brief Run the event generator
    *
-   * @param process the process to generate (1 for LEP, 2 for LHC)
-   * @param nlo whether to use NLO matching
-   * @param root_s the center-of-mass energy
-   * @param asmz the strong coupling constant at the Z mass
-   * @param fixed_as whether to use a fixed strong coupling constant
-   * @param no_shower whether to skip the shower section
-   * @param t_c the shower cutoff in GeV
-   * @param n_emissions_max the maximum number of emissions
-   * @param me2pdf the PDF set name for matrix element calculation
-   * @param showerpdf the PDF set name for parton shower
-   * @param n the number of events to generate
-   * @param id_offset the offset for the event id
-   * @param filename the name of the file to store the histograms
-   * @param do_partitioning whether to use event partitioning
-   * @param threads the number of threads per block
+   * @param p The parameters for the run, passed from the main function
    */
   // ---------------------------------------------------------------------------
   // initialisation
@@ -77,23 +62,22 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   std::cout << "Initialising..." << std::endl;
 
   // create the events
-  thrust::device_vector<event> dv_events(n);
+  thrust::device_vector<event> dv_events(p.n_events);
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n_events = dv_events.size();
 
   // Threads-per-Block and Blocks-per-Grid
-  // int threads = 256;
   int blocks =
-      static_cast<int>(std::ceil(static_cast<double>(n_events) / threads));
-  std::cout << " - Using " << blocks << " blocks and " << threads
+      static_cast<int>(std::ceil(static_cast<double>(n_events) / p.threads));
+  std::cout << " - Using " << blocks << " blocks and " << p.threads
             << " threads per block" << std::endl;
 
   // set the seed
-  set_seed_kernel<<<blocks, threads>>>(d_events, id_offset, n);
+  set_seed_kernel<<<blocks, p.threads>>>(d_events, p.id_offset, p.n_events);
 
   // Output LHAPDF settings
-  std::cout << " - Using LHAPDF with ME2 PDF: " << me2pdf << std::endl;
-  std::cout << " - Using LHAPDF with Shower PDF: " << showerpdf << std::endl;
+  std::cout << " - Using LHAPDF with ME2 PDF: " << p.me2pdf << std::endl;
+  std::cout << " - Using LHAPDF with Shower PDF: " << p.showerpdf << std::endl;
   LHAPDF::setVerbosity(0);
 
   // Extra line to add space
@@ -106,7 +90,8 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   auto start = std::chrono::high_resolution_clock::now();
 
   // Calculate the leading order cross section and kinematics
-  calc_lome(dv_events, process, nlo, root_s, asmz, blocks, threads, me2pdf);
+  calc_lome(dv_events, p.process, p.nlo, p.root_s, p.asmz, blocks, p.threads,
+            p.me2pdf);
 
   auto end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_me = end - start;
@@ -118,12 +103,12 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
 
   std::chrono::duration<double> diff_sh(0.0);
 
-  if (!no_shower) {
+  if (!p.no_shower) {
     std::cout << "Showering partons..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    run_shower(dv_events, root_s, nlo, do_partitioning, t_c, asmz, fixed_as,
-               n_emissions_max, blocks, threads, showerpdf);
+    run_shower(dv_events, p.root_s, p.nlo, p.do_partitioning, p.t_c, p.asmz,
+               p.fixed_as, p.n_emissions_max, blocks, p.threads, p.showerpdf);
 
     end = std::chrono::high_resolution_clock::now();
     diff_sh = end - start;
@@ -138,7 +123,7 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   start = std::chrono::high_resolution_clock::now();
 
   // analysis
-  do_analysis(dv_events, filename, process, blocks, threads);
+  do_analysis(dv_events, p.storage_file, p.process, blocks, p.threads);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;
@@ -191,7 +176,7 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   // close the file.
   outfile.close();
 
-  std::cout << "Histograms written to " << filename << std::endl;
+  std::cout << "Histograms written to " << p.storage_file << std::endl;
   std::cout << "Timing data written to gpu-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
@@ -199,68 +184,23 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
 
 int main(int argc, char* argv[]) {
   /**
-   * @brief Main function to run the CPU Shower
+   * @brief Main function to run the GPU Shower
    *
    * All Validation is done in the Python Interface, so here is just the
    * main function to run the generator. We simply add one check for the
    * number of events.
    */
 
-  // 1 - 1 for LEP or 2 for LHC
-  int process = atoi(argv[1]);
-
-  // 2 - 0 if no NLO, 1 if NLO
-  bool nlo = atoi(argv[2]);
-
-  // 3 - The root s value
-  double root_s = atof(argv[3]);
-
-  // 4 - The strong coupling constant at the Z mass
-  double asmz = atof(argv[4]);
-
-  // 5 - If fixas is set, use the fixed asmz value
-  bool fixed_as = atoi(argv[5]);
-
-  // 6 - If noshower is set, skip the shower section
-  bool no_shower = atoi(argv[6]);
-
-  // 7 - The Shower Cutoff in GeV
-  double t_c = atof(argv[7]);
-
-  // 8 - The maximum number of emissions
-  int n_emissions_max = atoi(argv[8]);
-
-  // 9 - ME2 PDF name
-  std::string me2pdf = argv[9];
-
-  // 10 - Shower PDF name
-  std::string showerpdf = argv[10];
-
-  // 11 - The Number of events
-  int n_events = atoi(argv[11]);
-
-  // 12 - The Event Number Offset
-  int id_offset = atoi(argv[12]);
-
-  // 13 - Storage file name
-  std::string storage_file = argv[13];
-
-  // 14 - Do partitioning
-  bool do_partitioning = atoi(argv[14]);
-
-  // 15 - Threads per block
-  int threads = atoi(argv[15]);
+  params run_params(argv);
 
   // if more than max_events, run in batches
-  if (n_events > max_events) {
+  if (run_params.n_events > max_events) {
     std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
     return 1;
   }
 
   // run the generator
-  run_generator(process, nlo, root_s, asmz, fixed_as, no_shower, t_c,
-                n_emissions_max, me2pdf, showerpdf, n_events, id_offset,
-                storage_file, do_partitioning, threads);
+  run_generator(run_params);
   return 0;
 }
 // -----------------------------------------------------------------------------

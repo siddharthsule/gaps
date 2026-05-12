@@ -47,13 +47,13 @@ using std::tan;
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
 
-// maximum number of events the GPU can handle
+// maximum number of events that can be handled
 const int max_events = 1000000;
 
 // max number of particles
 const int max_particles = 70;
 
-// RNG: Linear Congruential Generator
+// RNG Settings - Linear Congruential Generator
 const unsigned long lcg_a = 1664525;
 const unsigned long lcg_c = 1013904223;
 const unsigned long lcg_m = 4294967296;

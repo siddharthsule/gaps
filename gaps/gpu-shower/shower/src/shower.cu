@@ -650,7 +650,7 @@ void run_shower(thrust::device_vector<event>& dv_events, double root_s,
    * like these.
    *
    * Winner variables: (sf, ij, k, sijk, z, y, phi)
-   * Stored in ONE array, so we make it 6 x n_events
+   * Stored in ONE array, so we make it 7 x n_events
    * Stored all as doubles, so static_cast<int> for sf, ij, k
    */
   thrust::device_vector<double> dv_winner(7 * n_events, 0.0);

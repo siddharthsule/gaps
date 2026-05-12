@@ -133,8 +133,8 @@ class histo1d {
         double xhigh = xlow + width;
 
         // Guards to prevent discontinuities in the histogram
-        xlow = abs(xlow) < 1e-12 ? 0. : xlow;
-        xhigh = abs(xhigh) < 1e-12 ? 0. : xhigh;
+        xlow = fabs(xlow) < 1e-12 ? 0. : xlow;
+        xhigh = fabs(xhigh) < 1e-12 ? 0. : xhigh;
 
         // initialize bin1d object on the device
         bins[i] = bin1d(xlow, xhigh);

@@ -194,7 +194,7 @@ void shower::generate_splitting(event& ev) {
      * like these.
      *
      * Winner variables: (sf, ij, k, sijk, z, y, phi)
-     * Stored in ONE array, so we make it 6 x n_events
+     * Stored in ONE array, so we make it 7 x n_events
      * Stored all as doubles, so static_cast<int> for sf, ij, k
      */
     double winner[7] = {0., 0., 0., 0., 0., 0., 0.};

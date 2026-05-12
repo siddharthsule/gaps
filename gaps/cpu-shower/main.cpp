@@ -14,11 +14,14 @@
 // analysis
 #include "observables.h"
 
+// interface for input
+#include "interface.h"
+
 /**
  * The Main Function
  * -----------------
  *
- * This file contains the main function for the GPU Shower program.
+ * This file contains the main function for the CPU Shower program.
  * It is responsible for setting up the event generation, calling the
  * matrix element calculation, performing the parton showering, and
  * analyzing the final state particles.
@@ -26,44 +29,28 @@
 
 // -----------------------------------------------------------------------------
 
-void run_generator(int process, bool nlo, double root_s, double asmz,
-                   bool fixed_as, bool no_shower, double t_c,
-                   int n_emissions_max, std::string me2pdf,
-                   std::string showerpdf, int n, int id_offset,
-                   std::string filename) {
+void run_generator(const params& p) {
   /**
    * @brief Run the event generator
    *
-   * @param process: Process ID
-   * @param nlo: NLO or LO
-   * @param root_s: Center of mass energy
-   * @param asmz: Strong coupling constant at Z mass
-   * @param fixed_as: Whether to use fixed strong coupling
-   * @param no_shower: Whether to skip the shower section
-   * @param t_c: Shower cutoff in GeV
-   * @param n_emissions_max: Maximum number of emissions
-   * @param me2pdf: PDF set name for matrix element calculation
-   * @param showerpdf: PDF set name for parton shower
-   * @param n: Number of events to generate
-   * @param id_offset: Offset for event IDs
-   * @param filename: Name of the file to store the histograms
+   * @param p The parameters for the run, passed from the main function
    */
 
   // ---------------------------------------------------------------------------
   // inititalisation
 
   std::cout << "Initialising..." << std::endl;
-  std::vector<event> events(n);  // Create n events
+  std::vector<event> events(p.n_events);  // Create n events
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < p.n_events; i++) {
     event& ev = events[i];
-    ev.set_id(i + id_offset);                                // Set the event id
-    ev.set_seed(static_cast<unsigned long>(i + id_offset));  // Set the seed
+    ev.set_id(i + p.id_offset);  // Set the event id
+    ev.set_seed(static_cast<unsigned long>(i + p.id_offset));  // Set the seed
     double dummy = ev.gen_random();  // Generate the first random number
   }
 
-  std::cout << " - Using LHAPDF with ME2 PDF: " << me2pdf << std::endl;
-  std::cout << " - Using LHAPDF with Shower PDF: " << showerpdf << std::endl;
+  std::cout << " - Using LHAPDF with ME2 PDF: " << p.me2pdf << std::endl;
+  std::cout << " - Using LHAPDF with Shower PDF: " << p.showerpdf << std::endl;
   LHAPDF::setVerbosity(0);
 
   // Extra line to add space
@@ -75,9 +62,9 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   std::cout << "Generating Matrix Elements (CPU)..." << std::endl;
   auto start = std::chrono::high_resolution_clock::now();
 
-  matrix me(process, nlo, root_s, asmz, me2pdf);
+  matrix me(p.process, p.nlo, p.root_s, p.asmz, p.me2pdf);
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < p.n_events; i++) {
     me.run(events[i]);
   }
 
@@ -89,15 +76,16 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
 
   std::chrono::duration<double> diff_sh(0.0);
 
-  if (!no_shower) {
+  if (!p.no_shower) {
     std::cout << "Showering Partons (CPU)..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    shower sh(root_s, t_c, asmz, fixed_as, n_emissions_max, showerpdf);
+    shower sh(p.root_s, p.t_c, p.asmz, p.fixed_as, p.n_emissions_max,
+              p.showerpdf);
 
-    for (int i = 0; i < n; i++) {
-      sh.run(events[i], nlo);
-      std::cerr << "\rEvent " << i + 1 << " of " << n << std::flush;
+    for (int i = 0; i < p.n_events; i++) {
+      sh.run(events[i], p.nlo);
+      std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
     }
     std::cout << "" << std::endl;
 
@@ -114,19 +102,19 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   start = std::chrono::high_resolution_clock::now();
 
   // remove existing file
-  std::remove(filename.c_str());
+  std::remove(p.storage_file.c_str());
 
-  analysis an(process);
+  analysis an(p.process);
 
   // analyze events (including validation of colour and momentum conservation)
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < p.n_events; i++) {
     an.validate(events[i]);
     an.analyze(events[i]);
   }
   std::cout << "" << std::endl;
 
   // storage
-  an.finalize(filename);
+  an.finalize(p.storage_file);
 
   end = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> diff_an = end - start;
@@ -157,7 +145,7 @@ void run_generator(int process, bool nlo, double root_s, double asmz,
   // close the file.
   outfile.close();
 
-  std::cout << "Histograms written to " << filename << std::endl;
+  std::cout << "Histograms written to " << p.storage_file << std::endl;
   std::cout << "Timing data written to cpu-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
@@ -172,55 +160,10 @@ int main(int argc, char* argv[]) {
    * number of events.
    */
 
-  // 1 - 1 for LEP or 2 for LHC
-  int process = atoi(argv[1]);
-
-  // 2 - 0 if no NLO, 1 if NLO
-  bool nlo = atoi(argv[2]);
-
-  // 3 - The root s value
-  double root_s = atof(argv[3]);
-
-  // 4 - The strong coupling constant at the Z mass
-  double asmz = atof(argv[4]);
-
-  // 5 - If fixas is set, use the fixed asmz value
-  bool fixed_as = atoi(argv[5]);
-
-  // 6 - If noshower is set, skip the shower section
-  bool no_shower = atoi(argv[6]);
-
-  // 7 - The Shower Cutoff in GeV
-  double t_c = atof(argv[7]);
-
-  // 8 - The maximum number of emissions
-  int n_emissions_max = atoi(argv[8]);
-
-  // 9 - ME2 PDF name
-  std::string me2pdf = argv[9];
-
-  // 10 - Shower PDF name
-  std::string showerpdf = argv[10];
-
-  // 11 - The Number of events
-  int n_events = atoi(argv[11]);
-
-  // 12 - The Event Number Offset
-  int id_offset = atoi(argv[12]);
-
-  // 13 - Storage file name
-  std::string storage_file = argv[13];
-
-  // if more than max_events, run in batches
-  if (n_events > max_events) {
-    std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
-    return 1;
-  }
+  params run_params(argv);
 
   // run the generator
-  run_generator(process, nlo, root_s, asmz, fixed_as, no_shower, t_c,
-                n_emissions_max, me2pdf, showerpdf, n_events, id_offset,
-                storage_file);
+  run_generator(run_params);
   return 0;
 }
 // -----------------------------------------------------------------------------

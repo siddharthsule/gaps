@@ -29,7 +29,7 @@ import os
 from gaps.interface.logo import print_logo
 from gaps.interface.compile import compile_code
 from gaps.interface.lhapdf_gpu import check_lhapdf_path
-from gaps.interface.run import run, run_cpu_cluster
+from gaps.interface.run import run, run_cpu_cluster, run_gpu_large_sample
 
 
 # ------------------------------------------------------------------------------
@@ -179,17 +179,34 @@ def compile_and_run(args):
     # Run the code
 
     if args.runtype in ['gpu', 'compare']:
-        if (codecarbon_available and args.codecarbon):
-            tracker = OfflineEmissionsTracker(
-                country_iso_code="GBR",
-                output_file="gpu-emissions.dat",
-                measure_power_secs=5,
-                tracking_mode="process")
-            tracker.start()
-            run('gpu', args)
-            tracker.stop()
+        # Automatically use batching if events exceed GPU limit
+        if args.nevents > 1000000:
+            print(
+                f"Note: {args.nevents} events exceeds GPU limit of 1,000,000")
+            print("Automatically switching to batched mode...\n")
+            if (codecarbon_available and args.codecarbon):
+                tracker = OfflineEmissionsTracker(
+                    country_iso_code="GBR",
+                    output_file="gpu-emissions.dat",
+                    measure_power_secs=5,
+                    tracking_mode="process")
+                tracker.start()
+                run_gpu_large_sample(args)
+                tracker.stop()
+            else:
+                run_gpu_large_sample(args)
         else:
-            run('gpu', args)
+            if (codecarbon_available and args.codecarbon):
+                tracker = OfflineEmissionsTracker(
+                    country_iso_code="GBR",
+                    output_file="gpu-emissions.dat",
+                    measure_power_secs=5,
+                    tracking_mode="process")
+                tracker.start()
+                run('gpu', args)
+                tracker.stop()
+            else:
+                run('gpu', args)
 
     if args.runtype in ['cpu', 'compare']:
         if (codecarbon_available and args.codecarbon):

@@ -16,9 +16,8 @@ void shower::get_boundaries(double& zm, double& zp, double sijk, double eta,
   int splitting_case = get_splitting_case(sf);
 
   // eta_max is the max x value of PDF set
-  double eta_max = pdf_x_max;
+  // double eta_max = pdf_x_max;
 
-  // t_max is the max possible pt2 of the splitting
   double frac;
 
   switch (splitting_case) {

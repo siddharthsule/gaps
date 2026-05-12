@@ -6,85 +6,74 @@ import subprocess
 
 def prepare_runparams(runtype, args):
     """
-    @brief Prepare the arguements to be fed to the code.
-
-    Param List:
-    - Process: 1 for LEP, 2 for LHC
-    - NLO: 0 for no NLO, 1 for NLO
-    - Root s: The center of mass energy in GeV
-    - asmz: The strong coupling constant at the Z mass
-    - fixas: 1 if fixed asmz, 0 if running
-    - noshower: 1 if skip shower, 0 if run shower
-    - t_c: The Shower cutoff in GeV
-    - n_emissions_max: The maximum number of emissions
-    - me2pdf: PDF set name for matrix element calculation
-    - showerpdf: PDF set name for parton shower
-    - nevents: The number of events to generate
-    - Event Number Offset: The offset for the event number (default 0)
-    - Output filename: The name of the output file
-    - Partitioning: Do Event Record Partitioning (GPU only)
-    - Threads: The number of threads to use (GPU only)
+    @brief Prepare the arguments to be fed to the code.
 
     @param runtype: 'cpu' or 'gpu'
     @param args: The command line arguments parsed by argparse
-    @return: A list of parameters to be passed to the code
+    @return: A dictionary of parameters
     """
 
-    # Start with an empty list
-    params = []
+    # Build parameter dictionary with named keys
+    params = {
+        'process': '1' if args.process.lower() == 'lep' else '2',
+        'nlo': '1' if args.nlo else '0',
+        'root_s': str(args.root_s),
+        'asmz': str(args.asmz),
+        'fixas': '1' if args.fixas else '0',
+        'noshower': '1' if args.noshower else '0',
+        't_c': str(args.t_c),
+        'n_emissions_max': str(args.n_emissions_max),
+        'me2pdf': args.me2pdf,
+        'showerpdf': args.showerpdf,
+        'nevents': str(args.nevents),
+        'id_offset': '0',
+        'output_file': f'{runtype}.yoda',
+    }
 
-    # 0 - Add 1 for LEP or 2 for LHC
-    params.append('1' if args.process.lower() == 'lep' else '2')
-
-    # 1 - Add 0 if no NLO, 1 if NLO
-    params.append('1' if args.nlo else '0')
-
-    # 2 - Add the root s value
-    params.append(str(args.root_s))
-
-    # 3 - Add the strong coupling constant at the Z mass
-    params.append(str(args.asmz))
-
-    # 4 - If fixas is set, use the fixed asmz value
-    params.append('1' if args.fixas else '0')
-
-    # 5 - If noshower is set, skip the shower section
-    params.append('1' if args.noshower else '0')
-
-    # 6 - Add the shower cutoff in GeV
-    params.append(str(args.t_c))
-
-    # 7 - Add the maximum number of emissions
-    params.append(str(args.n_emissions_max))
-
-    # 8 - Add ME2 PDF name
-    params.append(args.me2pdf)
-
-    # 9 - Add Shower PDF name
-    params.append(args.showerpdf)
-
-    # 10 - Add the number of events
-    params.append(str(args.nevents))
-
-    # 11 - Add Event Number Offset - will be adjusted in run_cpu_cluster
-    params.append('0')
-
-    # 12 - Add Storage file name
-    if runtype == 'cpu':
-        params.append('cpu.yoda')
-    elif runtype == 'gpu':
-        params.append('gpu.yoda')
-
-    # 13 - If GPU and Threads Given
+    # Add GPU-specific parameters
     if runtype == 'gpu':
-
-        # Add partitioning flag
-        params.append('1' if args.do_partitioning.lower() == 'yes' else '0')
-
-        # Add the number of threads
-        params.append(str(args.threads))
+        params['do_partitioning'] = '1' if args.do_partitioning.lower(
+        ) == 'yes' else '0'
+        params['threads'] = str(args.threads)
 
     return params
+
+
+def params_to_list(params, runtype):
+    """
+    @brief Convert parameter dictionary to ordered list for C++/CUDA program.
+
+    Order matches the expected argv order in main.cpp/main.cu
+
+    @param params: Dictionary of parameters
+    @param runtype: 'cpu' or 'gpu'
+    @return: List of parameters in correct order
+    """
+
+    param_list = [
+        params['process'],
+        params['nlo'],
+        params['root_s'],
+        params['asmz'],
+        params['fixas'],
+        params['noshower'],
+        params['t_c'],
+        params['n_emissions_max'],
+        params['me2pdf'],
+        params['showerpdf'],
+        params['nevents'],
+        params['id_offset'],
+        params['output_file'],
+    ]
+
+    # Add GPU-specific parameters
+    if runtype == 'gpu':
+        param_list.extend([
+            params['do_partitioning'],
+            params['threads']
+        ])
+
+    return param_list
 
 
 def run(runtype, args):
@@ -93,10 +82,11 @@ def run(runtype, args):
 
     # Prepare the arguments based on the runtype - cpu or gpu
     params = prepare_runparams(runtype, args)
+    param_list = params_to_list(params, runtype)
 
     # Define the run command
     run = [f'./gaps/{runtype}-shower/bin/{runtype}-shower']
-    command = run + params
+    command = run + param_list
 
     # If Nsys Profiling
     if args.nsysprofile:
@@ -136,16 +126,16 @@ def run_cpu_cluster(ncpu, args):
         # Get the code params as if we were running on a single CPU
         params = prepare_runparams('cpu', args)
 
-        # adjust output filename and offset
-        params[10] = str(this_proc_events)
-        params[11] = str(offset)
-        params[12] = output_filename
+        # Adjust output filename, event count, and offset
+        params['nevents'] = str(this_proc_events)
+        params['id_offset'] = str(offset)
+        params['output_file'] = output_filename
 
         # Path to the executable
         exe_path = ['./gaps/cpu-shower/bin/cpu-shower']
 
         # Combine the command with parameters
-        command = exe_path + params
+        command = exe_path + params_to_list(params, 'cpu')
 
         # Spawn the process
         p = subprocess.Popen(command)
@@ -175,3 +165,68 @@ def run_cpu_cluster(ncpu, args):
     #     subprocess.run(["zip", "-r", "cpu-yodas.zip", "cpu-yodas"], check=True)
     #     subprocess.run(["rm", "-rf", "cpu-yodas"], check=True)
     #     print("CPU .yoda files have been zipped.\n")
+
+
+def run_gpu_large_sample(args):
+
+    print(f'Running gpu-shower with large sample in batches...')
+
+    # GPU can handle max 1,000,000 events at once
+    max_events_per_batch = 1000000
+    n_events_total = args.nevents
+
+    # Calculate number of batches needed
+    num_batches = (n_events_total + max_events_per_batch -
+                   1) // max_events_per_batch
+
+    print(f' - Total events: {n_events_total}')
+    print(f' - Events per batch: {max_events_per_batch}')
+    print(f' - Number of batches: {num_batches}')
+    print('')
+
+    offset = 0
+
+    for i in range(num_batches):
+
+        # Calculate events for this batch
+        events_remaining = n_events_total - offset
+        this_batch_events = min(max_events_per_batch, events_remaining)
+
+        # Output file for this batch
+        output_filename = f"gpu-{i+1}.yoda"
+
+        print(
+            f"[Batch {i+1}/{num_batches}] Running {this_batch_events} events (offset={offset}) → {output_filename}")
+
+        # Get the code params as if we were running a single GPU run
+        params = prepare_runparams('gpu', args)
+
+        # Adjust number of events, offset, and output filename
+        params['nevents'] = str(this_batch_events)
+        params['id_offset'] = str(offset)
+        params['output_file'] = output_filename
+
+        # Path to the executable
+        exe_path = ['./gaps/gpu-shower/bin/gpu-shower']
+
+        # Combine the command with parameters
+        command = exe_path + params_to_list(params, 'gpu')
+
+        # If Nsys Profiling (apply to all batches)
+        if args.nsysprofile:
+            profile = ['nsys', 'profile',
+                       '--trace=cuda,nvtx,osrt', '--stats=true']
+            command = profile + command
+
+        # Run the batch sequentially (GPU runs one batch at a time)
+        ret_code = subprocess.run(command).returncode
+
+        if ret_code != 0:
+            print(f"Batch {i+1} exited with code {ret_code}")
+            break
+
+        # Update offset for the next batch
+        offset += this_batch_events
+
+    print("")
+    print("All GPU batches have completed.")
