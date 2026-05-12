@@ -139,7 +139,10 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
    * - H Event: There is an emission in the LO system
    * - S Evennt: The LO and Virtual Contributions
    *
-   * @param ev the event object
+   * @param matrix matrix element generator
+   * @param as alpha_s generator
+   * @param events array of event records
+   * @param n number of events
    */
   // ---------------------------------------------
   // Kernel Preamble
