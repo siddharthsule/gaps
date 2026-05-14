@@ -280,7 +280,7 @@ void matrix::lhc_nlo(event& ev) {
 
     // Preamble
     double dxs_nlo;
-    dxs_nlo = 2.;  // Two Possible Orientations (P(q) P(qbar) or P(qbar) P(q))
+    // dxs_nlo = 2.;  // Two Possible Orientations // (Done from LO!)
     dxs_nlo *= log((root_s * root_s) / pz.m2());  // from LO
     dxs_nlo *= pdf_a * pdf_b;                     // PDFs
     dxs_nlo *= (1. - x_min) * (1. - x);           // x,v Sampling

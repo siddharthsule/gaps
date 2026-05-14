@@ -377,7 +377,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
 
   // Preamble
   double dxs_nlo;
-  dxs_nlo = 2.;  // Two Possible Orientations (P(q) P(qbar) or P(qbar) P(q))
+  // dxs_nlo = 2.;  // Two Possible Orientations // (Done from LO!)
   dxs_nlo *= log((matrix->root_s * matrix->root_s) / pz.m2());  // from LO
   dxs_nlo *= (1. - x_min) * (1. - x);                           // x, v Sampling
   dxs_nlo *= 1. / (16. * M_PI);
