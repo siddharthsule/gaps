@@ -279,7 +279,7 @@ void matrix::lhc_nlo(event& ev) {
     double pdf_b = pdf.xfxQ2(fl_b, eta_b, mu2);  // x_b f(x_b, mu^2)
 
     // Preamble
-    double dxs_nlo;
+    double dxs_nlo = 1.;
     // dxs_nlo = 2.;  // Two Possible Orientations // (Done from LO!)
     dxs_nlo *= log((root_s * root_s) / pz.m2());  // from LO
     dxs_nlo *= pdf_a * pdf_b;                     // PDFs
