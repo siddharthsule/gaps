@@ -22,7 +22,7 @@ class alpha_s {
   // member variables
 
   int n_loops;
-    bool use_cmw;
+  bool use_cmw;
   double asmz, asmb, asmc;
 
  public:
