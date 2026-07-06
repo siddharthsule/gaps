@@ -1,0 +1,1 @@
+../../../../rungaps --no-compile -do_partitioning no -r gpu -n 1000000 -nlo -cmw -hadronise -asmz {alpha_s:f} -t_c {pt2min:f}

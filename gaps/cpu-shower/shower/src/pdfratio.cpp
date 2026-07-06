@@ -8,8 +8,8 @@ double shower::pdf_ratio(int pid_before, int pid_after, double eta, double z,
   /**
    * @brief Calculate the ratio of the pdfs for pre and post emission particles
    *
-   * @param pid_before Particle ID of the post-emission particle
-   * @param pid_after Particle ID of the pre-emission particle
+   * @param pid_before Particle ID of the pre-emission particle
+   * @param pid_after Particle ID of the post-emission particle
    * @param eta Momentum Fraction of the pre-emission particle
    * @param z Splitting Variable
    * @param t Evolution Variable
@@ -189,11 +189,11 @@ double shower::get_pdf_max(int sf, double ij_eta) const {
     if (is_emitter_antiparticle(sf)) {
       switch (get_splitting_flavour(sf)) {
         case 5:
-          return max(150., 700. * ij_eta);
+          return fmax(150., 700. * ij_eta);
         case 4:
-          return max(100., 450. * ij_eta);
+          return fmax(100., 450. * ij_eta);
         case 3:
-          return max(50., 600. * ij_eta);
+          return fmax(50., 600. * ij_eta);
         default:
           return 150.;
       }
@@ -203,11 +203,11 @@ double shower::get_pdf_max(int sf, double ij_eta) const {
     else {
       switch (get_splitting_flavour(sf)) {
         case 5:
-          return max(150., 650. * ij_eta);
+          return fmax(150., 650. * ij_eta);
         case 4:
-          return max(100., 450. * ij_eta);
+          return fmax(100., 450. * ij_eta);
         case 3:
-          return max(50., 600. * ij_eta);
+          return fmax(50., 600. * ij_eta);
         default:
           return 150.;
       }

@@ -40,22 +40,50 @@ void analysis::analyze(const event& ev) {
   // LEP: e+ e- -> q qbar
   if (process == 1) {
     // jet rates
-    cluster_durham(ev, results);
+    double jet_rates[4] = {-50., -50., -50., -50.};
+    cluster_durham(ev, jet_rates);
+    double log10y23 = jet_rates[0];
+    double log10y34 = jet_rates[1];
+    double log10y45 = jet_rates[2];
+    double log10y56 = jet_rates[3];
 
     // event shapes
-    calculate_ev_shapes(ev, results);
+    double ev_shapes[5] = {-50., -50., -50., -50., -50.};
+    calculate_ev_shapes(ev, ev_shapes);
+    double thrust = ev_shapes[0];
+    double hjm = ev_shapes[1];
+    double ljm = ev_shapes[2];
+    double wjb = ev_shapes[3];
+    double njb = ev_shapes[4];
 
     // fill histograms
-    hists[0].fill(results[0], ev.get_dxs());
-    hists[1].fill(results[1], ev.get_dxs());
-    hists[2].fill(results[2], ev.get_dxs());
-    hists[3].fill(results[3], ev.get_dxs());
-    hists[4].fill(results[4], ev.get_dxs());
-    hists[5].fill(results[5], ev.get_dxs());
-    hists[6].fill(results[6], ev.get_dxs());
-    hists[7].fill(results[7], ev.get_dxs());
-    hists[8].fill(results[8], ev.get_dxs());
-    hists[9].fill(results[9], ev.get_dxs());
+    hists[0].fill(log10y23, ev.get_dxs());
+    hists[1].fill(log10y34, ev.get_dxs());
+    hists[2].fill(log10y45, ev.get_dxs());
+    hists[3].fill(log10y56, ev.get_dxs());
+    hists[4].fill(1. - thrust, ev.get_dxs());
+    hists[5].fill(1. - thrust, ev.get_dxs());
+    hists[6].fill(hjm, ev.get_dxs());
+    hists[7].fill(ljm, ev.get_dxs());
+    hists[8].fill(wjb, ev.get_dxs());
+    hists[9].fill(njb, ev.get_dxs());
+    hists[10].fill(ev.get_size() - 2, ev.get_dxs());
+
+    // ALEPH
+    hists[11].fill(thrust, ev.get_dxs());
+    hists[12].fill(sqr(hjm), ev.get_dxs());
+    hists[13].fill(wjb, ev.get_dxs());
+    hists[14].fill(sqr(hjm) - sqr(ljm), ev.get_dxs());
+    hists[15].fill(wjb + njb, ev.get_dxs());
+    hists[16].fill(-log(pow(10, log10y23)), ev.get_dxs());
+    hists[17].fill(-log(pow(10, log10y34)), ev.get_dxs());
+    hists[18].fill(-log(pow(10, log10y45)), ev.get_dxs());
+    hists[19].fill(-log(pow(10, log10y56)), ev.get_dxs());
+
+    // L3
+    double cmul[1] = {-50.};
+    calculate_chargedmult(ev, cmul);
+    hists[20].fill(cmul[0], ev.get_dxs());
   }
 
   // LHC: p p -> e+ e-

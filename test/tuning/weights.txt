@@ -1,0 +1,56 @@
+# ------------------------------------------------------------------------------
+# Weights used
+# ------------------------------------------------------------------------------
+# ALEPH_2004_I652683
+
+# Thust
+/ALEPH_2004_S5765862/d54-x01-y01	1.0
+
+# Thrust Major
+# /ALEPH_2004_S5765862/d94-x01-y01	1.0
+
+# Thrust Minor
+# /ALEPH_2004_S5765862/d102-x01-y01	1.0
+# 
+# Oblateness
+# /ALEPH_2004_S5765862/d133-x01-y01	1.0
+
+# Heavy Jet Mass
+/ALEPH_2004_S5765862/d62-x01-y01	1.0
+
+# Jet Mass Difference
+/ALEPH_2004_S5765862/d110-x01-y01	1.0
+
+# Wide Jet Broadening
+/ALEPH_2004_S5765862/d78-x01-y01	1.0
+
+# Total Jet Broadening
+/ALEPH_2004_S5765862/d70-x01-y01	1.0
+
+# C Parameter   
+# /ALEPH_2004_S5765862/d86-x01-y01	1.0
+
+# Aplanarity
+# /ALEPH_2004_S5765862/d118-x01-y01	1.0
+
+# Sphericity
+# /ALEPH_2004_S5765862/d141-x01-y01	1.0
+
+# Durham lny23
+/ALEPH_2004_S5765862/d157-x01-y01	1.0
+
+# Durham lny34
+/ALEPH_2004_S5765862/d165-x01-y01	1.0
+
+# Durham lny45
+/ALEPH_2004_S5765862/d173-x01-y01	1.0
+
+# Durham lny56
+/ALEPH_2004_S5765862/d180-x01-y01	1.0
+
+# ------------------------------------------------------------------------------
+# L3_2004_I652683
+
+# Charged Particle Multiplicity
+# /L3_2004_I652683/d59-x01-y01	1.0
+

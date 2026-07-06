@@ -16,8 +16,8 @@ void shower::select_winner(event& ev, double* winner) const {
    */
 
   // default values
-  double win_tt = t_c;  // lowest possible value is cutoff scale (in base.cuh)
-  int win_sf = 0;       // 0 = no splitting
+  double win_tt = t_c;
+  int win_sf = 0;  // 0 = no splitting
   int win_ij = 0;
   int win_k = 0;
   double win_sijk = 0.;
@@ -25,6 +25,13 @@ void shower::select_winner(event& ev, double* winner) const {
   double win_zp = 0.;
 
   for (int ij = 0; ij < ev.get_size(); ij++) {
+    /**
+     * This double for loop is quite expensive, but thanks to QCD, we know that
+     * each parton can only have up to two colour connected partners, so we can
+     * break the inner loop after we have checked these partners.
+     */
+    int partners_checked = 0;
+
     for (int k = 0; k < ev.get_size(); k++) {
       // sanity check to ensure ij != k
       if (ij == k) {
@@ -36,10 +43,22 @@ void shower::select_winner(event& ev, double* winner) const {
         continue;
       }
 
+      // break this loop if we have checked:
+      // For a quark - only 1 partner
+      // For a gluon - 2 partners
+      if (ev.get_particle(ij).get_pid() == 21 && partners_checked == 2) {
+        break;
+      } else if (ev.get_particle(ij).get_pid() != 21 && partners_checked == 1) {
+        break;
+      }
+
       // need to check if ij and k are colour connected
       if (!ev.get_particle(ij).is_color_connected(ev.get_particle(k))) {
         continue;
       }
+
+      // Increment partners_checked
+      partners_checked++;
 
       // get the invariant mass squared of the dipole
       double sijk =
@@ -82,6 +101,7 @@ void shower::select_winner(event& ev, double* winner) const {
 
         // Calulate the integrated overestimate
         double pdf_max = get_pdf_max(sf, ev.get_particle(ij).get_eta());
+        double j0_max = is_ff(sf) ? 1. : 2.;
         double c =
             as_max / (2. * M_PI) * sf_integral(zm, zp, sf) * j0_max * pdf_max;
 
@@ -106,6 +126,21 @@ void shower::select_winner(event& ev, double* winner) const {
 
           // Check if tt <= mq2: Need some numerical error protection
           if (tt - mq2 < 1e-9) {
+            continue;
+          }
+        }
+
+        // If g->bb or g->cc, check if tt is above the quark mass threshold
+        /**
+         * This blurs the lines between a massless and massive shower, but our
+         * goal is to preserve the physics logic. Without this, in the
+         * hadronisation step, the constiuent reshuffler has to do more work to
+         * accomdate for the charm and bottom quarks to have the right mass,
+         * which might reshuffle the light quark momenta.
+         */
+        if (is_g2qqbar(sf) || is_g2qbarq(sf)) {
+          if ((get_splitting_flavour(sf) == 5 && tt < mb2) ||
+              (get_splitting_flavour(sf) == 4 && tt < mc2)) {
             continue;
           }
         }
@@ -189,7 +224,7 @@ void shower::generate_splitting(event& ev) {
     /**
      * Shower Variables - useful to store as collective
      *
-     * t, c and end_shower stored in event, becuase they
+     * t, c and end_shower stored in event, because they
      * are unique to each event, and not throwaway values
      * like these.
      *
@@ -323,6 +358,7 @@ void shower::generate_splitting(event& ev) {
 
     // Jacobian
     double jacobian = get_jacobian(z, y, sf) * pdf_ratio;
+    double j0_max = is_ff(sf) ? 1. : 2.;
     double jmaxtot = j0_max * pdf_max;
 
     // Splitting Function Value and Estimate
@@ -330,8 +366,8 @@ void shower::generate_splitting(event& ev) {
     double estimate = sf_estimate(z0, sf);
 
     // veto algorithm
-    double f = as(t) * value * jacobian;
-    double g = as_max * estimate * jmaxtot;
+    double f = as(t) / (2. * M_PI) * value * jacobian;
+    double g = as_max / (2. * M_PI) * estimate * jmaxtot;
 
     // Check for Negative f
     if (f < 0.) {

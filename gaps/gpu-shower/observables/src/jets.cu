@@ -25,6 +25,7 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
    *
    * @param events The events array
    * @param results The array to store the results
+   * @param n The number of events
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -62,7 +63,7 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
   double kt2[max_particles] = {-1.};
   int counter = 0;
 
-  // num particles
+  // num particles (which will change when clustered)
   int n_particles = ev.get_size() - 2;
 
   // imap will store the indices of the particles
@@ -236,6 +237,7 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
    *
    * @param events The events array
    * @param results The array to store the results
+   * @param n The number of events
    */
   // ---------------------------------------------
   // Kernel Preamble

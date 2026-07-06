@@ -19,7 +19,7 @@ if not args.formatting_only:
     os.chdir('../')
     with open(filename, 'w') as f:
         subprocess.run(
-            f"./rungaps -p LHC -nlo -t {thr} -n {nev} -nsys", shell=True, stdout=f)
+            f"./rungaps -p LEP -nlo -cmw -hadronise -do_partitioning no -t {thr} -n {nev} -nsys", shell=True, stdout=f)
     os.chdir('test')
 
 # ------------------------------------------------------------------------------
@@ -120,8 +120,9 @@ for line in lines[data_start_idx:]:
 # Create DataFrame
 df = pd.DataFrame(data_rows, columns=columns)
 
-# Only keep name, instances, time, time percentage
-df = df[['Name', 'Instances', 'Total_Time_ns', 'Time_Percent']]
+# Convert total time to milliseconds and keep reported columns
+df['Total_Time_ms'] = df['Total_Time_ns'] / 1e6
+df = df[['Name', 'Instances', 'Total_Time_ms', 'Time_Percent']]
 
 # ------------------------------------------------------------------------------
 # Replace long kernel names with shorter versions
@@ -136,6 +137,7 @@ name_mapping = {
     'check_cutoff': 'Checking Shower Cutoff',
     'check_too_many_particles': 'Check for Max Particles Per Event',
     'select_flavour': 'PDF 2',
+    'cluster_durham': 'Durham Jet Clustering',
     'cluster_genkt': 'Anti-$k_T$ Jet Clustering',
     'fill_histos': 'Fill Histograms',
     'validate_events': 'Validate Events',
@@ -146,7 +148,17 @@ name_mapping = {
     'lo_event': 'NLO 1',
     'h_event': 'NLO 2',
     'c_terms': 'NLO 3',
-    'bvic_terms': 'NLO 4'
+    'bvic_terms': 'NLO 4',
+    'lep_lo_kernel': 'Hard Process Generation',
+    'constituent_reshuffling': 'Constituent Reshuffling',
+    'force_gluons_to_split': 'Force Gluon Splitting',
+    'calculate_ev_shapes': 'Event Shapes',
+    'form_clusters': 'Cluster Formation',
+    'fission_cluster': 'Cluster Fission',
+    'decay_clusters': 'Cluster Decay',
+    'calculate_chargedmult': 'Calculate Charged Multiplicity',
+
+
 }
 
 # Replace long names with short names
@@ -229,6 +241,19 @@ if not (nlo1_df.empty and nlo2_df.empty and nlo3_df.empty and nlo4_df.empty):
     df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
 
 # ------------------------------------------------------------------------------
+# Combine all Device Prep rows into a single row
+
+device_prep_df = df.loc[df['Name'] == 'Device Prep']
+
+if not device_prep_df.empty:
+    combined_row = device_prep_df.sum(numeric_only=True)
+    combined_row['Name'] = 'Device Prep'
+    combined_row['Instances'] = int(device_prep_df['Instances'].iloc[0])
+
+    df = df[df['Name'] != 'Device Prep']
+    df = pd.concat([df, pd.DataFrame([combined_row])], ignore_index=True)
+
+# ------------------------------------------------------------------------------
 # Generate LaTeX table
 
 print(df.sort_values(by='Time_Percent', ascending=False))
@@ -245,7 +270,7 @@ top_kernels['Short_Name'] = top_kernels['Name'].apply(
 
 # Select columns for the table
 table_data = top_kernels[['Short_Name',
-                          'Instances', 'Total_Time_ns', 'Time_Percent']]
+                          'Instances', 'Total_Time_ms', 'Time_Percent']]
 
 # Generate LaTeX table
 latex_table = """\\begin{table}[h!]
@@ -253,7 +278,7 @@ latex_table = """\\begin{table}[h!]
 \\label{tab:cuda_kernels}
 \\begin{tabular}{l|r|r|r}
 \\hline
-\\textbf{Name} & \\textbf{Instances} & \\textbf{Total Time (ns)} & \\textbf{Time (\\%)} \\\\
+\\textbf{Name} & \\textbf{Instances} & \\textbf{Total Time (ms)} & \\textbf{Time (\\%)} \\\\
 \\hline
 """
 
@@ -261,7 +286,7 @@ for _, row in table_data.iterrows():
     # Apply italics to specific names
     italic_names = ['Event Record Partitioning', 'Device Prep']
     kernel_name = f"\\textit{{{row['Short_Name']}}}" if row['Short_Name'] in italic_names else row['Short_Name']
-    latex_table += f"{kernel_name} & {row['Instances']} & {row['Total_Time_ns']:,} & {row['Time_Percent']:.1f} \\\\\n"
+    latex_table += f"{kernel_name} & {row['Instances']} & {row['Total_Time_ms']:.1f} & {row['Time_Percent']:.1f} \\\\\n"
 
 latex_table += """\\hline\n"""
 latex_table += """\\end{tabular}

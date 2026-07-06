@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 import subprocess
 
 
@@ -26,6 +25,11 @@ def prepare_runparams(runtype, args):
         'n_emissions_max': str(args.n_emissions_max),
         'me2pdf': args.me2pdf,
         'showerpdf': args.showerpdf,
+        'hadronise': '1' if args.hadronise else '0',
+        'clmax': ','.join(str(x) for x in args.clmax),
+        'clpow': ','.join(str(x) for x in args.clpow),
+        'psplit': ','.join(str(x) for x in args.psplit),
+        'pwt': ','.join(str(x) for x in args.pwt),
         'nevents': str(args.nevents),
         'id_offset': '0',
         'output_file': f'{runtype}.yoda',
@@ -63,6 +67,11 @@ def params_to_list(params, runtype):
         params['n_emissions_max'],
         params['me2pdf'],
         params['showerpdf'],
+        params['hadronise'],
+        params['clmax'],
+        params['clpow'],
+        params['psplit'],
+        params['pwt'],
         params['nevents'],
         params['id_offset'],
         params['output_file'],
@@ -86,9 +95,9 @@ def run(runtype, args):
     params = prepare_runparams(runtype, args)
     param_list = params_to_list(params, runtype)
 
-    # Define the run command
-    run = [f'./gaps/{runtype}-shower/bin/{runtype}-shower']
-    command = run + param_list
+    exe_path = f'{args.base_dir}/gaps/{runtype}-shower/bin/{runtype}-shower'
+
+    command = [exe_path] + param_list
 
     # If Nsys Profiling
     if args.nsysprofile:
@@ -133,11 +142,11 @@ def run_cpu_cluster(ncpu, args):
         params['id_offset'] = str(offset)
         params['output_file'] = output_filename
 
-        # Path to the executable
-        exe_path = ['./gaps/cpu-shower/bin/cpu-shower']
+        # Path to the executable using absolute path
+        exe_path = f'{args.base_dir}/gaps/cpu-shower/bin/cpu-shower'
 
         # Combine the command with parameters
-        command = exe_path + params_to_list(params, 'cpu')
+        command = [exe_path] + params_to_list(params, 'cpu')
 
         # Spawn the process
         p = subprocess.Popen(command)
@@ -208,11 +217,11 @@ def run_gpu_large_sample(args):
         params['id_offset'] = str(offset)
         params['output_file'] = output_filename
 
-        # Path to the executable
-        exe_path = ['./gaps/gpu-shower/bin/gpu-shower']
+        # Path to the executable using absolute path
+        exe_path = f'{args.base_dir}/gaps/gpu-shower/bin/gpu-shower'
 
         # Combine the command with parameters
-        command = exe_path + params_to_list(params, 'gpu')
+        command = [exe_path] + params_to_list(params, 'gpu')
 
         # If Nsys Profiling (apply to all batches)
         if args.nsysprofile:
@@ -232,3 +241,5 @@ def run_gpu_large_sample(args):
 
     print("")
     print("All GPU batches have completed.")
+
+

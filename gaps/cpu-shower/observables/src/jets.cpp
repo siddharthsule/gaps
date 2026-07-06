@@ -14,9 +14,9 @@ double yij(const vec4& p, const vec4& q, double ecm2) {
    */
 
   double pq = p[1] * q[1] + p[2] * q[2] + p[3] * q[3];
-  double min_pq = min(p[0], q[0]);
-  double max_pq = max(pq / sqrt(p.p2() * q.p2()), -1.);
-  return 2. * pow(min_pq, 2) * (1. - min(max_pq, 1.)) / ecm2;
+  double min_pq = fmin(p[0], q[0]);
+  double max_pq = fmax(pq / sqrt(p.p2() * q.p2()), -1.);
+  return 2. * pow(min_pq, 2) * (1. - fmin(max_pq, 1.)) / ecm2;
 }
 
 void cluster_durham(const event& ev, double* results) {
@@ -211,7 +211,7 @@ double dij(const vec4& p, const vec4& q) {
   double q_prime = pow(q.pt2(), power);
 
   // dij measure
-  return min(p_prime, q_prime) * dR2(p, q) / (R * R);
+  return fmin(p_prime, q_prime) * dR2(p, q) / (R * R);
 }
 
 void cluster_genkt(const event& ev, double* results) {

@@ -1,6 +1,6 @@
 #include <fstream>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 #include "observables.cuh"
 
@@ -23,8 +23,9 @@ __global__ void validate_events(event* events, int* invalid, int n) {
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
   // ---------------------------------------------
-
+  // Event Preamble
   event& ev = events[idx];
+  // ---------------------------------------------
   ev.set_validity(ev.validate());
 
   if (!ev.get_validity()) {
@@ -53,8 +54,9 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
   // ---------------------------------------------
-
+  // Event Preamble
   const event& ev = events[idx];
+  // ---------------------------------------------
 
   // LEP: e+ e- -> q qbar
   if (process == 1) {
@@ -63,12 +65,29 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[1].fill(results[20 * idx + 1], ev.get_dxs());  // log10y34
     an->hists[2].fill(results[20 * idx + 2], ev.get_dxs());  // log10y45
     an->hists[3].fill(results[20 * idx + 3], ev.get_dxs());  // log10y56
-    an->hists[4].fill(results[20 * idx + 4], ev.get_dxs());  // tvalue
-    an->hists[5].fill(results[20 * idx + 5], ev.get_dxs());  // tzoomd
+    an->hists[4].fill(1. - results[20 * idx + 4], ev.get_dxs());  // tvalue
+    an->hists[5].fill(1. - results[20 * idx + 5], ev.get_dxs());  // tzoomd
     an->hists[6].fill(results[20 * idx + 6], ev.get_dxs());  // hjm
     an->hists[7].fill(results[20 * idx + 7], ev.get_dxs());  // ljm
     an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());  // wjb
     an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());  // njb
+    an->hists[10].fill(ev.get_size() - 2, ev.get_dxs());     // nump
+    an->hists[20].fill(results[20 * idx + 10], ev.get_dxs()); // L3 charged multiplicity
+
+    // ALEPH
+    an->hists[11].fill(results[20 * idx + 4], ev.get_dxs());
+    an->hists[12].fill(results[20 * idx + 6] * results[20 * idx + 6],
+                       ev.get_dxs());
+    an->hists[13].fill(results[20 * idx + 8], ev.get_dxs());
+    an->hists[14].fill(results[20 * idx + 6] * results[20 * idx + 6] -
+                           results[20 * idx + 7] * results[20 * idx + 7],
+                       ev.get_dxs());
+    an->hists[15].fill(results[20 * idx + 8] + results[20 * idx + 9],
+                       ev.get_dxs());
+    an->hists[16].fill(-log(pow(10., results[20 * idx + 0])), ev.get_dxs());
+    an->hists[17].fill(-log(pow(10., results[20 * idx + 1])), ev.get_dxs());
+    an->hists[18].fill(-log(pow(10., results[20 * idx + 2])), ev.get_dxs());
+    an->hists[19].fill(-log(pow(10., results[20 * idx + 3])), ev.get_dxs());
   }
 
   // LHC: p p -> e+ e-
@@ -83,7 +102,6 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[6].fill(results[20 * idx + 6], ev.get_dxs() / 2);  // lepteta
     an->hists[6].fill(results[20 * idx + 7], ev.get_dxs() / 2);
 
-    // flavour splitting distribution
     an->hists[7].fill(results[20 * idx + 8], ev.get_dxs());
 
     // jets
@@ -103,6 +121,7 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     // an->hists[3].fill(-results[20 * idx + 3], -ev.get_dxs());
   }
 
+  // weighted total
   atomicAdd(&an->wtot, ev.get_dxs());
   atomicAdd(&an->ntot, 1.);
 }
@@ -186,22 +205,31 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
   // do the analysis
 
   // Make a vector to store the results of the analysis
-  // For now, we set a size 10 per event and use that to store the results
+  // For now, we set a size 20 per event and use that to store the results
   thrust::device_vector<double> dv_results(20 * n_events, -50.);
   double* d_results = thrust::raw_pointer_cast(dv_results.data());
 
   if (p.process == 1) {
+    // jet rates
     cluster_durham<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("cluster_durham");
 
+    // event shapes
     calculate_ev_shapes<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("calculate_ev_shapes");
+
+    // L3
+    calculate_chargedmult<<<blocks, p.threads>>>(d_events, d_results, 10,
+                                              n_events);
+    sync_gpu_and_check("calculate_chargedmult");
   }
 
   else if (p.process == 2) {
+    // calculate Z boson observables
     calculate_mczinc<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("calculate_mczinc");
 
+    // Gen kt Algorithm
     cluster_genkt<<<blocks, p.threads>>>(d_events, d_results, n_events);
     sync_gpu_and_check("cluster_genkt");
   }

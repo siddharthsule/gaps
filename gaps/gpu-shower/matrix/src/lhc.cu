@@ -26,6 +26,10 @@ __device__ double dilogarithm(double x) {
 
   return sum;
 }
+
+// -----------------------------------------------------------------------------
+// Matrix Element Implementations
+
 __device__ double matrix::me2qqZ(int fl, double s) const {
   /**
    * @brief Generate the matrix element squared for just q qbar -> Z
@@ -58,7 +62,7 @@ __device__ double matrix::me2qqZ(int fl, double s) const {
 }
 
 // -----------------------------------------------------------------------------
-// LO Event Generation - pp -> Z
+// LO Calculation
 
 __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
                               int* fl_b, double* xa, double* xb, double* q2) {
@@ -79,6 +83,8 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
+  // ---------------------------------------------
+  // Event Preamble
   event& ev = events[idx];
   // ---------------------------------------------
 
@@ -289,17 +295,19 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   double me2_lo = ev.get_me2();
   double dxs_lo = ev.get_dxs();
 
+  // Flavour biasing array (same as in lhc_lo)
+  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
+
   // Momentum Fractions
   double eta_q = ev.get_particle(0).get_eta();
   double eta_qbar = ev.get_particle(1).get_eta();
 
+  // Flavour of the qqbar pair
+  int fl = abs(ev.get_particle(0).get_pid());
+
   // Scale Choice = mz2, the only final state particle in Born!
   vec4 pz = ev.get_particle(2).get_mom();
   double mu2 = pz.m2();
-
-  // flavour of the qqbar pair
-  int fl = abs(ev.get_particle(0).get_pid());
-  double pd[5] = {0.36677679, 0.43509039, 0.11674970, 0.05268033, 0.02870279};
 
   // ---------------------------------------------------------------------------
   // Now onto the H Event Generation
@@ -382,7 +390,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   dxs_nlo *= (1. - x_min) * (1. - x);                           // x, v Sampling
   dxs_nlo *= 1. / (16. * M_PI);
   dxs_nlo *= 1. / pz.m2();       // Leftover
-  dxs_nlo /= pd[fl - 1];         // Flavour Selection
+  dxs_nlo /= pd[abs(fl) - 1];    // Flavour Selection
   dxs_nlo *= GeV_minus_2_to_pb;  // units
 
   // Subtraction
@@ -497,7 +505,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
 }
 
 // -----------------------------------------------------------------------------
-// S Event Generation - pp -> Z (Born + Virtual + Inseration + Collinear)
+// S Event Generation - pp -> Z (Born + Virtual + Insertion + Collinear)
 
 __global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
                         int* fl_b, double* xa, double* xb, double* q2,
@@ -540,12 +548,12 @@ __global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
   double eta_q = ev.get_particle(0).get_eta();
   double eta_qbar = ev.get_particle(1).get_eta();
 
+  // Flavour of the qqbar pair
+  int fl = abs(ev.get_particle(0).get_pid());
+
   // Scale Choice = mz2, the only final state particle in Born!
   vec4 pz = ev.get_particle(2).get_mom();
   double mu2 = pz.m2();
-
-  // flavour of the qqbar pair
-  int fl = abs(ev.get_particle(0).get_pid());
 
   // ---------------------------------------------------------------------------
   // Now onto the Collinear Term Calculation

@@ -6,6 +6,7 @@
 #include "interface.cuh"
 
 // add analyses here
+#include "chargedmult.cuh"
 #include "eventshapes.cuh"
 #include "jets.cuh"
 #include "mczinc.cuh"
@@ -26,7 +27,7 @@ class analysis {
   // member variables
 
   int process;
-  histo1d hists[20];
+  histo1d hists[25];
 
   double wtot;  // scale by weight for 1/sigma d(sigma)/d observable
   double ntot;  // scale by number for d(sigma)/d observable
@@ -49,6 +50,17 @@ class analysis {
       hists[7] = histo1d(100, 0., 0.5, "/gaps_lep/ljm\n");
       hists[8] = histo1d(100, 0., 0.5, "/gaps_lep/wjb\n");
       hists[9] = histo1d(100, 0., 0.2, "/gaps_lep/njb\n");
+      hists[10] = histo1d(59, 0.5, 59.5, "/gaps_lep/nump\n");
+      hists[11] = histo1d(42, .58, 1., "/ALEPH_2004_S5765862/d54-x01-y01\n");
+      hists[12] = histo1d(39, 0., .39, "/ALEPH_2004_S5765862/d62-x01-y01\n");
+      hists[13] = histo1d(31, 0., .31, "/ALEPH_2004_S5765862/d78-x01-y01\n");
+      hists[14] = histo1d(38, 0., .38, "/ALEPH_2004_S5765862/d110-x01-y01\n");
+      hists[15] = histo1d(40, 0., .4, "/ALEPH_2004_S5765862/d70-x01-y01\n");
+      hists[16] = histo1d(49, 1., 10.8, "/ALEPH_2004_S5765862/d157-x01-y01\n");
+      hists[17] = histo1d(47, 2., 11.4, "/ALEPH_2004_S5765862/d165-x01-y01\n");
+      hists[18] = histo1d(44, 3.2, 12., "/ALEPH_2004_S5765862/d173-x01-y01\n");
+      hists[19] = histo1d(45, 4., 13., "/ALEPH_2004_S5765862/d180-x01-y01\n");
+      hists[20] = histo1d(28, 1, 57, "/L3_2004_I652683/d59-x01-y01\n");
     }
 
     // lhc: p p -> e+ e-

@@ -40,7 +40,7 @@ class pdf_wrapper {
   // constructor and destructor
 
   // Define the constructor in pdf.cu
-  pdf_wrapper(const std::string& name = "CT14lo", int member = 0);
+  pdf_wrapper(const std::string& name = "NNPDF40MC_lo_as_01180", int member = 0);
   ~pdf_wrapper();
 
   // ---------------------------------------------------------------------------

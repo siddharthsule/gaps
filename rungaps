@@ -22,6 +22,7 @@ The possible run types are:
 
 import argparse
 import os
+import sys
 
 # ------------------------------------------------------------------------------
 # Functions
@@ -29,7 +30,11 @@ import os
 from gaps.interface.logo import print_logo
 from gaps.interface.compile import compile_code
 from gaps.interface.lhapdf_gpu import check_lhapdf_path
-from gaps.interface.run import run, run_cpu_cluster, run_gpu_large_sample
+from gaps.interface.run import (
+    run,
+    run_cpu_cluster,
+    run_gpu_large_sample,
+)
 
 
 # ------------------------------------------------------------------------------
@@ -104,13 +109,38 @@ def parse_arguments():
     # PDF sets
     p.add_argument('-me2pdf', '--me2pdf',
                    type=str,
-                   default='CT14lo',
-                   help='set the PDF for matrix element calculation (default: CT14lo)')
+                   default=None,
+                   help='set the PDF for matrix element calculation (default: NNPDF40MC)')
 
     p.add_argument('-showerpdf', '--showerpdf',
                    type=str,
-                   default='CT14lo',
-                   help='set the PDF for parton shower (default: CT14lo)')
+                   default='NNPDF40MC_lo_as_01180',
+                   help='set the PDF for parton shower (default: NNPDF40MC)')
+
+    # Hadronisation
+    p.add_argument('-hadronise', '--hadronise',
+                   action='store_true',
+                   help='enable hadronisation PROTOTYPE (default = False)')
+
+    p.add_argument('-clmax', '--clmax',
+                   nargs=3, type=float, default=[3.53, 3.95, 3.76],
+                   metavar=('LIGHT', 'CHARM', 'BOTTOM'),
+                   help='max cluster mass in GeV (default: 3.53 3.95 3.76)')
+
+    p.add_argument('-clpow', '--clpow',
+                   nargs=3, type=float, default=[1.85, 2.56, 0.55],
+                   metavar=('LIGHT', 'CHARM', 'BOTTOM'),
+                   help='power in threshold condition (default: 1.85 2.56 0.55)')
+
+    p.add_argument('-psplit', '--psplit',
+                   nargs=3, type=float, default=[0.91, 0.99, 0.63],
+                   metavar=('LIGHT', 'CHARM', 'BOTTOM'),
+                   help='power in mass sampling distribution (default: 0.91 0.99 0.63)')
+
+    p.add_argument('-pwt', '--pwt',
+                   nargs=4, type=float, default=[1.0, 1.0, 0.37, 0.33],
+                   metavar=('D', 'U', 'S', 'DIQUARK'),
+                   help='relative weights for quark flavours in gluon splitting and cluster decay (default: 1.0 1.0 0.37 0.33)')
 
     # Run options
     p.add_argument('-n', '--nevents',
@@ -135,6 +165,11 @@ def parse_arguments():
                    default=128,
                    help='set the number of threads per block (default: 128)')
 
+    # Compilation
+    p.add_argument('--no-compile',
+                   action='store_true',
+                   help='Skip compilation and run with existing binaries')
+
     # Profiling
     p.add_argument('-nsys', '--nsysprofile',
                    action='store_true',
@@ -150,6 +185,12 @@ def parse_arguments():
 
     # Parse the arguments
     args = p.parse_args()
+
+    # Resolve dependent defaults after parsing flags.
+    if args.me2pdf is None:
+        args.me2pdf = (
+            'NNPDF40MC_nlo_as_01180' if args.nlo else 'NNPDF40MC_lo_as_01180')
+
     return args
 
 # ------------------------------------------------------------------------------
@@ -173,11 +214,14 @@ def compile_and_run(args):
     # --------------------------------------------------------------------------
     # Compile the code
 
-    if args.runtype in ['gpu', 'compare', 'tune']:
-        compile_code('gpu', args)
+    if not args.no_compile:
+        if args.runtype in ['gpu', 'compare', 'tune']:
+            compile_code('gpu', args)
 
-    if args.runtype in ['cpu', 'compare', 'cpu-cluster']:
-        compile_code('cpu', args)
+        if args.runtype in ['cpu', 'compare', 'cpu-cluster']:
+            compile_code('cpu', args)
+    else:
+        print("Skipping compilation (--no-compile flag set)")
 
     # --------------------------------------------------------------------------
     # Run the code
@@ -230,7 +274,6 @@ def compile_and_run(args):
     if args.runtype == 'cpu-cluster':
         if (codecarbon_available and args.codecarbon):
             # Ensure CodeCarbon works fine with more than 64 threads
-            os.environ["OMP_NUM_THREADS"] = "100"
             os.environ["MKL_NUM_THREADS"] = "100"
             os.environ["NUMEXPR_MAX_THREADS"] = "100"
             tracker = OfflineEmissionsTracker(
@@ -280,15 +323,25 @@ def compile_and_run(args):
 
 def main():
 
+    # Store the base directory (where rungaps is located)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Store the working directory (where user called rungaps from)
+    work_dir = os.getcwd()
+
     # Get the arguments
     args = parse_arguments()
     adjust_root_s(args)
+
+    # Store directories in args for access by other modules
+    args.base_dir = base_dir
+    args.work_dir = work_dir
 
     # Print the GAPS logo
     print_logo(args)
 
     # Verify Setup
-    check_lhapdf_path()
+    check_lhapdf_path(base_dir)
 
     # Compile and run the code
     compile_and_run(args)

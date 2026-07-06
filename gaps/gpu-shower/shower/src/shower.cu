@@ -7,7 +7,6 @@ __device__ void shower::setup(double root_s, double t_c, double as_max) {
   this->e_proton = root_s / 2.;
   this->t_c = t_c;
   this->as_max = as_max;
-  this->j0_max = 2.;
 }
 
 // kernel to set up the matrix object on the device
@@ -132,7 +131,7 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
   // ---------------------------------------------
 
   // default values
-  double win_tt = shower->t_c;  // lowest possible value is cutoff
+  double win_tt = shower->t_c;
   int win_sf = 0;               // 0 = no splitting
   int win_ij = 0;
   int win_k = 0;
@@ -141,6 +140,13 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
   double win_zp = 0.;
 
   for (int ij = 0; ij < ev.get_size(); ij++) {
+    /**
+     * This double for loop is quite expensive, but thanks to QCD, we know that
+     * each parton can only have up to two colour connected partners, so we can
+     * break the inner loop after we have checked these partners.
+     */
+    int partners_checked = 0;
+
     for (int k = 0; k < ev.get_size(); k++) {
       // sanity check to ensure ij != k
       if (ij == k) {
@@ -152,23 +158,36 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
         continue;
       }
 
+      // break this loop if we have checked:
+      // For a quark - only 1 partner
+      // For a gluon - 2 partners
+      if (ev.get_particle(ij).get_pid() == 21 && partners_checked == 2) {
+        break;
+      } else if (ev.get_particle(ij).get_pid() != 21 && partners_checked == 1) {
+        break;
+      }
+
       // need to check if ij and k are colour connected
       if (!ev.get_particle(ij).is_color_connected(ev.get_particle(k))) {
         continue;
       }
+
+      // Increment partners_checked
+      partners_checked++;
 
       // get the invariant mass squared of the dipole
       double sijk =
           (ev.get_particle(ij).get_mom() + ev.get_particle(k).get_mom()).m2();
 
       // get the splitting functions for the current partons
+      // sf_codes is an array of possible splitting functions
       int sf_codes[11];
       shower->generate_possible_splittings(
           ev.get_particle(ij).get_pid(), ev.get_particle(k).get_pid(),
           ev.get_particle(ij).is_initial(), ev.get_particle(k).is_initial(),
           sf_codes);
 
-      // codes instead of object oriented approach!
+      // codes instead of object oriented approach! See splittings.cu
       for (int sf : sf_codes) {
         // When a null code is encountered, we have reached the end of the
         // possible splittings, we can break out of the loop
@@ -176,7 +195,7 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
           break;
         }
 
-        // check if either particle has eta < eta_min (usually 1e-5)
+        // check if either parton has eta < eta_min (usually 1e-5)
         if (shower->is_ii(sf) && (ev.get_particle(ij).get_eta() < 1e-5 ||
                                   ev.get_particle(k).get_eta() < 1e-5)) {
           continue;
@@ -196,8 +215,9 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
 
         // calculate the integrated overestimate
         double pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
+        double j0_max = shower->is_ff(sf) ? 1. : 2.;
         double c = shower->as_max / (2. * M_PI) *
-                   shower->sf_integral(zm, zp, sf) * shower->j0_max * pdf_max;
+                   shower->sf_integral(zm, zp, sf) * j0_max * pdf_max;
 
         // calculate the evolution variable
         double tt;
@@ -215,10 +235,26 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
           int fl = abs(ev.get_particle(ij).get_pid());
           double mq2 = fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.);
 
+          // Evolve from (t - m2) not t for this case
           tt = (ev.get_shower_t() - mq2) * pow(ev.gen_random(), 1. / c) + mq2;
 
           // Check if tt <= mq2: Need some numerical error protection
           if (tt - mq2 < 1e-9) {
+            continue;
+          }
+        }
+
+        // If g->bb or g->cc, check if tt is above the quark mass threshold
+        /**
+         * This blurs the lines between a massless and massive shower, but our
+         * goal is to preserve the physics logic. Without this, in the
+         * hadronisation step, the constiuent reshuffler has to do more work to
+         * accomdate for the charm and bottom quarks to have the right mass,
+         * which might reshuffle the light quark momenta.
+         */
+        if (shower->is_g2qqbar(sf) || shower->is_g2qbarq(sf)) {
+          if ((shower->get_splitting_flavour(sf) == 5 && tt < mb2) ||
+              (shower->get_splitting_flavour(sf) == 4 && tt < mc2)) {
             continue;
           }
         }
@@ -444,15 +480,16 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
 
   // Jacobian
   double jacobian = shower->get_jacobian(z, y, sf) * pdf_ratio;
-  double jmaxtot = shower->j0_max * pdf_max;
+  double j0_max = shower->is_ff(sf) ? 1. : 2.;
+  double jmaxtot = j0_max * pdf_max;
 
   // Splitting Function Value and Estimate
   double value = shower->sf_value(z, y, sf);
   double estimate = shower->sf_estimate(z0, sf);
 
   // veto algorithm
-  double f = (*as)(t)*value * jacobian;
-  double g = shower->as_max * estimate * jmaxtot;
+  double f = (*as)(t) / (2. * M_PI) * value * jacobian;
+  double g = shower->as_max / (2. * M_PI) * estimate * jmaxtot;
 
   // Check for Negative f
   if (f < 0.) {
@@ -510,7 +547,7 @@ __global__ void do_splitting(shower* shower, event* events, int n,
   double y = winner[7 * idx + 5];
   double phi = winner[7 * idx + 6];
 
-  // get flavs from kernel number
+  // get the flavours
   int flavs[3];
   shower->sf_to_flavs(sf, flavs);
 
@@ -543,7 +580,7 @@ __global__ void do_splitting(shower* shower, event* events, int n,
     ev.set_particle_eta(k, ev.get_particle(k).get_eta() / y);
   }
 
-  // add emitted particle
+  // add emitted parton
   particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
   ev.add_emission(em);
 
@@ -643,7 +680,7 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   /**
    * Shower Variables - useful to store as collective
    *
-   * t, c and end_shower stored in event, becuase they
+   * t, c and end_shower stored in event, because they
    * are unique to each event, and not throwaway values
    * like these.
    *
@@ -812,6 +849,8 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   cudaMemcpy(&too_many_particles, d_too_many_particles, sizeof(int),
              cudaMemcpyDeviceToHost);
   if (too_many_particles > 0) {
+    // Only print warning if too many emissions for the code,
+    // not when the number of emissions is limited by the user
     if (max_particles < p.n_emissions_max) {
       std::cerr << "Warning: " << too_many_particles
                 << " events surpassed the maximum number of particles"

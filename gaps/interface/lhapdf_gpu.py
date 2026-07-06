@@ -4,11 +4,12 @@ import os
 import subprocess
 
 
-def install_lhapdf():
+def install_lhapdf(base_dir):
     """
     @brief Install LHAPDF.
 
     Install LHAPDF from the source code.
+    @param base_dir: Base directory where rungaps is located
     """
 
     # Boolean to check if LHAPDF is installed
@@ -18,7 +19,7 @@ def install_lhapdf():
     current_dir = os.getcwd()
 
     # install Directory
-    lhapdf_dir = 'gaps/lhapdf-gpu/'
+    lhapdf_dir = os.path.join(base_dir, 'gaps/lhapdf-gpu/')
 
     # Create the install directory
     if not os.path.exists(lhapdf_dir + 'install'):
@@ -66,10 +67,12 @@ def install_lhapdf():
     # Change to the install directory
     os.chdir(install_dir)
 
-    # Place the CT14lo tar.gz in share/LHAPDF and extract it
+    # Place PDF tar.gz files in share/LHAPDF and extract them
     os.chdir('share/LHAPDF')
-    subprocess.run(['cp', '../../../CT14lo.tar.gz', '.'])
-    subprocess.run(['tar', '-xzf', 'CT14lo.tar.gz'])
+    pdfs = ['CT14lo', 'NNPDF40MC_lo_as_01180', 'NNPDF40MC_nlo_as_01180']
+    for pdf in pdfs:
+        subprocess.run(['cp', f'../../../{pdf}.tar.gz', '.'])
+        subprocess.run(['tar', '-xzf', f'{pdf}.tar.gz'])
     os.chdir(install_dir)
 
     # Create a path.txt file
@@ -81,8 +84,8 @@ def install_lhapdf():
     os.chdir(current_dir)
 
     # Check if LHAPDF is installed
-    if os.path.exists(lhapdf_dir + 'install/path.txt'):
-        with open(lhapdf_dir + 'install/path.txt', 'r') as file:
+    if os.path.exists(lhapdf_dir + 'path.txt'):
+        with open(lhapdf_dir + 'path.txt', 'r') as file:
             lhapdf_path = file.read().strip()
 
         if os.path.exists(lhapdf_path):
@@ -94,19 +97,20 @@ def install_lhapdf():
     return lhapdf_installed
 
 
-def check_lhapdf_path():
+def check_lhapdf_path(base_dir):
     """
     @brief Check if the LHAPDF path is correct.
 
     If the file lhapdf_path.txt exists, check if the path inside is correct.
     If the path is correct, return it. If not, install LHAPDF within GAPS.
+    @param base_dir: Base directory where rungaps is located
     """
 
     lhapdf_sorted = False
 
     while not lhapdf_sorted:
         # Check if the file lhapdf_path.txt exists
-        lhapdf_txt = 'gaps/lhapdf-gpu/path.txt'
+        lhapdf_txt = os.path.join(base_dir, 'gaps/lhapdf-gpu/path.txt')
 
         # Make a file lhapdf_txt if it does not exist
         if not os.path.exists(lhapdf_txt):
@@ -124,17 +128,17 @@ def check_lhapdf_path():
         # If path is not correct, install LHAPDF within GAPS
         print("------------------------------------------------")
         print("GAPS uses LHAPDF (kokkos_version) for GPU PDFs.")
-        print("It will be installed in gaps/lhapdf-gpu.")
+        print(f"It will be installed in {os.path.join(base_dir, 'gaps/lhapdf-gpu')}.")
         print("")
         print("To manually state LHAPDF path, Ctrl+C and do:")
-        print("\t echo '[PATH-2-LHAPDF]' > gaps/lhapdf-gpu/path.txt")
+        print(f"\t echo '[PATH-2-LHAPDF]' > {lhapdf_txt}")
         print("------------------------------------------------")
 
         # Wait for 5 seconds before installing LHAPDF, to allow user to cancel
         subprocess.run(['sleep', '5'])
 
         # Install LHAPDF
-        installed_lhapdf = install_lhapdf()
+        installed_lhapdf = install_lhapdf(base_dir)
 
         # Install issue: break the loop
         if not installed_lhapdf:

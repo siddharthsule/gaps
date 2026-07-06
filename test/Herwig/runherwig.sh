@@ -12,7 +12,7 @@ export RIVET_ANALYSIS_PATH=$PWD
 
 # Array of configurations
 if [ "$option" == "all" ]; then
-  configs=("LEP" "LHC" "LEPNLO" "LHCNLO")
+  configs=("LEP" "LHC" "LEPNLO" "LHCNLO" "LEPNLOHAD")
 else
   configs=("$option")
 fi
@@ -28,7 +28,7 @@ for config in "${configs[@]}"; do
   # Run Herwig
   Herwig read ${config}.in
   Herwig run ${config}.run -N $nevents -j $ncores
-  rivet-merge ${config}-*.yoda -o ${config}.yoda -e
+  yodamerge ${config}-*.yoda -o ${config}.yoda
 
   # Rename Rivet analyses - lowercase
   sed -i "s/GAPS_LEP/gaps_lep/g" ${config}.yoda

@@ -3,7 +3,7 @@
 
 #include "event.cuh"
 
-// jet rates using durham algorithm
+// jet rates using the durham algorithm
 __device__ double yij(const vec4& p, const vec4& q, double ecm2);
 __global__ void cluster_durham(const event* events, double* results, int n);
 

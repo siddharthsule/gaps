@@ -99,7 +99,7 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
           flavours_b[idx] = 21;
           break;
 
-        // g -> qbar q (backwards is q to g q)
+        // g -> qbar q (backwards is q -> g q)
         case 4:
           flavours_a[idx] = splitting_flavour;
           flavours_b[idx] = 21;

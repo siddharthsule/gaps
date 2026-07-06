@@ -13,6 +13,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/base/include
     ${CMAKE_SOURCE_DIR}/matrix/include
     ${CMAKE_SOURCE_DIR}/shower/include
+    ${CMAKE_SOURCE_DIR}/hadronisation/include
     ${CMAKE_SOURCE_DIR}/observables/include
 )
 
@@ -26,6 +27,7 @@ endif()
 file(GLOB BASE_SOURCES "${CMAKE_SOURCE_DIR}/base/src/*.cpp")
 file(GLOB MATRIX_SOURCES "${CMAKE_SOURCE_DIR}/matrix/src/*.cpp")
 file(GLOB SHOWER_SOURCES "${CMAKE_SOURCE_DIR}/shower/src/*.cpp")
+file(GLOB HADRONISATION_SOURCES "${CMAKE_SOURCE_DIR}/hadronisation/src/*.cpp")
 file(GLOB OBSERVABLES_SOURCES "${CMAKE_SOURCE_DIR}/observables/src/*.cpp")
 file(GLOB MAIN_SOURCES "${CMAKE_SOURCE_DIR}/main.cpp")
 
@@ -34,6 +36,7 @@ set(SOURCES
     ${BASE_SOURCES}
     ${MATRIX_SOURCES}
     ${SHOWER_SOURCES}
+    ${HADRONISATION_SOURCES}
     ${OBSERVABLES_SOURCES}
     ${PDF_WRAPPER_SOURCES}
     ${MAIN_SOURCES}

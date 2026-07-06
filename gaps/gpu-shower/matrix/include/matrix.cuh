@@ -45,7 +45,7 @@ class matrix {
   // ---------------------------------------------------------------------------
   // member functions
 
-  // leading order matrix element generation
+  // Matrix Element for e+e- -> qqbar, used for all LO
   __device__ double me2_ee2Zy2qq(int fl, double s, double t) const;
 
   // Matrix Element for q qbar to Z, for LHC NLO
@@ -72,7 +72,7 @@ void lhc_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
              alpha_s* as, pdf_wrapper* pdf, int blocks, int threads);
 
 // all tasks wrapped in a function
-void calc_lome(thrust::device_vector<event>& d_events, const params& p,
-               int blocks);
+void run_matrix(thrust::device_vector<event>& d_events, const params& p,
+                int blocks);
 
 #endif  // matrix_cuh

@@ -2,7 +2,7 @@
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-> **Version 2.1.0**: Replace LHC LO Process, PDF choices
+> **Version 2.2.0**: Hadronisation and PDF changes
 
 This is the Codebase for:
 
@@ -73,15 +73,22 @@ You can adjust the following parameters:
 
 - `-e, --root_s`: Adjust the centre of mass energy
 - `-asmz, -fixas`: Adjust $\alpha_s(m_Z)$, use fixed $\alpha_s=\alpha_s(m_Z)$
+- `-cmw`: Use the CMW scheme for $\alpha_s$
 - `-noshower`: Skip the shower section (hard subprocess only)
 - `-t_c`: Adjust the Shower Cutoff
 - `-n_em_max`: Limit the number of emissions, including the MC@NLO Emission
-- `-me2pdf` and `-showerpdf`: Change PDF (default: CT14lo). Also update range in base.h!
+- `-me2pdf` and `-showerpdf`: Change PDF (default: NNPDF40MC). Also update range in base.h!
+- `-hadronise`: Enable cluster hadronisation (prototype!!!)
+- `-clmax LIGHT CHARM BOTTOM`: Maximum cluster mass in GeV per flavour tier (default: 3.53 3.95 3.76)
+- `-clpow LIGHT CHARM BOTTOM`: Power in the cluster fission threshold condition (default: 1.85 2.56 0.55)
+- `-psplit LIGHT CHARM BOTTOM`: Power in the cluster mass sampling distribution (default: 0.91 0.99 0.63)
+- `-pwt D U S DIQUARK`: Relative flavour weights for quark selection in gluon splitting and cluster decay (default: `1.0 1.0 0.37 0.33`)
+- `--no-compile`: Skip compilation and run with pre-built binaries
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
 - `-nsys, -codecarbon, -gprof`: Profiling Tools
 
-The LHC LO process $pp \to Z/\gamma \to e^+e^-$ has been replaced with $pp \to Z$, as it is a better complementary to the NLO process. If needed, the old code can be uncommented in `lhc_lo.cpp/.cu`.
+The LHC LO process $pp \to Z/\gamma \to e^+e^-$ has been replaced with $pp \to Z$, as it is a better complementary to the NLO process. If needed, the old code can be uncommented in `lhc.cpp/.cu`.
 
 To learn more about the code and how it all works, see the [documentation](doc/README.md).
 

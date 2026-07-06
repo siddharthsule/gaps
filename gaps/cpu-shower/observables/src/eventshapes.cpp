@@ -86,7 +86,7 @@ void calculate_ev_shapes(const event& ev, double* results) {
   }
 
   thr /= momsum;
-  thr = 1. - thr;
+  // thr = 1. - thr; // Thrust Directly
 
   t_axis = t_axis / (t_axis).p();
   if (t_axis[3] < 0) {
@@ -94,7 +94,7 @@ void calculate_ev_shapes(const event& ev, double* results) {
   }
 
   if (thr < 1e-12) {
-    thr = -5.;
+    thr = -50.;
   }
 
   // --------------------------------------------------------------
@@ -113,17 +113,20 @@ void calculate_ev_shapes(const event& ev, double* results) {
     e_vis += enrg;
     broad_denominator += 2. * enrg;
 
+    // P-scheme: replace energy component with 3-momentum magnitude
+    vec4 p4 = vec4(enrg, moms[i][1], moms[i][2], moms[i][3]);
+
     if (mo_para > 0.) {
-      p_with = p_with + moms[i];
+      p_with = p_with + p4;
       broad_with += mo_perp;
       n_with++;
     } else if (mo_para < 0.) {
-      p_against = p_against + moms[i];
+      p_against = p_against + p4;
       broad_against += mo_perp;
       n_against++;
     } else {
-      p_with = p_with + (moms[i] * 0.5);
-      p_against = p_against + (moms[i] * 0.5);
+      p_with = p_with + (p4 * 0.5);
+      p_against = p_against + (p4 * 0.5);
       broad_with += 0.5 * mo_perp;
       broad_against += 0.5 * mo_perp;
       n_with++;
@@ -142,17 +145,16 @@ void calculate_ev_shapes(const event& ev, double* results) {
   broad_with /= broad_denominator;
   broad_against /= broad_denominator;
 
-  double m_h = max(mass_with, mass_against);
-  double m_l = min(mass_with, mass_against);
+  double m_h = fmax(mass_with, mass_against);
+  double m_l = fmin(mass_with, mass_against);
 
-  double b_w = max(broad_with, broad_against);
-  double b_n = min(broad_with, broad_against);
+  double b_w = fmax(broad_with, broad_against);
+  double b_n = fmin(broad_with, broad_against);
 
-  // store the results (y23, y34, y45, y56, tvalue, tzoomd, hjm, ljm, wjb, njb)
-  results[4] = thr;
-  results[5] = thr;
-  results[6] = m_h;
-  results[7] = (n_with == 1 || n_against == 1) ? -50. : m_l;
-  results[8] = b_w;
-  results[9] = (n_with == 1 || n_against == 1) ? -50. : b_n;
+  // store the results (tvalue, hjm, ljm, wjb, njb)
+  results[0] = thr;
+  results[1] = m_h;
+  results[2] = (n_with == 1 || n_against == 1) ? -50. : m_l;
+  results[3] = b_w;
+  results[4] = (n_with == 1 || n_against == 1) ? -50. : b_n;
 }

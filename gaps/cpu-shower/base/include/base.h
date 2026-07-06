@@ -63,8 +63,8 @@ const double k_nc = 3.;
 const int k_nf = 5;
 
 // Charm and Bottom quark masses
-const double mc = 1.30;
-const double mb = 4.75;
+const double mc = 1.60;
+const double mb = 5.00;
 const double mc2 = mc * mc;
 const double mb2 = mb * mb;
 
@@ -78,10 +78,10 @@ const double gz2 = gz * gz;
 const double alpha = 1. / 128.802;
 const double sin2tw = 0.22293;
 
-// PDF: Limits (CT14lo)
+// PDF: Limits (NNPDF40MC)
 const double pdf_x_min = 1e-9;
 const double pdf_x_max = 1.;
-const double pdf_q_min = 1.295;
+const double pdf_q_min = 1.;
 const double pdf_q_max = 1e5;
 
 // ME: Z mass cuts for qq -> ee
@@ -97,5 +97,10 @@ const int max_bins = 100;
 // Gen Kt: power and R values
 const double power = -1.;  // 1. = kt, 0. = cambridge, -1. = anti-kt
 const double R = 0.4;
+
+// -----------------------------------------------------------------------------
+
+// Simple Square Function
+inline double sqr(double x) { return x * x; }
 
 #endif  // base_h_

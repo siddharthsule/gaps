@@ -4,6 +4,17 @@
 // constructor
 
 __device__ void matrix::setup(int process, bool nlo, double root_s) {
+  /**
+   * @brief construct the matrix element generator
+   *
+   * stores the run configuration used by all matrix element functions: which
+   * hard process to generate (lep or lhc), whether to run at lo or nlo, and
+   * the collider center-of-mass energy.
+   *
+   * @param process the hard process: 1 = lep (e+e- -> qqbar), 2 = lhc (pp -> Z)
+   * @param nlo whether to generate at nlo (true) or lo (false)
+   * @param root_s the collider center-of-mass energy
+   */
   this->process = process;
   this->nlo = nlo;
   this->root_s = root_s;
@@ -20,23 +31,15 @@ __global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
 // main
 
 // function to generate the lo matrix elements + momenta
-void calc_lome(thrust::device_vector<event>& d_events, const params& p,
-               int blocks) {
+void run_matrix(thrust::device_vector<event>& d_events, const params& p,
+                int blocks) {
   /**
    * @brief wrapper for matrix element calculation
    *
    * @param d_events device vector of events
-   * @param process LHC or LEP (1 or 2)
-   * @param nlo whether to calculate NLO corrections
-   * @param root_s center of mass energy
-   * @param asmz alpha_s at mz
+   * @param p run parameters
    * @param blocks number of CUDA thread blocks
-   * @param threads number of CUDA threads per block
-   * @param pdf_name PDF set name
    */
-
-  // number of events - can get from d_events.size()
-  int n = d_events.size();
 
   // allocate memory for a matrix object on the device
   matrix* d_matrix;
@@ -54,7 +57,11 @@ void calc_lome(thrust::device_vector<event>& d_events, const params& p,
   sync_gpu_and_check("as_setup_kernel");
 
   // set up the pdf evaluator (for LHC processes)
-  pdf_wrapper pdf(p.me2pdf);
+  std::string pdf_name_corrected = p.me2pdf != "Null"
+                                       ? p.me2pdf
+                                       : p.nlo ? "NNPDF40MC_nlo_as_01180"
+                                               : "NNPDF40MC_lo_as_01180";
+  pdf_wrapper pdf(pdf_name_corrected);
 
   // LEP LO
   if ((p.process == 1) && !p.nlo) {
@@ -67,15 +74,17 @@ void calc_lome(thrust::device_vector<event>& d_events, const params& p,
     lep_nlo(d_events, d_matrix, d_as, blocks, p.threads);
   }
 
-  // LHC LO - and just do NLO = LO for now
+  // LHC LO
   else if ((p.process == 2) && !p.nlo) {
     lhc_lo(d_events, d_matrix, &pdf, blocks, p.threads);
   }
 
+  // LHC NLO
   else if ((p.process == 2) && p.nlo) {
     lhc_lo(d_events, d_matrix, &pdf, blocks, p.threads);
     lhc_nlo(d_events, d_matrix, d_as, &pdf, blocks, p.threads);
   }
 
-  return;
+  cudaFree(d_matrix);
+  cudaFree(d_as);
 }

@@ -26,7 +26,6 @@ class shower {
   double e_proton;
   double t_c;
   double as_max;
-  double j0_max = 2.;
 
  public:
   // constructor
@@ -98,7 +97,7 @@ class shower {
 // -----------------------------------------------------------------------------
 // Kernels and Wrappers
 
-__global__ void shower_setup_kernel(shower* sh, double as_max, double root_s);
+__global__ void shower_setup_kernel(shower* sh, double root_s, double t_c, double as_max);
 
 __global__ void prep_shower(event* events, bool nlo_matching, int n);
 

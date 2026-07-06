@@ -49,7 +49,7 @@ __device__ double matrix::me2_ee2Zy2qq(int fl, double s, double t) const {
 
 __global__ void lep_lo_kernel(matrix* matrix, event* events, int n) {
   /**
-   * @brief generate the leading order interaction
+   * @brief generate the leading order interaction e+ e- -> q qbar
    *
    * The Leading order differential cross section for e+ e- -> q qbar is
    * given by:
@@ -64,6 +64,8 @@ __global__ void lep_lo_kernel(matrix* matrix, event* events, int n) {
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
+  // ---------------------------------------------
+  // Event Preamble
   event& ev = events[idx];
   // ---------------------------------------------
 
@@ -98,6 +100,7 @@ __global__ void lep_lo_kernel(matrix* matrix, event* events, int n) {
   double lome = matrix->me2_ee2Zy2qq(fl, (pa + pb).m2(), (pa - p1).m2());
   lome *= k_nc;  // Three possible colour states
 
+  // Calculate the cross-section
   double dxs =
       (1. / (2. * matrix->root_s * matrix->root_s)) * (1. / (8. * M_PI)) * lome;
   dxs *= static_cast<double>(k_nf) * GeV_minus_2_to_pb;  // 5 flavours + units
@@ -148,6 +151,8 @@ __global__ void lep_nlo_kernel(matrix* matrix, alpha_s* as, event* events,
   // Kernel Preamble
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= n) return;
+  // ---------------------------------------------
+  // Event Preamble
   event& ev = events[idx];
   // ---------------------------------------------
 

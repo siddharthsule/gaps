@@ -1,6 +1,7 @@
 # Folders Created after Building
 bin/
 build/
+build-*/
 
 # Rivet and Yoda files
 rivet-plots/
@@ -32,6 +33,10 @@ doc/extra/*-time.dat
 lhapdf_path.txt
 path.txt
 gaps/lhapdf-gpu/install/
+
+# Kokkos
+kokkos-install-cpu/
+kokkos-install-gpu/
 
 # Any Profiling Results
 *.nsys-rep
@@ -81,5 +86,6 @@ test/Herwig/hwbuild/
 !test/Herwig/herwig-lepnlo.yoda
 !test/Herwig/herwig-lhc.yoda
 !test/Herwig/herwig-lhcnlo.yoda
+!test/Herwig/herwig-lepnlohad.yoda
 
 !doc/results-in-paper-2/*

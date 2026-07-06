@@ -43,13 +43,13 @@ __device__ double shower::calculate_y(double t, double z, double sijk,
 __device__ double shower::calculate_t(double z, double y, double sijk,
                                       int sf) const {
   /**
-   * @brief Calculate t(z,y) for the given splitting
+   * @brief Calculate the evolution variable t(z,y) for the given splitting
    *
    * @param z: Splitting variable
-   * @param y: auxiliary variable (splitting-case dependent)
+   * @param y: y(t,z) value
    * @param sijk: Invariant mass of the emitter and spectator
    * @param sf: Splitting function code
-   * @return double: t value
+   * @return double: t(z,y)
    */
 
   // 0 = FF, 1 = FI, 2 = IF, 3 = II

@@ -1,0 +1,230 @@
+# -*- ThePEG-repository -*-
+
+##################################################
+# Example generator based on LEP parameters
+# usage: Herwig read LEPNLOHAD.in
+##################################################
+
+read snippets/Matchbox.in
+read snippets/EECollider.in
+
+##################################################
+# Technical parameters for this run
+##################################################
+
+cd /Herwig/Generators
+set EventGenerator:EventHandler:LuminosityFunction:Energy 91.2*GeV
+
+##################################################
+# Matrix Elements for e-e collisions 
+# (by default only gamma/Z switched on)
+##################################################
+
+## Model assumptions
+read Matchbox/StandardModelLike.in
+read Matchbox/DiagonalCKM.in
+#read Matchbox/MCatNLO-DipoleShower.in # Additional Tune here - Do Manually!
+
+## Set the order of the couplings
+cd /Herwig/MatrixElements/Matchbox
+set Factory:OrderInAlphaS 0
+set Factory:OrderInAlphaEW 2
+set Factory:SpinCorrelations No
+set Factory:ShowerApproximation DipoleMatching
+set /Herwig/EventHandlers/EventHandler:Weighted Yes
+set /Herwig/Couplings/NLOAlphaS:input_scale 91.1876*GeV
+# set /Herwig/Couplings/NLOAlphaS:input_alpha_s 0.118 # (TO TUNE)
+set /Herwig/Model:QCD/RunningAlphaS /Herwig/Couplings/NLOAlphaS
+
+## Select the process
+do Factory:Process e- e+ -> j j
+
+# Set the scale
+cd /Herwig/MatrixElements/Matchbox
+set Factory:ScaleChoice /Herwig/MatrixElements/Matchbox/Scales/SHatScale
+
+##################################################
+#  Switch off QED Radiation
+##################################################
+set /Herwig/Particles/e-:PDF /Herwig/Partons/NoPDF
+set /Herwig/Particles/e+:PDF /Herwig/Partons/NoPDF
+
+##################################################
+# Massless Quarks and AntiQuarks
+##################################################
+# Disable No Quark Warning - Looking at Partonic Events
+cd /Herwig/Analysis
+set Basics:CheckQuark No
+
+# Massless Partons
+set /Herwig/Particles/u:HardProcessMass 0.0*GeV
+set /Herwig/Particles/ubar:HardProcessMass 0.0*GeV
+set /Herwig/Particles/d:HardProcessMass 0.0*GeV
+set /Herwig/Particles/dbar:HardProcessMass 0.0*GeV
+set /Herwig/Particles/s:HardProcessMass 0.0*GeV
+set /Herwig/Particles/sbar:HardProcessMass 0.0*GeV
+set /Herwig/Particles/c:HardProcessMass 0.0*GeV
+set /Herwig/Particles/cbar:HardProcessMass 0.0*GeV
+set /Herwig/Particles/b:HardProcessMass 0.0*GeV
+set /Herwig/Particles/bbar:HardProcessMass 0.0*GeV
+
+set /Herwig/Particles/u:NominalMass 0*GeV
+set /Herwig/Particles/ubar:NominalMass 0*GeV
+set /Herwig/Particles/d:NominalMass 0*GeV
+set /Herwig/Particles/dbar:NominalMass 0*GeV
+set /Herwig/Particles/c:NominalMass 0*GeV
+set /Herwig/Particles/cbar:NominalMass 0*GeV
+set /Herwig/Particles/s:NominalMass 0*GeV
+set /Herwig/Particles/sbar:NominalMass 0*GeV
+set /Herwig/Particles/b:NominalMass 0*GeV
+set /Herwig/Particles/bbar:NominalMass 0*GeV
+
+##################################################
+## Dipole Shower Settings
+##################################################
+
+# Set the shower to the dipole shower
+cd /Herwig/Generators
+set EventGenerator:EventHandler:CascadeHandler /Herwig/DipoleShower/DipoleShowerHandler
+
+# No Spin Correlations
+set /Herwig/DipoleShower/DipoleShowerHandler:SpinCorrelations No
+
+# Alpha S Settings
+# set /Herwig/DipoleShower/DipoleShowerHandler:GlobalAlphaS:input_alpha_s 0.118 # (TO TUNE)
+set /Herwig/DipoleShower/DipoleShowerHandler:GlobalAlphaS:input_scale 91.1876*GeV
+
+# No non-perturbative corrections
+# set /Herwig/DipoleShower/DipoleShowerHandler:ConstituentReshuffler NULL
+set /Herwig/DipoleShower/DipoleShowerHandler:IntrinsicPtGenerator NULL
+
+# Set cutoff to 1 GeV
+# set /Herwig/DipoleShower/Kinematics/FFLightKinematics:IRCutoff 1.0*GeV # (TO TUNE)
+
+# Set the scale for the shower (NLO MATCHING)
+set /Herwig/DipoleShower/DipoleShowerHandler:MaxPtIsMuF Yes
+set /Herwig/DipoleShower/DipoleShowerHandler:HardScaleProfile NULL
+set /Herwig/DipoleShower/DipoleShowerHandler:RestrictPhasespace Yes
+
+# No Subleading Nc
+set /Herwig/DipoleShower/DipoleShowerHandler:DoSubleadingNc Off
+
+# Alpha S Can be evaluated until 0 GeV
+set /Herwig/DipoleShower/DipoleShowerHandler:FactorizationScaleFreeze 1.0*GeV
+set /Herwig/DipoleShower/DipoleShowerHandler:RenormalizationScaleFreeze 1.0*GeV
+
+# Gluon splitting - Asymmetry Option 0 (only 1/(1-z) divergence)
+set /Herwig/DipoleShower/Kernels/FFgx2ggxDipoleKernel:AsymmetryOption 0
+
+# CMW Scheme on
+set /Herwig/DipoleShower/Kernels/FFgx2ggxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFqx2qgxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFgx2ddxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFgx2uuxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFgx2ccxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFgx2ssxDipoleKernel:CMWScheme Linear
+set /Herwig/DipoleShower/Kernels/FFgx2bbxDipoleKernel:CMWScheme Linear
+
+#################################################
+# Hadronisation Settings
+#################################################
+
+cd /Herwig/Hadronization/
+
+# Static Cluster Fissioner - (Aidin's Addition to Cluster Had)
+set ClusterFissioner:KinematicThreshold Static
+
+# No Colour Reconnections
+set ColourReconnector:ColourReconnection No
+
+##################################################
+## Analyses
+##################################################
+
+read snippets/Rivet.in
+
+# Custom
+insert /Herwig/Analysis/Rivet:Analyses 0 GAPS_LEP
+
+# ALEPH
+insert /Herwig/Analysis/Rivet:Analyses 0 ALEPH_2004_I636645
+
+# L3
+insert /Herwig/Analysis/Rivet:Analyses 0 L3_2004_I652683
+
+##################################################
+# Default Parameters - Overwritten from Above
+##################################################
+
+# Quark Constituent Masses
+cd /Herwig/Particles/
+set u:ConstituentMass 0.33*GeV
+set ubar:ConstituentMass 0.33*GeV
+set d:ConstituentMass 0.33*GeV
+set dbar:ConstituentMass 0.33*GeV
+set s:ConstituentMass 0.45*GeV
+set sbar:ConstituentMass 0.45*GeV
+set c:ConstituentMass 1.6*GeV
+set cbar:ConstituentMass 1.6*GeV
+set b:ConstituentMass 5.00*GeV
+set bbar:ConstituentMass 5.00*GeV
+
+# Shower
+set /Herwig/Couplings/NLOAlphaS:input_alpha_s 0.118
+set /Herwig/DipoleShower/NLOAlphaS:input_alpha_s 0.118
+set /Herwig/DipoleShower/Kinematics/FFLightKinematics:IRCutoff 1.00*GeV
+
+# Gluon Constituent Mass
+cd /Herwig/Particles/
+set g:ConstituentMass 0.95*GeV
+
+# Hadronization
+cd /Herwig/Hadronization/
+
+# Clmax, typically around 3-4 GeV, 
+# This range prevents fission from being a dominating effect
+set ClusterFissioner:ClMaxLight 3.53*GeV
+set ClusterFissioner:ClMaxCharm 3.95*GeV
+set ClusterFissioner:ClMaxBottom 3.76*GeV
+
+# Clpow, typically 2.0, doesn't affect light quarks much, but it adjusts the 
+# baryon/hadron ratio for heavy quarks, as it yields more heavier clusters
+set ClusterFissioner:ClPowLight 1.85
+set ClusterFissioner:ClPowCharm 2.56
+set ClusterFissioner:ClPowBottom 0.55
+
+# Psplit, designed more for b quarks, leave near 1.0 for light quarks
+set ClusterFissioner:PSplitLight 0.91
+set ClusterFissioner:PSplitCharm 0.99
+set ClusterFissioner:PSplitBottom 0.63
+
+# # Cldir means hadrons with pertubative quarks will maintain their direction
+# # ClSmr is a factor to the gaussian smearing of the hadron direction, if
+# # not tuning, going to offset the direction too much is not desired. Again,
+# # mostly designed for heavy quarks.
+# set ClusterDecayer:ClSmrLight 0.78
+# set ClusterDecayer:ClSmrCharm 0.16
+# set ClusterDecayer:ClSmrBottom 0.08
+set ClusterDecayer:ClDirLight Isotropic
+set ClusterDecayer:ClDirCharm Isotropic
+set ClusterDecayer:ClDirBottom Isotropic
+
+# Pwt to Match GAPS
+set HadronSelector:PwtDquark 1.0
+set HadronSelector:PwtUquark 1.0
+set HadronSelector:PwtSquark 0.37
+set HadronSelector:PwtDIquark 0.33
+
+# Leave these to defaults, don't need to touch them
+set /Herwig/Hadronization/HadronSelector:SingleHadronLimitBottom 0.0
+set /Herwig/Hadronization/HadronSelector:SingleHadronLimitCharm 0.0
+set /Herwig/Hadronization/HadronSelector:SngWt 0.89
+set /Herwig/Hadronization/HadronSelector:DecWt 0.42
+
+##################################################
+# Save run for later usage with 'Herwig run'
+##################################################
+do /Herwig/MatrixElements/Matchbox/Factory:ProductionMode
+
+cd /Herwig/Generators
+saverun LEPNLOHAD EventGenerator

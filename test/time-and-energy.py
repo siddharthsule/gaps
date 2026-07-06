@@ -52,7 +52,8 @@ if option == 'cpu' or option == 'gpu':
     for n in n_list:
 
         # Common for both
-        command = f"./rungaps -p LHC -nlo -codecarbon -n {n}"
+        # command = f"./rungaps -p LHC -nlo -codecarbon -n {n}"
+        command = f"./rungaps -p LEP -nlo -hadronise -codecarbon -n {n}"
 
         # GPU Specific
         if option == 'gpu':

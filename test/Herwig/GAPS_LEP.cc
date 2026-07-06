@@ -47,6 +47,7 @@ class GAPS_LEP : public Analysis {
   Histo1DPtr _h_light_jet_mass;
   Histo1DPtr _h_wide_jet_broadening;
   Histo1DPtr _h_narrow_jet_broadening;
+  Histo1DPtr _h_nump;  // Multiplicity
   // Histo2DPtr _h2_dalitz;  // Dalitz Plot for single emission cases
 
  public:
@@ -87,6 +88,7 @@ class GAPS_LEP : public Analysis {
     book(_h_light_jet_mass, "ljm", 100, 0., .5);
     book(_h_wide_jet_broadening, "wjb", 100, 0., .5);
     book(_h_narrow_jet_broadening, "njb", 100, 0., .2);
+    book(_h_nump, "nump", 59, 0.5, 59.5);
     // book(_h2_dalitz, "dalitz", 100, 0., 1., 100, 0., 1.);
   }
 
@@ -180,6 +182,9 @@ class GAPS_LEP : public Analysis {
     //     _h2_dalitz->fill(dal[0], dal[1]);
     //   }
     // }
+
+    // Multiplicity
+    _h_nump->fill(partons.size());
   }
 
   // Normalise histograms etc., after the run
@@ -195,6 +200,7 @@ class GAPS_LEP : public Analysis {
     normalize(_h_light_jet_mass);
     normalize(_h_wide_jet_broadening);
     normalize(_h_narrow_jet_broadening);
+    normalize(_h_nump);
     // normalize(_h2_dalitz);
   }
 

@@ -11,6 +11,9 @@
 // shower
 #include "shower.h"
 
+// hadronisation
+#include "hadronisation.h"
+
 // analysis
 #include "observables.h"
 
@@ -96,6 +99,30 @@ void run_generator(const params& p) {
   }
 
   // ---------------------------------------------------------------------------
+  // hadronisation
+
+  std::chrono::duration<double> diff_had(0.0);
+
+  if (p.hadronise) {
+    std::cout << "Hadronising Partons (CPU)..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+
+    hadronisation had(p.clmax, p.clpow, p.psplit, p.pwt);
+
+    for (int i = 0; i < p.n_events; i++) {
+      had.run(events[i]);
+      std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
+    }
+    std::cout << "" << std::endl;
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_had = end - start;
+  } else {
+    std::cout << "Skipping hadronisation section (hadronise disabled)..."
+              << std::endl;
+  }
+
+  // ---------------------------------------------------------------------------
   // analysis
 
   std::cout << "Analysing Events (CPU)..." << std::endl;
@@ -110,6 +137,7 @@ void run_generator(const params& p) {
   for (int i = 0; i < p.n_events; i++) {
     an.validate(events[i]);
     an.analyze(events[i]);
+    std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
   }
   std::cout << "" << std::endl;
 
@@ -122,13 +150,15 @@ void run_generator(const params& p) {
   // ---------------------------------------------------------------------------
   // results
 
-  double diff = diff_me.count() + diff_sh.count() + diff_an.count();
+  double diff =
+      diff_me.count() + diff_sh.count() + diff_had.count() + diff_an.count();
 
   std::cout << "" << std::endl;
   std::cout << "EVENT GENERATION COMPLETE" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "ME Time: " << diff_me.count() << " s" << std::endl;
   std::cout << "Sh Time: " << diff_sh.count() << " s" << std::endl;
+  std::cout << "Hd Time: " << diff_had.count() << " s" << std::endl;
   std::cout << "An Time: " << diff_an.count() << " s" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "Total time: " << diff << " s" << std::endl;
@@ -140,7 +170,8 @@ void run_generator(const params& p) {
 
   // write diff_sh.count() to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
-          << diff_an.count() << ", " << diff << std::endl;
+          << diff_had.count() << ", " << diff_an.count() << ", " << diff
+          << std::endl;
 
   // close the file.
   outfile.close();

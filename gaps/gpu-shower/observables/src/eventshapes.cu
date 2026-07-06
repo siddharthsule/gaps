@@ -98,7 +98,7 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   }
 
   thr /= momsum;
-  thr = 1. - thr;
+  // thr = 1. - thr; // Thrust Directly
 
   t_axis = t_axis / (t_axis).p();
   if (t_axis[3] < 0) {
@@ -106,7 +106,7 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   }
 
   if (thr < 1e-12) {
-    thr = -5.;
+    thr = -50.;
   }
 
   // --------------------------------------------------------------
@@ -125,17 +125,20 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
     e_vis += enrg;
     broad_denominator += 2. * enrg;
 
+    // P-scheme: replace energy component with 3-momentum magnitude
+    vec4 p4 = vec4(enrg, moms[i][1], moms[i][2], moms[i][3]);
+
     if (mo_para > 0.) {
-      p_with = p_with + moms[i];
+      p_with = p_with + p4;
       broad_with += mo_perp;
       n_with++;
     } else if (mo_para < 0.) {
-      p_against = p_against + moms[i];
+      p_against = p_against + p4;
       broad_against += mo_perp;
       n_against++;
     } else {
-      p_with = p_with + (moms[i] * 0.5);
-      p_against = p_against + (moms[i] * 0.5);
+      p_with = p_with + (p4 * 0.5);
+      p_against = p_against + (p4 * 0.5);
       broad_with += 0.5 * mo_perp;
       broad_against += 0.5 * mo_perp;
       n_with++;
@@ -160,7 +163,7 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   double b_w = fmax(broad_with, broad_against);
   double b_n = fmin(broad_with, broad_against);
 
-  // store the results (y23, y34, y45, y56, tvalue, tzoomd, hjm, ljm, wjb, njb)
+  // store the results (tvalue, hjm, ljm, wjb, njb)
   results[20 * idx + 4] = thr;
   results[20 * idx + 5] = thr;
   results[20 * idx + 6] = m_h;

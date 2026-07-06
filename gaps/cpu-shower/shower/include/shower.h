@@ -34,7 +34,6 @@ class shower {
   double e_proton;
   double t_c;
   double as_max;
-  double j0_max = 2.;
 
   int n_emissions_max;
 
@@ -43,7 +42,8 @@ class shower {
   // constructor
 
   shower(double root_s, double t_c, double asmz, bool fixed_as, bool use_cmw,
-         int n_emissions_max, const std::string& pdf_name = "CT14lo")
+         int n_emissions_max,
+         const std::string& pdf_name = "NNPDF40MC_lo_as_01180")
       : e_proton(root_s / 2.),
         t_c(t_c),
         n_emissions_max(n_emissions_max),

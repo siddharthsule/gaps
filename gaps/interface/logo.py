@@ -30,7 +30,7 @@ def logo():
     print_blue(" ##        ##  ##        ##  ##            ##        ## ")
     print_blue("  ##########   ##        ##  ##             ##########  ")
     print_blue("                                                        ")
-    print_green("          a GPU-Amplified Parton Shower, v2.1.0         ")
+    print_green("          a GPU-Amplified Parton Shower, v2.2.0         ")
     print("--------------------------------------------------------")
 
 # ------------------------------------------------------------------------------
@@ -173,7 +173,9 @@ def print_logo(args):
         print("Running CPU Shower only")
     elif args.runtype == 'compare':
         print("Running GPU and CPU Shower and comparing the results")
-    elif args.runtype == 'full':
-        print("Running GPU and CPU Shower for a range of event numbers")
+    elif args.runtype == 'cpu-cluster':
+        print(f"Running CPU Shower on cluster ({args.ncpu} cores)")
+    elif args.runtype == 'tune':
+        print("Running GPU kernel tuning")
 
     print("--------------------------------------------------------")

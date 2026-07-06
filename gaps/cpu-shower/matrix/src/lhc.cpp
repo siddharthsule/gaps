@@ -107,7 +107,7 @@ void matrix::lhc_lo(event& ev) {
   double rho_1 = ev.gen_random();
 
   // generate y
-  double lim = min(100., 0.5 * log((root_s * root_s) / s_hat));
+  double lim = fmin(100., 0.5 * log((root_s * root_s) / s_hat));
   double y = -lim + 2. * lim * rho_1;
 
   // Momentum Fractions
@@ -402,7 +402,7 @@ void matrix::lhc_nlo(event& ev) {
   }
 
   // ---------------------------------------------------------------------------
-  // S Event Generation - pp -> Z (Born + Virtual + Inseration + Collinear)
+  // S Event Generation - pp -> Z (Born + Virtual + Insertion + Collinear)
   else {
     // -------------------------------------------------------------------------
     // Calculate the Insertion Operator

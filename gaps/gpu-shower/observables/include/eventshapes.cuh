@@ -3,7 +3,7 @@
 
 #include "event.cuh"
 
-// event shapes
+// LEP event shapes
 __device__ void bubble_sort(vec4* moms, int n);
 __global__ void calculate_ev_shapes(const event* events, double* results,
                                     int n);

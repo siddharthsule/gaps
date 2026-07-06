@@ -467,7 +467,7 @@ bool shower::is_g2qqbar(int sf) const {
    * @brief Check if the splitting function is a g->qq splitting
    *
    * @param sf: Splitting function code
-   * @return bool: True if g->qq, False otherwise
+   * @return bool: True if g->qqbar, False otherwise
    */
 
   return (sf % 1000) / 100 == 3;
@@ -475,10 +475,10 @@ bool shower::is_g2qqbar(int sf) const {
 
 bool shower::is_g2qbarq(int sf) const {
   /**
-   * @brief Check if the splitting function is a q->gqbar splitting
+   * @brief Check if the splitting function is a g->qbarq splitting
    *
    * @param sf: Splitting function code
-   * @return bool: True if q->gqbar, False otherwise
+   * @return bool: True if g->qbarq, False otherwise
    */
 
   return (sf % 1000) / 100 == 4;
@@ -491,7 +491,7 @@ int shower::is_emitter_antiparticle(int sf) const {
    * third digit of the splitting function code
    *
    * @param sf: Splitting function code
-   * @return int: 1 if antiparticle, 0 if particle
+   * @return int: 0 if particle, 1 if antiparticle
    */
 
   return (sf % 100) / 10;
@@ -904,8 +904,8 @@ void shower::generate_possible_splittings(int ij_pid, int k_pid, bool ij_init,
     sf_codes[5] += 305;  // g -> b bbar
     // Add g -> qbar q if initial gluon
     if (ij_init) {
-      sf_codes[6] += 401;   // g -> ubar u
-      sf_codes[7] += 402;   // g -> dbar d
+      sf_codes[6] += 401;   // g -> dbar d
+      sf_codes[7] += 402;   // g -> ubar u
       sf_codes[8] += 403;   // g -> sbar s
       sf_codes[9] += 404;   // g -> cbar c
       sf_codes[10] += 405;  // g -> bbar b
