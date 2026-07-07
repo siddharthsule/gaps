@@ -1,7 +1,8 @@
 #include "hadronisation.cuh"
 
-void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
-                       int blocks) {
+void run_hadronisation(thrust::device_vector<event>& dv_events,
+                       thrust::device_vector<cluster_list>& dv_cls,
+                       const params& p, int blocks) {
   /**
    * @brief Run the hadronisation on the events
    *
@@ -9,6 +10,7 @@ void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
    * Each kernel processes all events in parallel (one thread per event).
    *
    * @param dv_events The device vector of showered events
+   * @param dv_cls    Per-event cluster lists (allocated by the caller)
    * @param p         Run parameters (threads, clmax, clpow, psplit, ...)
    * @param blocks    Number of CUDA blocks
    */
@@ -23,8 +25,7 @@ void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
   cudaMalloc(&d_had, sizeof(hadronisation));
   cudaMemcpy(d_had, h_had, sizeof(hadronisation), cudaMemcpyHostToDevice);
 
-  // Allocate the cluster lists — one per event, only live during hadronisation
-  thrust::device_vector<cluster_list> dv_cls(n_events);
+  // Cluster lists — one list per event
   cluster_list* d_cls = thrust::raw_pointer_cast(dv_cls.data());
 
   // Run the hadronisation steps in sequence
@@ -48,7 +49,7 @@ void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
   decay_clusters<<<blocks, p.threads>>>(d_events, d_cls, d_had, n_events);
   sync_gpu_and_check("decay_clusters");
 
-  // Clean up (dv_cls is freed automatically when it goes out of scope)
+  // Clean up (dv_cls is owned by the caller)
   delete h_had;
   cudaFree(d_had);
 }

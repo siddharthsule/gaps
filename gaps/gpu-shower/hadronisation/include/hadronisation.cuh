@@ -99,7 +99,8 @@ __global__ void decay_clusters(event* events, cluster_list* cls,
 // Host wrapper — allocates the hadronisation object on device and launches all
 // five kernels in sequence
 
-void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
-                       int blocks);
+void run_hadronisation(thrust::device_vector<event>& dv_events,
+                       thrust::device_vector<cluster_list>& dv_cls,
+                       const params& p, int blocks);
 
 #endif  // hadronisation_cuh_

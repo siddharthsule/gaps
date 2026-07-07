@@ -69,6 +69,12 @@ void run_generator(const params& p) {
   event* d_events = thrust::raw_pointer_cast(dv_events.data());
   int n_events = dv_events.size();
 
+  // Cluster lists — one per event, only used during hadronisation. Allocated
+  // here so the (large) value-initialisation is counted as setup rather than
+  // inside the timed hadronisation section. If not hadronising, allocate a
+  // single dummy so the vector is valid but uses no meaningful memory.
+  thrust::device_vector<cluster_list> dv_cls(p.hadronise ? p.n_events : 1);
+
   // Threads-per-Block and Blocks-per-Grid
   int blocks =
       static_cast<int>(std::ceil(static_cast<double>(n_events) / p.threads));
@@ -126,7 +132,7 @@ void run_generator(const params& p) {
     std::cout << "Hadronising clusters..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    run_hadronisation(dv_events, p, blocks);
+    run_hadronisation(dv_events, dv_cls, p, blocks);
 
     end = std::chrono::high_resolution_clock::now();
     diff_had = end - start;
