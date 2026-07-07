@@ -70,6 +70,17 @@ void hadronisation::decay_clusters(event& ev, cluster_list& cl) const {
     // -------------------------------------------------------------------------
     // Find a valid hadron pair (meson or baryon) within max_attempts tries
 
+    /**
+     * For clusters with few open channels (e.g. charm/bottom, where the baryon
+     * lookups always fail), most attempts here are wasted draws. This could be
+     * sped up by enumerating the fixed vacuum pool (d/u/s + the 9 diquarks)
+     * once per cluster flavour, caching which pairs pass which_hadron, and
+     * sampling from that cached set with the pwt weights. The kinematic (M <
+     * m1+m2) check still has to stay per-cluster. Left as a future upgrade —
+     * for light clusters the lookup nearly always succeeds, so the current
+     * trial-and-error is cheap.
+     */
+
     const int max_attempts = 1000;
     for (int attempts = 0; attempts < max_attempts; ++attempts) {
       // Select Flavour (draw the two randoms in a fixed order so the CPU and

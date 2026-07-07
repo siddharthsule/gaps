@@ -40,9 +40,44 @@ void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
   form_clusters<<<blocks, p.threads>>>(d_events, d_cls, d_had, n_events);
   sync_gpu_and_check("form_clusters");
 
-  debug_msg("running @fission_clusters");
-  fission_clusters<<<blocks, p.threads>>>(d_events, d_cls, d_had, n_events);
-  sync_gpu_and_check("fission_clusters");
+  // ---------------------------------------------------------------------------
+  // Cluster Fission
+
+  /**
+   * Return of the shower style!
+   * ---------------------------
+   * To avoid divergence chaos, we can return to the style of the shower for
+   * cluster fission. Instead of having a single kernel that loops over the
+   * clusters again and again, we take the while loop out of the kernel and
+   * only run a single pass of fission per kernel launch. This pass fissions
+   * all current clusters and not their children, which are handled in the next
+   * pass.
+   */
+
+  // Number of ``active'' events (those with clusters that need fissioning)
+  int* d_n_active;
+  cudaMalloc(&d_n_active, sizeof(int));
+
+  // Safety cap; in practice fission converges in far fewer passes.
+  const int max_passes = 1000;
+
+  // Run fission passes until all clusters are stable or we hit the max passes
+  int n_active = n_events;
+  for (int pass = 0; n_active > 0 && pass < max_passes; ++pass) {
+    // Set to 0 before a new pass
+    cudaMemset(d_n_active, 0, sizeof(int));
+
+    // Run a single fission pass
+    debug_msg("running @fission_pass");
+    fission_pass<<<blocks, p.threads>>>(d_events, d_cls, d_had, n_events,
+                                        d_n_active);
+    sync_gpu_and_check("fission_pass");
+
+    // Get the number of active events for the next pass
+    cudaMemcpy(&n_active, d_n_active, sizeof(int), cudaMemcpyDeviceToHost);
+  }
+
+  // ---------------------------------------------------------------------------
 
   debug_msg("running @decay_clusters");
   decay_clusters<<<blocks, p.threads>>>(d_events, d_cls, d_had, n_events);
@@ -51,4 +86,5 @@ void run_hadronisation(thrust::device_vector<event>& dv_events, const params& p,
   // Clean up (dv_cls is freed automatically when it goes out of scope)
   delete h_had;
   cudaFree(d_had);
+  cudaFree(d_n_active);
 }

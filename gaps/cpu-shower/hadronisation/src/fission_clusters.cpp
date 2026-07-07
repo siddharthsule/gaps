@@ -17,6 +17,10 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
 
   bool all_below = false;
   while (!all_below) {
+    // Start with all_below = true, set to false if encounter a cluster that
+    // needs fissioning. If all clusters are below threshold, the loop exits.
+    all_below = true;
+
     // Snapshot cluster count so newly added clusters are checked next pass
     int n_cl = cl.get_size();
 
@@ -39,6 +43,9 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
           pow(clmax[tier], clpow[tier]) + pow(m1 + m2, clpow[tier])) {
         continue;
       }
+
+      // Above threshold, so another pass will be needed
+      all_below = false;
 
       // -----------------------------------------------------------------------
       // Find a kinematically valid split (up to max_attempts tries)
@@ -134,27 +141,6 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
       cl.add_cluster(
           new_q_idx, i2,
           ev.get_particle(new_q_idx).get_mom() + ev.get_particle(i2).get_mom());
-    }
-
-    // -------------------------------------------------------------------------
-    // Check if all non-exception clusters are now below threshold
-
-    all_below = true;
-    for (int j = 0; j < cl.get_size(); j++) {
-      cluster c = cl.get_cluster(j);
-      double M = c.get_mom().m();
-      double m1 = ev.get_particle(c.get_i1()).get_mom().m();
-      double m2 = ev.get_particle(c.get_i2()).get_mom().m();
-
-      int fl1 = abs(ev.get_particle(c.get_i1()).get_pid());
-      int fl2 = abs(ev.get_particle(c.get_i2()).get_pid());
-      int tier = (fl1 == 5 || fl2 == 5) ? 2 : (fl1 == 4 || fl2 == 4) ? 1 : 0;
-
-      if (pow(M, clpow[tier]) >=
-          pow(clmax[tier], clpow[tier]) + pow(m1 + m2, clpow[tier])) {
-        all_below = false;
-        break;
-      }
     }
   }
 }

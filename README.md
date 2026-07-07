@@ -2,12 +2,12 @@
 
 <!-- # GAPS: a GPU-Amplified Parton Shower -->
 
-> **Version 2.2.0**: Hadronisation and PDF changes
+> **Version 2.2.0**: Hadronisation for $e^+e^- \to q \bar{q}$
 
 This is the Codebase for:
 
-- [M. H. Seymour and S. Sule, _An Algorithm to Parallelise Parton Showers on a GPU_, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
-- [M. H. Seymour and S. Sule, _An NLO-Matched Initial and Final State Parton Shower on a GPU_, SciPost Phys. Codebases 71 (2026)](https://scipost.org/SciPostPhysCodeb.71)
+- [M. H. Seymour and S. Sule, SciPost Phys. Codebases 33 (2024)](https://scipost.org/SciPostPhysCodeb.33)
+- [M. H. Seymour and S. Sule, SciPost Phys. Codebases 71 (2026)](https://scipost.org/SciPostPhysCodeb.71)
 
 The aim of this project is to demonstrate how a Parton Shower Veto Algorithm can be reorganised to run in parallel on a GPU without altering the algorithm itself.
 
@@ -78,11 +78,11 @@ You can adjust the following parameters:
 - `-t_c`: Adjust the Shower Cutoff
 - `-n_em_max`: Limit the number of emissions, including the MC@NLO Emission
 - `-me2pdf` and `-showerpdf`: Change PDF (default: NNPDF40MC). Also update range in base.h!
-- `-hadronise`: Enable cluster hadronisation (prototype!!!)
-- `-clmax LIGHT CHARM BOTTOM`: Maximum cluster mass in GeV per flavour tier (default: 3.53 3.95 3.76)
-- `-clpow LIGHT CHARM BOTTOM`: Power in the cluster fission threshold condition (default: 1.85 2.56 0.55)
-- `-psplit LIGHT CHARM BOTTOM`: Power in the cluster mass sampling distribution (default: 0.91 0.99 0.63)
-- `-pwt D U S DIQUARK`: Relative flavour weights for quark selection in gluon splitting and cluster decay (default: `1.0 1.0 0.37 0.33`)
+- `-hadronise`: Enable cluster hadronisation ($e^+e^- \to q \bar{q}$ only!)
+- `-clmax LIGHT CHARM BOTTOM`: Maximum cluster mass in GeV per flavour tier
+- `-clpow LIGHT CHARM BOTTOM`: Power in the cluster fission threshold condition
+- `-psplit LIGHT CHARM BOTTOM`: Power in the cluster mass sampling distribution
+- `-pwt D U S DIQUARK`: Relative flavour weights for quark selection in gluon splitting and cluster decay
 - `--no-compile`: Skip compilation and run with pre-built binaries
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)

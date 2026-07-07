@@ -87,9 +87,10 @@ __global__ void force_gluons_to_split(event* events, hadronisation* had, int n);
 __global__ void form_clusters(event* events, cluster_list* cls,
                               hadronisation* had, int n);
 
-// Cluster Fission
-__global__ void fission_clusters(event* events, cluster_list* cls,
-                                 hadronisation* had, int n);
+// Cluster Fission: Like the shower, instead of one kernel with while loop, run
+// one pass of fissioning clusters and checking if all are below threshold
+__global__ void fission_pass(event* events, cluster_list* cls,
+                             hadronisation* had, int n, int* n_active);
 
 // Cluster Decay
 __global__ void decay_clusters(event* events, cluster_list* cls,
