@@ -166,12 +166,14 @@ if option == 'plot':
     # using only 50k+ events, as in time-and-energy.py
     mask_fit = n_array >= 50000
     log_n_fit = np.log(n_array[mask_fit])
-    n_smooth = np.linspace(n_array[mask_fit].min(), n_array[mask_fit].max(), 100)
+    n_smooth = np.linspace(
+        n_array[mask_fit].min(), n_array[mask_fit].max(), 100)
 
     # Components to show (skip ME); ('label', column index in time_cols)
-    loglog_comps = [('Shower', 1), ('Hadronisation', 2), ('Observables', 3)]
+    # Shower on top, Hadronisation below
+    loglog_comps = [('Shower', 1), ('Hadronisation', 2)]
 
-    fig2, axes = plt.subplots(1, 3, figsize=(12, 3))
+    fig2, axes = plt.subplots(2, 1, figsize=(4, 5))
 
     for (label, k), ax in zip(loglog_comps, axes):
         # CPU and GPU data points
@@ -189,13 +191,12 @@ if option == 'plot':
         ax.plot(n_smooth, np.exp(m_gpu * np.log(n_smooth) + c_gpu),
                 '--', color='C2', alpha=0.5, linewidth=1.5)
 
-        # Annotate the fitted gradients (power-law exponents)
-        ax.text(0.05, 0.95, f'$p_{{\\mathrm{{CPU}}}} = {m_cpu:.2f}$',
-                transform=ax.transAxes, va='top', ha='left',
-                color='C0', fontsize=9)
-        ax.text(0.05, 0.85, f'$p_{{\\mathrm{{GPU}}}} = {m_gpu:.2f}$',
-                transform=ax.transAxes, va='top', ha='left',
-                color='C2', fontsize=9)
+        # Annotate the fitted gradients (power-law exponents), bottom right
+        fit_text = (f'$p_{{\\mathrm{{CPU}}}} = {m_cpu:.2f}$\n'
+                    f'$p_{{\\mathrm{{GPU}}}} = {m_gpu:.2f}$')
+        ax.text(0.95, 0.05, fit_text,
+                transform=ax.transAxes, va='bottom', ha='right', fontsize=9,
+                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
 
         ax.set_title(label)
         ax.set_xlabel('Number of events')
@@ -204,7 +205,7 @@ if option == 'plot':
         ax.set_yscale('log')
         ax.grid(True, alpha=0.2, which='both')
 
-    axes[0].legend(loc='lower right', fontsize=8)
+    axes[0].legend(loc='upper left', fontsize=8)
 
     fig2.tight_layout()
     fig2.savefig("time-hadronisation-loglog.pdf")
