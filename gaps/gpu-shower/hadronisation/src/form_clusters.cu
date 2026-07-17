@@ -36,11 +36,9 @@ __global__ void form_clusters(event* events, cluster_list* cls,
 
       // Create a cluster from the two particles (q first, then qbar)
       if (ev.get_particle(i).get_pid() > 0) {
-        cl.add_cluster(
-            i, j, ev.get_particle(i).get_mom() + ev.get_particle(j).get_mom());
+        cl.add_cluster(i, j, ev);
       } else {
-        cl.add_cluster(
-            j, i, ev.get_particle(j).get_mom() + ev.get_particle(i).get_mom());
+        cl.add_cluster(j, i, ev);
       }
 
       // Skip to the next iteration of the inner loop

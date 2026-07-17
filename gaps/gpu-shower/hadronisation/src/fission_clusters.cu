@@ -143,14 +143,10 @@ __global__ void fission_clusters(event* events, cluster_list* cls,
       ev.set_particle_mom(i2, c_qbar2_lab_new);
 
       // Replace cluster i → (original quark + new antiquark)
-      cl.set_cluster(i, cluster(i1, new_aq_idx,
-                                ev.get_particle(i1).get_mom() +
-                                    ev.get_particle(new_aq_idx).get_mom()));
+      cl.set_cluster(i, i1, new_aq_idx, ev);
 
       // Append cluster (new quark + original antiquark)
-      cl.add_cluster(
-          new_q_idx, i2,
-          ev.get_particle(new_q_idx).get_mom() + ev.get_particle(i2).get_mom());
+      cl.add_cluster(new_q_idx, i2, ev);
     }
   }
 }

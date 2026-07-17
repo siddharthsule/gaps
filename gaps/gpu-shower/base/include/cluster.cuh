@@ -1,6 +1,7 @@
 #ifndef cluster_cuh_
 #define cluster_cuh_
 
+#include "event.cuh"
 #include "vec4.cuh"
 
 class cluster {
@@ -8,15 +9,15 @@ class cluster {
    * @class cluster
    * @brief A colour-singlet composite particle made from two quarks/antiquarks.
    *
-   * A cluster stores the indices i1 and i2 of its two constituents in the
-   * event record, rather than pointers or copies. This keeps the design safe
-   * for both CPU and GPU — no dynamic allocation or pointer arithmetic.
+   * A cluster stores the indices i1 and i2 of its two constituents in the event
+   * record, together with their combined four-momentum. The momentum is summed
+   * from the constituents by the constructor, so callers only supply the two
+   * indices (and the event that holds them) — they never build the sum by hand.
    *
-   * The combined momentum is passed in at construction; the event is not
-   * referenced here so that event.cuh can include cluster.cuh without a
-   * circular dependency.
-   *
-   * pid = 81 is the PDG code for a generic cluster.
+   * The stored momentum is a snapshot taken at construction. If a constituent's
+   * momentum later changes, rebuild the cluster (add_cluster / set_cluster) to
+   * refresh it. Including event.cuh is safe here — event.cuh does not include
+   * cluster.cuh, so there is no circular dependency.
    */
 
  private:
@@ -27,11 +28,8 @@ class cluster {
   int i1 = -1;
   int i2 = -1;
 
-  // Combined four-momentum (p1 + p2)
+  // Combined four-momentum (p_i1 + p_i2), set at construction
   vec4 mom;
-
-  // Cluster pid (81 = generic cluster)
-  int pid = 81;
 
  public:
   // ---------------------------------------------------------------------------
@@ -39,8 +37,10 @@ class cluster {
 
   __host__ __device__ cluster() {}
 
-  __host__ __device__ cluster(int i1, int i2, vec4 mom)
-      : i1(i1), i2(i2), mom(mom), pid(81) {}
+  __host__ __device__ cluster(int i1, int i2, const event& ev)
+      : i1(i1),
+        i2(i2),
+        mom(ev.get_particle(i1).get_mom() + ev.get_particle(i2).get_mom()) {}
 
   // ---------------------------------------------------------------------------
   // getters
@@ -61,14 +61,6 @@ class cluster {
     return i2;
   }
 
-  __host__ __device__ int get_pid() const {
-    /**
-     * @brief get the PDG code of the cluster
-     */
-
-    return pid;
-  }
-
   __host__ __device__ vec4 get_mom() const {
     /**
      * @brief get the combined four-momentum of the cluster
@@ -84,9 +76,8 @@ struct cluster_list {
    * @brief A fixed-size array of clusters for a single event, held separately
    * from the event record.
    *
-   * Moving cluster storage out of event reduces the event struct size by
-   * ~3.4 KB (max_particles * sizeof(cluster)), keeping cluster data out of
-   * the event record during the shower phase where it is not needed.
+   * Moving cluster storage out of event keeps cluster data out of the event
+   * record during the shower phase where it is not needed.
    *
    * Each hadronisation kernel receives a parallel array of cluster_list objects
    * (one per event) indexed by the same thread ID used to index events.
@@ -124,27 +115,33 @@ struct cluster_list {
   // ---------------------------------------------------------------------------
   // setters
 
-  __device__ void add_cluster(int i1, int i2, vec4 mom) {
+  __device__ void add_cluster(int i1, int i2, const event& ev) {
     /**
      * @brief add a new cluster to the list
      *
+     * The momentum is summed from the constituents by the cluster constructor.
+     *
      * @param i1 the index of the first constituent particle
      * @param i2 the index of the second constituent particle
-     * @param mom the combined four-momentum of the cluster
+     * @param ev the event holding the constituent particles
      */
 
-    data[n++] = cluster(i1, i2, mom);
+    data[n++] = cluster(i1, i2, ev);
   }
 
-  __device__ void set_cluster(int i, cluster c) {
+  __device__ void set_cluster(int i, int i1, int i2, const event& ev) {
     /**
      * @brief overwrite the cluster at index i
      *
-     * @param i the index of the cluster to overwrite
-     * @param c the new cluster
+     * The momentum is summed from the constituents by the cluster constructor.
+     *
+     * @param i  the index of the cluster to overwrite
+     * @param i1 the index of the first constituent particle
+     * @param i2 the index of the second constituent particle
+     * @param ev the event holding the constituent particles
      */
 
-    data[i] = c;
+    data[i] = cluster(i1, i2, ev);
   }
 
   // Clear the list at the start of form_clusters.
