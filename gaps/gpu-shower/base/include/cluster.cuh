@@ -37,7 +37,10 @@ class cluster {
 
   __host__ __device__ cluster() {}
 
-  __host__ __device__ cluster(int i1, int i2, const event& ev)
+  // __device__ only: the momentum sum uses vec4::operator+ (a __device__
+  // function), and clusters are only ever built inside the hadronisation
+  // kernels (add_cluster / set_cluster are __device__).
+  __device__ cluster(int i1, int i2, const event& ev)
       : i1(i1),
         i2(i2),
         mom(ev.get_particle(i1).get_mom() + ev.get_particle(i2).get_mom()) {}
