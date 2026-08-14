@@ -3,20 +3,17 @@
 // -----------------------------------------------------------------------------
 // constructor
 
-__device__ void shower::setup(double root_s, double t_c, double as_max) {
-  this->e_proton = root_s / 2.;
+__device__ void shower::setup(double t_c, double as_max) {
   this->t_c = t_c;
   this->as_max = as_max;
 }
 
 // kernel to set up the matrix object on the device
-__global__ void shower_setup_kernel(shower* sh, double root_s, double t_c,
-                                    double as_max) {
+__global__ void shower_setup_kernel(shower* sh, double t_c, double as_max) {
   /**
    * @brief Set up the shower object on the device
    *
    * @param sh The shower object
-   * @param root_s The root s energy
    * @param t_c The cutoff scale
    * @param as_max The maximum value of alpha_s
    */
@@ -25,7 +22,7 @@ __global__ void shower_setup_kernel(shower* sh, double root_s, double t_c,
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
   if (idx >= 1) return;
   // ---------------------------------------------
-  sh->setup(root_s, t_c, as_max);
+  sh->setup(t_c, as_max);
 }
 
 // -----------------------------------------------------------------------------
@@ -417,16 +414,6 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
     return;
   }
 
-  // Additional Check for FI and IF/II, in case quark > proton
-  vec4 pijt = ev.get_particle(ij).get_mom();
-  vec4 pkt = ev.get_particle(k).get_mom();
-  if ((shower->is_isr(sf)) && (pijt[0] / z > shower->e_proton)) {
-    return;
-  }
-  if ((shower->is_fi(sf)) && (pkt[0] / y > shower->e_proton)) {
-    return;
-  }
-
   // Get PDF Ratio and PDF Max for FI and IF/II
   double pdf_ratio(1.), pdf_max(1.);
   if (!shower->is_ff(sf)) {
@@ -671,7 +658,7 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   // set up the shower
   shower* d_shower;
   cudaMalloc(&d_shower, sizeof(shower));
-  shower_setup_kernel<<<1, 1>>>(d_shower, p.root_s, p.t_c, as_max);
+  shower_setup_kernel<<<1, 1>>>(d_shower, p.t_c, as_max);
   sync_gpu_and_check("shower_setup_kernel");
 
   // set up the pdf evaluator

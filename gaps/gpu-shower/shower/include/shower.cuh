@@ -23,13 +23,12 @@ class shower {
    * *: as possible as a phd student can make it ;)
    */
  public:
-  double e_proton;
   double t_c;
   double as_max;
 
  public:
   // constructor
-  __device__ void setup(double root_s, double t_c, double as_max);
+  __device__ void setup(double t_c, double as_max);
 
   // splitting functions
   __device__ double sf_value(double z, double y, int sf) const;
@@ -97,7 +96,7 @@ class shower {
 // -----------------------------------------------------------------------------
 // Kernels and Wrappers
 
-__global__ void shower_setup_kernel(shower* sh, double root_s, double t_c, double as_max);
+__global__ void shower_setup_kernel(shower* sh, double t_c, double as_max);
 
 __global__ void prep_shower(event* events, bool nlo_matching, int n);
 

@@ -83,7 +83,7 @@ void run_generator(const params& p) {
     std::cout << "Showering Partons (CPU)..." << std::endl;
     start = std::chrono::high_resolution_clock::now();
 
-    shower sh(p.root_s, p.t_c, p.asmz, p.fixed_as, p.use_cmw, p.n_emissions_max,
+    shower sh(p.t_c, p.asmz, p.fixed_as, p.use_cmw, p.n_emissions_max,
               p.showerpdf);
 
     for (int i = 0; i < p.n_events; i++) {

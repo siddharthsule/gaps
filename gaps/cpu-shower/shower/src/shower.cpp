@@ -270,16 +270,6 @@ void shower::generate_splitting(event& ev) {
       continue;
     }
 
-    // Additional Check for FI and IF/II, in case quark > proton
-    vec4 pijt = ev.get_particle(ij).get_mom();
-    vec4 pkt = ev.get_particle(k).get_mom();
-    if ((is_isr(sf)) && (pijt[0] / z > e_proton)) {
-      continue;
-    }
-    if ((is_fi(sf)) && (pkt[0] / y > e_proton)) {
-      continue;
-    }
-
     // Get PDF Ratio and PDF Max for FI and IF/II
     double pdf_ratio(1.), pdf_max(1.);
 

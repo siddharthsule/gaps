@@ -31,7 +31,6 @@ class shower {
   pdf_wrapper pdf;
 
  public:
-  double e_proton;
   double t_c;
   double as_max;
 
@@ -41,11 +40,10 @@ class shower {
   // ---------------------------------------------------------------------------
   // constructor
 
-  shower(double root_s, double t_c, double asmz, bool fixed_as, bool use_cmw,
+  shower(double t_c, double asmz, bool fixed_as, bool use_cmw,
          int n_emissions_max,
          const std::string& pdf_name = "NNPDF40MC_lo_as_01180")
-      : e_proton(root_s / 2.),
-        t_c(t_c),
+      : t_c(t_c),
         n_emissions_max(n_emissions_max),
         pdf(pdf_name),
         as(asmz, (fixed_as ? 0 : 2), use_cmw) {
