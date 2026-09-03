@@ -54,10 +54,8 @@ __device__ inline bool is_diquark(int pid) {
 // ---------------------------------------------------------------------------
 // Hadron mass [GeV], keyed by |pid| (one row per distinct hadron)
 //
-// Physical values, except phi (333) whose mass is tuned to 0.890 for low-mass
-// s sbar clusters in the hadron+gamma fallback.  Returns < 0 for any hadron
-// this model does not produce (e.g. charm/bottom baryons), which is what gates
-// the lookups below.
+// Physical values throughout.  Returns < 0 for any hadron this model does not
+// produce (e.g. charm/bottom baryons), which is what gates the lookups below.
 
 __device__ inline double hadron_mass(int pid) {
   switch (abs(pid)) {
@@ -66,7 +64,7 @@ __device__ inline double hadron_mass(int pid) {
     case 211: return 0.139;   // pi+/-
     case 311: return 0.498;   // K0 / Kbar0
     case 321: return 0.494;   // K+/-
-    case 333: return 0.890;   // phi (tuned)
+    case 221: return 0.548;   // eta
     // charm / bottom mesons
     case 411: return 1.870;   // D+/-
     case 421: return 1.865;   // D0 / D0bar
@@ -103,12 +101,16 @@ __device__ inline int meson_pid(int q_pid, int qbar_pid) {
   if (a < 1 || a > 5 || b < 1 || b > 5) return 0;
 
   // Flavour-diagonal (quarkonium): a model choice of the ground state kept —
-  // pseudoscalar pi0 for light, vector for s/c/b (phi, J/psi, Upsilon).
+  // the pseudoscalar for light and strange (pi0, eta), the vector for c and b
+  // (J/psi, Upsilon).  Taking the eta rather than the phi(1020) matters: an
+  // s sbar cluster cannot be lighter than 2*ms = 0.90 GeV, which is under the
+  // phi but comfortably over the eta, so no mass has to be tuned to make the
+  // cluster decay work.
   if (a == b) {
     switch (a) {
       case 1:
       case 2: return 111;  // pi0
-      case 3: return 333;  // phi   (vector, tuned mass)
+      case 3: return 221;  // eta
       case 4: return 443;  // J/psi
       case 5: return 553;  // Upsilon
     }
