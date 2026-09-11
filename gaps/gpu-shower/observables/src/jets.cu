@@ -72,13 +72,13 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
     imap[i] = i;
   }
 
-  // kt2ij will store the kt2 values for each pair of particles
-  double kt2ij[max_particles][max_particles] = {0.};
+  // Loop over pairs and find the pair with the smallest dij
   double dmin = 1.;
   int ii = 0, jj = 0;
   for (int i = 0; i < n_particles; ++i) {
     for (int j = 0; j < i; ++j) {
-      double dij = kt2ij[i][j] = yij(p[i], p[j], ecm2);
+      // For durham, dij = yij
+      double dij = yij(p[i], p[j], ecm2);
 
       // Find the smallest Yij measure
       if (dij < dmin) {
@@ -121,37 +121,12 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
       imap[i] = imap[i + 1];
     }
 
-    // Update the Yij measure matrix. Instead of recalculating all the
-    // Yij measures, we only need to update the Yij measures of the
-    // particles that were combined with the particle jjx
-
-    // Note that using imap, we skip the particle with the index ii, as
-    // it was "removed" from the event
-
-    // Eg: jj = 2, jjx = 2, imap = [0, 2, 3, 4, 4]
-    // for j in range(2): kt2ij[2][imap[j]] = self.Yij(p[2], p[imap[j]])
-    // kt2ij[2][imap[0]] = Yij(p[2], p[imap[0]]) -> kt2ij[2][0]  = Yij(p[2],
-    // p[0]) kt2ij[2][imap[1]] = Yij(p[2], p[imap[1]]) -> kt2ij[2][2]  =
-    // Yij(p[2], p[2])
-    for (int j = 0; j < jj; ++j) {
-      kt2ij[jjx][imap[j]] = yij(p[jjx], p[imap[j]], ecm2);
-    }
-
-    // Eg : jj = 2, jjx = 2, imap = [0, 2, 3, 4, 4]
-    // for i in range(3, 4) : kt2ij[imap[i]][2] = self.Yij(p[2], p[imap[i]])
-    // kt2ij[3][2] = Yij(p[2], p[3])
-    // kt2ij[4][2] = Yij(p[2], p[4])
-    for (int i = jj + 1; i < n_particles; ++i) {
-      kt2ij[imap[i]][jjx] = yij(p[jjx], p[imap[i]], ecm2);
-    }
-
     // Find the next smallest Yij measure
     dmin = 1.;
     for (int i = 0; i < n_particles; ++i) {
       for (int j = 0; j < i; ++j) {
-        // Get the Yij measure.Because of the updated imap, we
-        // skip the particle with the index ii in this step
-        double dij = kt2ij[imap[i]][imap[j]];
+        // Recompute the yij measure from the live momenta
+        double dij = yij(p[imap[i]], p[imap[j]], ecm2);
 
         // Find the smallest Yij measure
         if (dij < dmin) {
@@ -277,24 +252,23 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
   // dmax is an arbitrary large number
   double dmax = 1e6;
 
-  // dij_matrix will store the dij values for each pair of particles
-  double dij_matrix[max_particles][max_particles] = {-1.};
+  // Distance between the particle and the beam
   double diB[max_particles] = {-1.};
 
-  // Define a variable to store whether dmin comes from dij_matrix or diB
+  // Define a variable to store whether dmin comes from a dij pair or diB
   bool dmin_is_diB = false;
 
   // Calculate the dij values for each pair of particles
   double dmin = dmax;
   int ii = 0, jj = 0;
   for (int i = 0; i < n_particles; ++i) {
-    // Calculate the dij measure
     for (int j = 0; j < i; ++j) {
-      dij_matrix[i][j] = dij(p[i], p[j]);
+      // Calculate the dij measure
+      double d = dij(p[i], p[j]);
 
       // Check if dij is the smallest
-      if (dij_matrix[i][j] < dmin) {
-        dmin = dij_matrix[i][j];
+      if (d < dmin) {
+        dmin = d;
         ii = i;
         jj = j;
         dmin_is_diB = false;
@@ -366,29 +340,6 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
         imap[i] = imap[i + 1];
       }
 
-      // Update the dij measure matrix. Instead of recalculating all the
-      // dij measures, we only need to update the dij measures of the
-      // particles that were combined with the particle jjx
-
-      // Note that using imap, we skip the particle with the index ii, as
-      // it was "removed" from the event
-
-      // Eg: jj = 2, jjx = 2, imap = [0, 2, 3, 4, 4]
-      // for j in range(2): dij[2][imap[j]] = self.dij(p[2], p[imap[j]])
-      // dij[2][imap[0]] = dij(p[2], p[imap[0]]) -> dij[2][0]  = dij(p[2],p[0])
-      // dij[2][imap[1]] = dij(p[2], p[imap[1]]) -> dij[2][2]  = dij(p[2],p[2])
-      for (int j = 0; j < jj; ++j) {
-        dij_matrix[jjx][imap[j]] = dij(p[jjx], p[imap[j]]);
-      }
-
-      // Eg : jj = 2, jjx = 2, imap = [0, 2, 3, 4, 4]
-      // for i in range(3, 4) : dij[imap[i]][2] = self.dij(p[2], p[imap[i]])
-      // dij[3][2] = dij(p[2], p[3])
-      // dij[4][2] = dij(p[2], p[4])
-      for (int i = jj + 1; i < n_particles; ++i) {
-        dij_matrix[imap[i]][jjx] = dij(p[jjx], p[imap[i]]);
-      }
-
       // Update the PT2 element of the particle jjx
       // Eg: jj = 2, jjx = 2, imap = [0, 2, 3, 3]
       // diB[2] = pt^(2*power)(p[2])
@@ -399,13 +350,12 @@ __global__ void cluster_genkt(const event* events, double* results, int n) {
     dmin = dmax;
     for (int i = 0; i < n_particles; ++i) {
       for (int j = 0; j < i; ++j) {
-        // Get the dij measure.Because of the updated imap, we
-        // skip the particle with the index ii in this step
-        double dij = dij_matrix[imap[i]][imap[j]];
+        // Recompute the dij measure from the live momenta
+        double d = dij(p[imap[i]], p[imap[j]]);
 
         // Find the smallest dij measure
-        if (dij < dmin) {
-          dmin = dij;
+        if (d < dmin) {
+          dmin = d;
           ii = i;
           jj = j;
           dmin_is_diB = false;
