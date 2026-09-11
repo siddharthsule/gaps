@@ -164,10 +164,10 @@ set d:ConstituentMass 0.33*GeV
 set dbar:ConstituentMass 0.33*GeV
 set s:ConstituentMass 0.45*GeV
 set sbar:ConstituentMass 0.45*GeV
-set c:ConstituentMass 1.6*GeV
-set cbar:ConstituentMass 1.6*GeV
-set b:ConstituentMass 5.00*GeV
-set bbar:ConstituentMass 5.00*GeV
+set c:ConstituentMass 1.30*GeV
+set cbar:ConstituentMass 1.30*GeV
+set b:ConstituentMass 4.75*GeV
+set bbar:ConstituentMass 4.75*GeV
 
 # Shower
 set /Herwig/Couplings/NLOAlphaS:input_alpha_s 0.118
@@ -218,8 +218,8 @@ set HadronSelector:PwtDIquark 0.33
 # Leave these to defaults, don't need to touch them
 set /Herwig/Hadronization/HadronSelector:SingleHadronLimitBottom 0.0
 set /Herwig/Hadronization/HadronSelector:SingleHadronLimitCharm 0.0
-set /Herwig/Hadronization/HadronSelector:SngWt 0.89
-set /Herwig/Hadronization/HadronSelector:DecWt 0.42
+set /Herwig/Hadronization/HadronSelector:SngWt 1.00
+set /Herwig/Hadronization/HadronSelector:DecWt 1.00
 
 ##################################################
 # Save run for later usage with 'Herwig run'
