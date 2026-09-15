@@ -98,7 +98,8 @@ __global__ void prep_shower(event* events, bool nlo_matching, int n) {
 
 // -----------------------------------------------------------------------------
 
-__global__ void select_winner_split_func(shower* shower, event* events, int n,
+__global__ void select_winner_split_func(shower* shower, event* events,
+                                         int* active_idx, int n,
                                          double* winner) {
   /**
    * @brief Select the winner splitting in the event
@@ -114,7 +115,8 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
    *
    * @param shower The shower object
    * @param events The events to run the shower on
-   * @param n The number of events
+   * @param active_idx The event index held by each active slot
+   * @param n The number of active slots
    * @param winner The array to store the winner variables
    */
   // ---------------------------------------------
@@ -123,13 +125,13 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   // default values
   double win_tt = shower->t_c;
-  int win_sf = 0;               // 0 = no splitting
+  int win_sf = 0;  // 0 = no splitting
   int win_ij = 0;
   int win_k = 0;
   double win_sijk = 0.;
@@ -313,12 +315,13 @@ __global__ void select_winner_split_func(shower* shower, event* events, int n,
 
 // -----------------------------------------------------------------------------
 
-__global__ void check_cutoff(event* events, shower* shower, int* d_completed,
-                             int n) {
+__global__ void check_cutoff(event* events, int* active_idx, shower* shower,
+                             int* d_completed, int n) {
   /**
    * @brief Check if the shower has ended
    *
    * @param events The events to run the shower on
+   * @param active_idx The event index held by each active slot
    * @param d_completed The number of completed events
    * @param cutoff The cutoff scale
    * @param n The number of events
@@ -329,8 +332,8 @@ __global__ void check_cutoff(event* events, shower* shower, int* d_completed,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   /**
@@ -361,16 +364,17 @@ __global__ void check_cutoff(event* events, shower* shower, int* d_completed,
 
 // -----------------------------------------------------------------------------
 
-__global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
-                         double* xf_a, double* xf_b, bool* accept_emission,
-                         double* winner) {
+__global__ void veto_alg(shower* shower, alpha_s* as, event* events,
+                         int* active_idx, int n, double* xf_a, double* xf_b,
+                         bool* accept_emission, double* winner) {
   /**
    * @brief The veto algorithm for the shower
    *
    * @param shower The shower object
    * @param as The alpha_s object
    * @param events The events to run the shower on
-   * @param n The number of events
+   * @param active_idx The event index held by each active slot
+   * @param n The number of active slots
    * @param xf_a The PDF of the parton after emission
    * @param xf_b The PDF of the parton before emissions
    * @param accept_emission The array to store the acceptance of the emission
@@ -382,8 +386,8 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   // set to false, only set to true if accepted
@@ -497,14 +501,15 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
 // -----------------------------------------------------------------------------
 
 // do splitting
-__global__ void do_splitting(shower* shower, event* events, int n,
-                             bool* accept_emission, double* winner) {
+__global__ void do_splitting(shower* shower, event* events, int* active_idx,
+                             int n, bool* accept_emission, double* winner) {
   /**
    * @brief Do the splitting for the shower
    *
    * @param shower The shower object
    * @param events The events to run the shower on
-   * @param n The number of events
+   * @param active_idx The event index held by each active slot
+   * @param n The number of active slots
    * @param accept_emission The array to store the acceptance of the emission
    * @param winner The array to store the winner emission data
    */
@@ -514,8 +519,8 @@ __global__ void do_splitting(shower* shower, event* events, int n,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   // Do not run if the shower has ended
@@ -581,13 +586,15 @@ __global__ void do_splitting(shower* shower, event* events, int n,
 
 // -----------------------------------------------------------------------------
 
-__global__ void check_too_many_particles(event* events, int n_emissions_max,
+__global__ void check_too_many_particles(event* events, int* active_idx,
+                                         int n_emissions_max,
                                          int* d_too_many_particles,
                                          int* d_completed, int n) {
   /**
    * @brief Check if the event has too many particles
    *
    * @param events The events to run the shower on
+   * @param active_idx The event index held by each active slot
    * @param d_too_many_particles The number of events with too many particles
    * @param n The number of events
    */
@@ -597,8 +604,8 @@ __global__ void check_too_many_particles(event* events, int n_emissions_max,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   // limit to max particles
@@ -612,15 +619,17 @@ __global__ void check_too_many_particles(event* events, int n_emissions_max,
 
 // -----------------------------------------------------------------------------
 
-struct is_not_end_shower {
+struct is_active_event {
   /**
-   * @brief Function object to check if the shower has ended
+   * @brief Function object to check if an event is still showering
    *
-   * @param ev The event to check
+   * @param a_idx The index of the event in the event array
    * @return true if the shower has not ended
    */
-  __device__ bool operator()(const event& ev) const {
-    return !ev.has_shower_ended();
+  event* events;
+
+  __device__ bool operator()(int a_idx) const {
+    return !events[a_idx].has_shower_ended();
   }
 };
 
@@ -700,6 +709,20 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   thrust::device_vector<bool> dv_accept_emission(n_events, false);
   bool* d_accept_emission = thrust::raw_pointer_cast(dv_accept_emission.data());
 
+  /**
+   * Active event indices
+   * --------------------
+   * dv_active_idx holds the positions in dv_events of the events still being
+   * showered. Kernels run over slots [0, n), reach their event through
+   * active_idx[idx], and index the per-event buffers above by slot. Each cycle
+   * the list is compacted, so finished events are no longer visited and the
+   * event records never move.
+   */
+  thrust::device_vector<int> dv_active_idx(n_events);
+  thrust::device_vector<int> dv_next_idx(n_events);
+  thrust::sequence(dv_active_idx.begin(), dv_active_idx.end());
+  int* d_active_idx = thrust::raw_pointer_cast(dv_active_idx.data());
+
   // ---------------------------------------------------
   // Analysis Variables
 
@@ -727,9 +750,8 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   int completed = 0;
   int cycle = 0;
 
-  // (Varying) kernel size and partition factor
+  // (Varying) kernel size
   int n = n_events;
-  int part_step = 1;
 
   while (completed < n_events) {
     // run all the kernels here...
@@ -739,22 +761,24 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
 
     debug_msg("running @check_too_many_particles");
     check_too_many_particles<<<blocks, p.threads>>>(
-        d_events, p.n_emissions_max, d_too_many_particles, d_completed, n);
+        d_events, d_active_idx, p.n_emissions_max, d_too_many_particles,
+        d_completed, n);
     sync_gpu_and_check("check_too_many_particles");
 
     // -------------------------------------------------------------------------
     // select the winner kernel
 
     debug_msg("running @select_winner_split_func");
-    select_winner_split_func<<<blocks, p.threads>>>(d_shower, d_events, n,
-                                                    d_winner);
+    select_winner_split_func<<<blocks, p.threads>>>(d_shower, d_events,
+                                                    d_active_idx, n, d_winner);
     sync_gpu_and_check("select_winner_split_func");
 
     // -------------------------------------------------------------------------
     // check cutoff
 
     debug_msg("running @check_cutoff");
-    check_cutoff<<<blocks, p.threads>>>(d_events, d_shower, d_completed, n);
+    check_cutoff<<<blocks, p.threads>>>(d_events, d_active_idx, d_shower,
+                                        d_completed, n);
     sync_gpu_and_check("check_cutoff");
 
     // -------------------------------------------------------------------------
@@ -763,9 +787,9 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
     // Skip for LEP
     if (p.process != 1) {
       debug_msg("running @setup_pdfratio");
-      setup_pdfratio<<<blocks, p.threads>>>(d_shower, d_events, n, d_flavours_a,
-                                            d_flavours_b, d_x_a, d_x_b, d_q2,
-                                            d_winner);
+      setup_pdfratio<<<blocks, p.threads>>>(d_shower, d_events, d_active_idx, n,
+                                            d_flavours_a, d_flavours_b, d_x_a,
+                                            d_x_b, d_q2, d_winner);
       sync_gpu_and_check("setup_pdfratio");
 
       pdf.evaluate(d_flavours_a, d_x_a, d_q2, d_xf_a, n, blocks, p.threads);
@@ -776,15 +800,16 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
     // veto algorithm
 
     debug_msg("running @veto_alg");
-    veto_alg<<<blocks, p.threads>>>(d_shower, d_as, d_events, n, d_xf_a, d_xf_b,
-                                    d_accept_emission, d_winner);
+    veto_alg<<<blocks, p.threads>>>(d_shower, d_as, d_events, d_active_idx, n,
+                                    d_xf_a, d_xf_b, d_accept_emission,
+                                    d_winner);
     sync_gpu_and_check("veto_alg");
 
     // -------------------------------------------------------------------------
     // splitting algorithm
 
     debug_msg("running @do_splitting");
-    do_splitting<<<blocks, p.threads>>>(d_shower, d_events, n,
+    do_splitting<<<blocks, p.threads>>>(d_shower, d_events, d_active_idx, n,
                                         d_accept_emission, d_winner);
     sync_gpu_and_check("do_splitting");
 
@@ -796,29 +821,20 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
 
     // -------------------------------------------------------------------------
 
-    // Partition the events based on completion at 50%, 75%, 87.5%, etc.
-    if (p.do_partitioning &&
-        completed >= static_cast<int>(n_events * (1 - 1 / pow(2, part_step)))) {
-      // Stop at 25k, below this, the overhead of partitioning outweighs the
-      // benefits, increasing execution time.
-      if (static_cast<int>(n_events * (1 / pow(2, part_step))) >= 25000) {
-        std::cerr << std::endl;
-        std::cerr << "partition at " << completed << "/" << n_events
-                  << std::endl;
+    // Update the active indices
+    if (p.do_partitioning) {
+      // Copy the indices of the still-active events in the first n slots
+      // into dv_next_idx, keeping their order
+      auto next_end =
+          thrust::copy_if(dv_active_idx.begin(), dv_active_idx.begin() + n,
+                          dv_next_idx.begin(), is_active_event{d_events});
 
-        // Partition only the first n elements
-        // Prevents partitioning of completed events
-        // using n ensures all incomplete events are
-        // accounted for
-        thrust::partition(dv_events.begin(), dv_events.begin() + n,
-                          is_not_end_shower());
+      // Update n to reflect the number of incomplete events
+      n = static_cast<int>(next_end - dv_next_idx.begin());
 
-        // Update n to reflect the number of incomplete events
-        n = n_events - completed;
-
-        // Increment the partitioning step
-        part_step++;
-      }
+      // The compacted indices become the active set
+      dv_active_idx.swap(dv_next_idx);
+      d_active_idx = thrust::raw_pointer_cast(dv_active_idx.data());
     }
 
     // -------------------------------------------------------------------------

@@ -3,15 +3,17 @@
 // -----------------------------------------------------------------------------
 // Kernel to setup the arrays for pdf ratio calculation
 
-__global__ void setup_pdfratio(shower* shower, event* events, int n,
-                               int* flavours_a, int* flavours_b, double* x_a,
-                               double* x_b, double* q2, double* winner) {
+__global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
+                               int n, int* flavours_a, int* flavours_b,
+                               double* x_a, double* x_b, double* q2,
+                               double* winner) {
   /**
    * @brief Setup the arrays for the pdf ratio calculation
    *
    * @param shower: Shower object
    * @param events: Array of event records
-   * @param n: Number of events
+   * @param active_idx: Event index held by each active slot
+   * @param n: Number of active slots
    * @param flavours_a: Array of flavours for parton a (after)
    * @param flavours_b: Array of flavours for parton b (before)
    * @param x_a: Array of momentum fractions for parton a
@@ -25,8 +27,8 @@ __global__ void setup_pdfratio(shower* shower, event* events, int n,
   if (idx >= n) return;
   // ---------------------------------------------
   // Shower Preamble
-  if (events[idx].has_shower_ended()) return;
-  event& ev = events[idx];
+  if (events[active_idx[idx]].has_shower_ended()) return;
+  event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
   // Get the shower evolution variable

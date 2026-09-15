@@ -100,24 +100,27 @@ __global__ void shower_setup_kernel(shower* sh, double t_c, double as_max);
 
 __global__ void prep_shower(event* events, bool nlo_matching, int n);
 
-__global__ void select_winner_split_func(shower* shower, event* events, int n,
+__global__ void select_winner_split_func(shower* shower, event* events,
+                                         int* active_idx, int n,
                                          double* winner);
 
-__global__ void check_cutoff(event* events, shower* shower, int* d_completed,
-                             int n);
+__global__ void check_cutoff(event* events, int* active_idx, shower* shower,
+                             int* d_completed, int n);
 
-__global__ void setup_pdfratio(shower* shower, event* events, int n,
-                               int* flavours_a, int* flavours_b, double* x_a,
-                               double* x_b, double* q2, double* winner);
+__global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
+                               int n, int* flavours_a, int* flavours_b,
+                               double* x_a, double* x_b, double* q2,
+                               double* winner);
 
-__global__ void veto_alg(shower* shower, alpha_s* as, event* events, int n,
-                         double* xf_a, double* xf_b, bool* accept_emission,
-                         double* winner);
+__global__ void veto_alg(shower* shower, alpha_s* as, event* events,
+                         int* active_idx, int n, double* xf_a, double* xf_b,
+                         bool* accept_emission, double* winner);
 
-__global__ void do_splitting(shower* shower, event* events, int n,
-                             bool* accept_emission, double* winner);
+__global__ void do_splitting(shower* shower, event* events, int* active_idx,
+                             int n, bool* accept_emission, double* winner);
 
-__global__ void check_too_many_particles(event* events, int n_emissions_max,
+__global__ void check_too_many_particles(event* events, int* active_idx,
+                                         int n_emissions_max,
                                          int* d_too_many_particles,
                                          int* d_completed, int n);
 

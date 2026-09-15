@@ -51,7 +51,7 @@ using std::tan;
 const int max_events = 1000000;
 
 // max number of particles
-const int max_particles = 70;
+const int max_particles = 100;
 
 // RNG Settings - Linear Congruential Generator
 const unsigned long lcg_a = 1664525;

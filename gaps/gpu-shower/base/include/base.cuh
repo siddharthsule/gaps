@@ -26,7 +26,8 @@
 #include <cuda_runtime.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include <thrust/partition.h>
+#include <thrust/copy.h>
+#include <thrust/sequence.h>
 
 // -----------------------------------------------------------------------------
 // program settings - careful with changes
@@ -35,7 +36,7 @@
 const int max_events = 1000000;
 
 // max number of particles
-const int max_particles = 70;
+const int max_particles = 100;
 
 // RNG Settings - Linear Congruential Generator
 const unsigned long lcg_a = 1664525;
