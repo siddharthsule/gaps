@@ -822,7 +822,9 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
     // -------------------------------------------------------------------------
 
     // Update the active indices
-    if (p.do_partitioning) {
+    // Stop at 25k, below this, the overhead of partitioning outweighs the
+    // benefits, increasing execution time.
+    if (p.do_partitioning && n > 25000) {
       // Copy the indices of the still-active events in the first n slots
       // into dv_next_idx, keeping their order
       auto next_end =
