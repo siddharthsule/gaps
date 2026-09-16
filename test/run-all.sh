@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Number of Events and Number of CPU Cores
-nevents=1000000
-ncores=4
+nevents=${1:-1000000}
+ncores=${2:-4}
 
 # Head to main gaps dir
 cd ..
