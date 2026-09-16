@@ -44,10 +44,13 @@ if start_idx == -1:
     raise ValueError(
         f"Could not find any of the start markers: {start_markers}")
 
-end_idx = content.find(end_marker)
+end_idx = content.find(end_marker, start_idx)
 
+# nsys does not always print stats sections in numeric order, so the end
+# marker may not appear after the kernel-sum section; fall back to EOF and
+# let the row parser below stop at the first blank/bracketed line.
 if end_idx == -1:
-    raise ValueError(f"Could not find end marker: {end_marker}")
+    end_idx = len(content)
 
 # Extract the section
 cuda_section = content[start_idx:end_idx]
@@ -129,16 +132,17 @@ df = df[['Name', 'Instances', 'Total_Time_ms', 'Time_Percent']]
 
 # Dictionary to switch long names with short names
 name_mapping = {
-    'select_winner_split_func': 'Generate the Trial Emission',
+    'select_winner_split_func': 'Trial Emission',
     'veto_alg': 'Vetoing Process',
     'xfxQ2': 'PDF 1',
     'setup_pdfratio': 'Setup PDF Ratio Calculation',
-    'do_splitting': 'Perform the Emission',
+    'do_splitting': 'Perform Emission',
     'check_cutoff': 'Checking Shower Cutoff',
     'check_too_many_particles': 'Check for Max Particles Per Event',
+    'hadronic_decays_kernel': 'Hadronic Decays',
     'select_flavour': 'PDF 2',
-    'cluster_durham': 'Durham Jet Clustering',
-    'cluster_genkt': 'Anti-$k_T$ Jet Clustering',
+    'cluster_durham': 'Durham Jets',
+    'cluster_genkt': 'Anti-$k_T$ Jets',
     'fill_histos': 'Fill Histograms',
     'validate_events': 'Validate Events',
     'lhc_lo': 'LHC LO',
