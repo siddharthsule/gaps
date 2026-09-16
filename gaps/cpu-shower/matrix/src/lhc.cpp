@@ -5,11 +5,7 @@
 
 double dilogarithm(double x) {
   /**
-   * @brief calculate the dilogarithm of x
-   *
-   * Li2(x) = Sum_{n=1}^{inf} (x^n)/(n^2)
-   *
-   * We do this for until a precision of 1e-10 is reached
+   * @brief dilogarithm Li2(x) = Sum_n x^n / n^2, truncated below 1e-12
    *
    * @param x the value to calculate the dilogarithm of
    * @return double the dilogarithm of x
@@ -66,15 +62,7 @@ double matrix::me2qqZ(int fl, double s) const {
 
 void matrix::lhc_lo(event& ev) {
   /**
-   * @brief generate the leading order interaction p p -> Z
-   *
-   * The Leading order differential cross section for p p -> e+ e- is
-   * given by:
-   *
-   * dsigma = drho1 drho2 drho3 drho4 * etaf(eta_a, s_hat) etaf(eta_b, s_hat)
-   *          * (1/s_hat) * (I+ - I-)((s_hat - mz2)2 + mz2 gz2)/(mz gz)
-   *          * ln(s/s_hat) * 1/(2 s_hat) 1/(8pi) * 2 * 1/N_c
-   *          * 1/4 Sum_spins |M|^2
+   * @brief generate the leading order interaction p p -> Z (on-shell Z)
    *
    * @param ev the event object
    */
@@ -177,7 +165,7 @@ void matrix::lhc_lo(event& ev) {
 
 void matrix::lhc_nlo(event& ev) {
   /**
-   * @brief do lhcnlo (work in progress)
+   * @brief generate the next-to-leading order interaction p p -> Z (j)
    */
 
   // To prevent duplicate code, generate LO event first
@@ -312,7 +300,7 @@ void matrix::lhc_nlo(event& ev) {
     particle em;
 
     // set the momenta to the relevant partons
-    // Need to use quark_is_element_0, ij_is_quark, and is_q2qg
+    // Need to use ij_is_quark and is_q2qg
 
     // quark emitter
     if (ij_is_quark) {
@@ -391,7 +379,7 @@ void matrix::lhc_nlo(event& ev) {
     // -------------------------------------------------------------------------
     // Matching - Set the starting scale for the shower
 
-    // Power Shower: Now allow emissions all the way up to root_s
+    // Power Shower: allow emissions all the way up to root_s
     double sij = root_s * root_s;
 
     ev.set_shower_t(sij);
@@ -597,7 +585,7 @@ void matrix::lhc_nlo(event& ev) {
     // -------------------------------------------------------------------------
     // Matching - Set the starting scale for the shower
 
-    // Power Shower: Now allow emissions all the way up to root_s
+    // Power Shower: allow emissions all the way up to root_s
     double sij = root_s * root_s;
 
     ev.set_shower_t(sij);
@@ -608,12 +596,8 @@ void matrix::lhc_nlo(event& ev) {
 }
 
 // -----------------------------------------------------------------------------
-// OLD LHC_LO FUNCTION FOR pp -> Z/gamma -> e+ e-
-/**
- * For the purposes of a suitable comparsion to NLO, the LO process has been
- * rewritten to just do pp -> Z, onshell Z. If needed, the old function is here
- * and can be uncommented.
- */
+// LHC_LO FUNCTION FOR pp -> Z/gamma -> e+ e- (commented out)
+// lhc_lo uses an on-shell Z so that LO compares directly with NLO.
 
 // void matrix::lhc_lo(event& ev) {
 //   /**

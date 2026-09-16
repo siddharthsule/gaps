@@ -2,15 +2,9 @@
 
 double matrix::me2_ee2Zy2qq(int fl, double s, double t) const {
   /**
-   * @brief Generate the matrix element squared for massless 2 -> 2 scattering
-   * of e+ e- -> q qbar
+   * @brief matrix element squared for massless e+ e- -> gamma/Z -> q qbar
    *
-   * matrix element squared for massess 2x2 scattering via a virtual photon
-   * or a z boson. see peskin and schroeder page 156 and pink book page 54. This
-   * contains both the photon and the z boson contributions. The matrix element
-   * squared is given by:
-   *
-   * me2 = 16 pi^2 alpha^2 ( (1+cos^2theta)(3qf + ...) + costheta(4qf...) )
+   * See Peskin & Schroeder p. 156 and the Pink Book p. 54.
    *
    * @param fl The flavour of the quark
    * @param s The Mandelstam s
@@ -128,16 +122,9 @@ void matrix::lep_nlo(event& ev) {
   // Do ee -> qqbar g based on the probability ws (1/4 events)
   if (ev.gen_random() < ws) {
     /**
-     * Catani Seymour Real Corrections
-     * -------------------------------
-     *
-     * Like the dipole shower, here we add a new parton to the event. We do this
-     * using the catani seymour dipole kinematics. The dxs is also adjusted by
-     * a factor. See Catani-Seymour Appendix D.7 or Black Book pages 150 -> 154.
-     *
-     * The H event cross section is given by:
-     * dsigma = drho1 drho2 drho3 drho4 drho5 * 1/(2 s) * 1/(8 pi)
-     *          * s / (16 pi^2) * (|M|^2 - D132 - D231) * (1 - y)
+     * Catani-Seymour real correction (CS App. D.7, Black Book pp. 150-154):
+     * dsigma = drho1..5 * 1/(2 s) * 1/(8 pi) * s / (16 pi^2)
+     *          * (|M|^2 - D132 - D231) * (1 - y)
      */
 
     // -------------------------------------------------------------------------
@@ -286,32 +273,13 @@ void matrix::lep_nlo(event& ev) {
   // Do ee -> qqbar (Born + Virtual) for the rest of the events
   else {
     /**
-     * Catani Seymour Virtual Corrections
-     * -----------------------------------
-     *
-     * For this process, the virtual correction can be calculated analytically,
-     * so here we just make a note, but just put in the end result.
-     *
-     * We will not be using the extra term L = mu^2/s as we set mu^2 = s:
-     * L = m.log(mu*mu/(lo[0][2].mom+lo[0][3].mom).M2())
-     *
-     * The Divergent terms are:
-     * V = - 2/e^2 - 3/e - 8 + pi^2
-     *
-     * We Add two Catani-Seymour counterterms:
-     * I(132) = 1/e^2 + 3/2e + 5 - pi^2/2
-     * I(231) = 1/e^2 + 3/2e + 5 - pi^2/2
-     *
-     * The final result is:
-     * V + I(132) + I(231) = 2
-     * Coeff = CF as(mu^2) / 2pi
-     * Factor = Coeff * (V + I(132) + I(231)) = CF as(mu^2) / pi
-     *
-     * You mutliply the LO dsigma by (1 + factor) to get the NLO dsigma
+     * Catani-Seymour virtual correction (analytic, mu^2 = s):
+     * V = - 2/e^2 - 3/e - 8 + pi^2, I(132) = I(231) = 1/e^2 + 3/2e + 5 - pi^2/2
+     * V + I(132) + I(231) = 2, so dsigma_nlo = dsigma_lo * (1 + CF as / pi)
      */
 
     // -------------------------------------------------------------------------
-    // Calculate the NLO cross-section, params[0] = ecms
+    // Calculate the NLO cross-section
 
     // Calculate the factor to adjust the cross-section
     double factor = k_cf * as(root_s * root_s) / M_PI;

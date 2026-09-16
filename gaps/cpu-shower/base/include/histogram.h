@@ -237,8 +237,8 @@ class histo1d {
      */
 
     std::stringstream ss;
-    ss << "BEGIN YODA_HISTO1D " << name << "\n\n";
-    ss << "Path=" << name << "\n\n";
+    ss << "BEGIN YODA_HISTO1D " << name << "\n\n\n";
+    ss << "Path=" << name << "\n\n\n";
     ss << "ScaledBy=" << scale << "\n";
     ss << "Title=\nType=Histo1D\n";
     ss << "# ID\tID\tsumw\tsumw2\tsumwx\tsumwx2\tnumEntries\n";

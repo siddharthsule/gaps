@@ -3,17 +3,15 @@
 
 // event and qcd includes all the necessary headers
 #include "cluster.h"
+#include "decay_kinematics.h"
 #include "event.h"
-#include "hadrons.h"
 #include "qcd.h"
+#include "utilities.h"
 
 class hadronisation {
   /**
    * @class hadronisation
-   * @brief the hadronisation class
-   *
-   * Here's to new beginnings! This class will be responsible for a simple
-   * cluster hadronisation model
+   * @brief the cluster hadronisation algorithm
    */
 
  private:
@@ -38,6 +36,10 @@ class hadronisation {
 
   hadronisation() = default;
 
+  /**
+   * @brief construct a hadronisation model with custom fission and flavour
+   * parameters, overriding the defaults.
+   */
   hadronisation(const double clmax_in[3], const double clpow_in[3],
                 const double psplit_in[3], const double pwt_in[4]) {
     // Set the fission parameters
@@ -55,21 +57,9 @@ class hadronisation {
   // -------------------------------------------------------------------------
   // member functions
 
-  // Kallen Function for Decay Kinematics (isotropic)
-  void kallen(vec4 p0, double m1, double m2, vec4& p1, vec4& p2, double rho_1,
-              double rho_2) const;
-
-  // Kallen Function for Decay Kinematics (collinear along axis)
-  void kallen(vec4 p0, double m1, double m2, vec4& p1, vec4& p2,
-              vec4 axis) const;
-
   // Constituent Reshuffling
   double f_reshuffling(double k, double* masses, double ecms, event& ev) const;
   void constituent_reshuffling(event& ev) const;
-
-  // Flavour Selection for Gluon Splitting, Fission and Decay
-  int select_qq_flavour(double rho, bool include_diquarks = false,
-                        double rho_diq = 0.0) const;
 
   // Gluon Splitting
   void force_gluons_to_split(event& ev) const;
@@ -85,11 +75,26 @@ class hadronisation {
 
   // Wrapper to run the full hadronisation sequence
   void run(event& ev) const {
+    /**
+     * @brief hadronise one event, from partons to hadrons.
+     *
+     * Every step skips an overflowed event; validate() drops it later.
+     */
+
+    // Constituent Mass Reshuffling
     constituent_reshuffling(ev);
+
+    // Forced Gluon Splitting
     force_gluons_to_split(ev);
+
+    // Cluster Formation
     cluster_list cl;
     form_clusters(ev, cl);
+
+    // Cluster Fission
     fission_clusters(ev, cl);
+
+    // Cluster Decay
     decay_clusters(ev, cl);
   }
 };

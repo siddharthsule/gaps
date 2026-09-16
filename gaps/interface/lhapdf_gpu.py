@@ -45,7 +45,7 @@ def install_lhapdf(base_dir):
     if not os.path.exists('lhapdf'):
         print("------------------------------------------------")
         print("Error: Failed to clone LHAPDF repository!")
-        print("Sometimes running ./rungaps.sh again can fix this issue.")
+        print("Sometimes running ./rungaps again can fix this issue.")
         print("If the issue persists, please manually clone the repository:")
         print("\t git clone -b kokkos_version https://gitlab.com/hepcedar/lhapdf.git")
         print("------------------------------------------------")
@@ -101,7 +101,7 @@ def check_lhapdf_path(base_dir):
     """
     @brief Check if the LHAPDF path is correct.
 
-    If the file lhapdf_path.txt exists, check if the path inside is correct.
+    If the file path.txt exists, check if the path inside is correct.
     If the path is correct, return it. If not, install LHAPDF within GAPS.
     @param base_dir: Base directory where rungaps is located
     """
@@ -109,7 +109,7 @@ def check_lhapdf_path(base_dir):
     lhapdf_sorted = False
 
     while not lhapdf_sorted:
-        # Check if the file lhapdf_path.txt exists
+        # Check if the file path.txt exists
         lhapdf_txt = os.path.join(base_dir, 'gaps/lhapdf-gpu/path.txt')
 
         # Make a file lhapdf_txt if it does not exist

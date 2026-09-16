@@ -1,7 +1,5 @@
 #include "chargedmult.h"
 
-#include "hadrons.h"
-
 void calculate_chargedmult(const event& ev, double* result) {
   /**
    * @brief Calculate the Charged Multiplicity for LEP

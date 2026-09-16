@@ -21,7 +21,7 @@ double yij(const vec4& p, const vec4& q, double ecm2) {
 
 void cluster_durham(const event& ev, double* results) {
   /**
-   * @brief Cluster the event int jets using the Durham algorithm for LEP
+   * @brief Cluster the event into jets using the Durham algorithm for LEP
    *
    * @param ev The event object
    * @param results The array to store the results
@@ -191,7 +191,7 @@ double dij(const vec4& p, const vec4& q) {
 
 void cluster_genkt(const event& ev, double* results) {
   /**
-   * @brief Cluster the event int jets using the Gen-kt algorithm for LHC
+   * @brief Cluster the event into jets using the Gen-kt algorithm for LHC
    *
    * @param ev The event object
    * @param results The array to store the results

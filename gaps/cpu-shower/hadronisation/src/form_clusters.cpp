@@ -2,16 +2,13 @@
 
 void hadronisation::form_clusters(event& ev, cluster_list& cl) const {
   /**
-   * @brief form clusters from the particles in the event
-   *
-   * A cluster is a composite particle made from two particles. It is a colour
-   * singlet, formed by a quark and an antiquark. We loop over all pairs of
-   * particles in the event, and if they are colour connected, we form a
-   * cluster from them. We set the first particle to the cluster, and remove
-   * the second particle from the event.
+   * @brief form colour-singlet clusters from colour-connected q-qbar pairs
    *
    * @param ev the event to form clusters from
+   * @param cl the cluster list to fill
    */
+  // Check for overflow
+  if (ev.get_overflowed()) return;
 
   cl.reset();
 

@@ -34,6 +34,9 @@ class event {
   // event validity - momentum and colour conservation
   bool validity = true;
 
+  // set when a particle could not be added for want of room in the record
+  bool overflowed = false;
+
   // differential cross section, used as the event weight
   double me2 = 0.;
   double dxs = 0.;
@@ -166,6 +169,14 @@ class event {
     return validity;
   }
 
+  bool get_overflowed() const {
+    /**
+     * @brief whether the record ran out of room
+     */
+
+    return overflowed;
+  }
+
   // ---------------------------------------------------------------------------
   // setters
 
@@ -269,17 +280,40 @@ class event {
     particles[i].set_eta(eta);
   }
 
-  void add_emission(particle p) {
+  bool add_emission(particle p) {
     /**
      * @brief append a new emission to the event record and increment the
      * emission counter.
      *
      * @param p the particle to add
+     * @return false if the record is full, marking the event overflowed
      */
+
+    if (!add_particle(p)) return false;
+
+    shower_c++;
+    return true;
+  }
+
+  bool add_particle(particle p) {
+    /**
+     * @brief append a particle to the event record, leaving the colour
+     * counter alone.
+     *
+     * Used for colourless products (hadron decays), so shower_c stays put.
+     *
+     * @param p the particle to add
+     * @return false if the record is full, marking the event overflowed
+     */
+
+    if (n_hard + n_emission >= max_particles) {
+      overflowed = true;
+      return false;
+    }
 
     particles[n_hard + n_emission] = p;
     n_emission++;
-    shower_c++;
+    return true;
   }
 
   void set_hard(int n_hard) {
@@ -362,6 +396,14 @@ class event {
     this->validity = validity;
   }
 
+  void set_overflowed() {
+    /**
+     * @brief mark the event as having run out of room in the record
+     */
+
+    overflowed = true;
+  }
+
   // ---------------------------------------------------------------------------
   // member functions
 
@@ -400,6 +442,44 @@ class event {
      */
 
     return generate_lcg(seed);
+  }
+
+  void compact() {
+    /**
+     * @brief remove the final state particles carrying a pid of zero
+     *
+     * NB: Any index into the record taken before this call is invalid after it.
+     */
+
+    // Counters
+    int size = n_hard + n_emission;
+    int dropped_hard = 0;
+    int dropped_emission = 0;
+    int write = 2;
+
+    // Count hard and emission changes
+    for (int read = 2; read < size; read++) {
+      if (particles[read].get_pid() == 0) {
+        if (read < n_hard) {
+          dropped_hard++;
+        } else {
+          dropped_emission++;
+        }
+        continue;
+      }
+
+      if (write != read) particles[write] = particles[read];
+      write++;
+    }
+
+    // Clear the tail and shorten the record
+    for (int i = write; i < size; i++) {
+      particles[i] = particle();
+    }
+
+    // Update the counters
+    n_hard -= dropped_hard;
+    n_emission -= dropped_emission;
   }
 
   bool validate() {
@@ -450,8 +530,8 @@ class event {
       }
     }
 
-    // Output for failed validation
-    if (!(pcheck && ccheck)) {
+    // Invalid (overflowed events are counted in the run summary instead)
+    if (!overflowed && !(pcheck && ccheck)) {
       std::cout << "event validation failed." << std::endl;
 
       if (!pcheck) {
@@ -466,7 +546,7 @@ class event {
     }
 
     // Return validity
-    return pcheck && ccheck;
+    return pcheck && ccheck && !overflowed;
   }
 };
 

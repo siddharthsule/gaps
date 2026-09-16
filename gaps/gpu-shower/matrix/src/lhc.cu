@@ -5,11 +5,7 @@
 
 __device__ double dilogarithm(double x) {
   /**
-   * @brief calculate the dilogarithm of x
-   *
-   * Li2(x) = Sum_{n=1}^{inf} (x^n)/(n^2)
-   *
-   * We do this for until a precision of 1e-10 is reached
+   * @brief dilogarithm Li2(x) = Sum_n x^n / n^2, truncated below 1e-12
    *
    * @param x the value to calculate the dilogarithm of
    * @return double the dilogarithm of x
@@ -67,15 +63,7 @@ __device__ double matrix::me2qqZ(int fl, double s) const {
 __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
                               int* fl_b, double* xa, double* xb, double* q2) {
   /**
-   * @brief generate the leading order interaction p p -> Z
-   *
-   * The Leading order differential cross section for p p -> e+ e- is
-   * given by:
-   *
-   * dsigma = drho1 drho2 drho3 drho4 * etaf(eta_a, s_hat) etaf(eta_b, s_hat)
-   *          * (1/s_hat) * (I+ - I-)((s_hat - mz2)2 + mz2 gz2)/(mz gz)
-   *          * ln(s/s_hat) * 1/(2 s_hat) 1/(8pi) * 2 * 1/N_c
-   *          * 1/4 Sum_spins |M|^2
+   * @brief generate the leading order interaction p p -> Z (on-shell Z)
    *
    * @param events The events array
    */
@@ -191,14 +179,15 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
 void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
             pdf_wrapper* pdf, int blocks, int threads) {
   /**
-   * @brief run the hadronic_dxs conversion
+   * @brief generate the leading order interaction p p -> Z
+   *
+   * Runs lhc_lo_no_pdf, then multiplies dxs by the beam PDFs from LHAPDF.
    *
    * @param dv_events device vector of event records
    * @param matrix matrix element generator
    * @param pdf PDF evaluator
    * @param blocks number of blocks to use
    * @param threads number of threads per block
-   *
    */
 
   // use a pointer to the device events
@@ -239,7 +228,6 @@ void lhc_lo(thrust::device_vector<event>& dv_events, matrix* matrix,
   cudaFree(d_mu2);
   cudaFree(d_xf_a);
   cudaFree(d_xf_b);
-  // pdf_wrapper destructs when function ends
 
   return;
 }
@@ -253,9 +241,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   /**
    * @brief Generate the real-emission (H-event) contribution for pp -> Zj
    *
-   * Each event is randomly designated an H-event with probability ws.
-   * H-events carry the real NLO correction: q qbar -> Z g and g q -> Z q.
-   * S-events (the complement) are handled by c_terms and bvic_terms.
+   * Selected with probability ws; S events go to c_terms and bvic_terms.
    *
    * @param events array of event records
    * @param n number of events
@@ -376,7 +362,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   // -------------------------------------------------------------------------
   // Calculate the cross-section
 
-  // Calculate PDFs
+  // Evaluate the PDFs
   fl_a[idx] = !is_q2qg ? 21 : (ij_is_quark ? fl : -fl);
   fl_b[idx] = ij_is_quark ? -fl : fl;
   xa[idx] = ij_is_quark ? eta_q / x : eta_qbar / x;
@@ -395,10 +381,10 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
 
   // Subtraction
   if (is_q2qg) {
-    dxs_nlo *= 8. * M_PI * (*as)(mu2)*k_cf * me2_lo / pz.m2();
+    dxs_nlo *= 8. * M_PI * (*as)(mu2) * k_cf * me2_lo / pz.m2();
     dxs_nlo *= -2.;
   } else {
-    dxs_nlo *= 8. * M_PI * (*as)(mu2)*k_tr * me2_lo / pz.m2();
+    dxs_nlo *= 8. * M_PI * (*as)(mu2) * k_tr * me2_lo / pz.m2();
     dxs_nlo *= (2. * pz.m2() - u_bar) / (s_bar);
     dxs_nlo *= 2.;  // two orientations
   }
@@ -416,7 +402,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   particle em;
 
   // set the momenta to the relevant partons
-  // Need to use quark_is_element_0, ij_is_quark, and is_q2qg
+  // Need to use ij_is_quark and is_q2qg
 
   // quark emitter
   if (ij_is_quark) {
@@ -495,7 +481,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   // -------------------------------------------------------------------------
   // Matching - Set the starting scale for the shower
 
-  // Power Shower: Now allow emissions all the way up to root_s
+  // Power Shower: allow emissions all the way up to root_s
   double sij = matrix->root_s * matrix->root_s;
 
   ev.set_shower_t(sij);
@@ -515,6 +501,12 @@ __global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
    *
    * @param events array of event records
    * @param n number of events
+   * @param matrix matrix element generator
+   * @param fl_a flavour of the PDF-a parton (output, for external evaluation)
+   * @param fl_b flavour of the PDF-b parton (output, for external evaluation)
+   * @param xa momentum fraction of parton a (output)
+   * @param xb momentum fraction of parton b (output)
+   * @param q2 factorisation scale squared (output)
    * @param c_term array to store the c term for each event
    */
   // ---------------------------------------------
@@ -556,7 +548,7 @@ __global__ void c_terms(event* events, int n, matrix* matrix, int* fl_a,
   double mu2 = pz.m2();
 
   // ---------------------------------------------------------------------------
-  // Now onto the Collinear Term Calculation
+  // Now, the Collinear Term Calculation
 
   /**
    * As in the paper, we break down the contributions into three components:
@@ -722,7 +714,11 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
    *
    * @param events array of event records
    * @param n number of events
+   * @param matrix matrix element generator
+   * @param as alpha_s calculator
    * @param c_term array to store the c term for each event
+   * @param xf_a PDF value for parton a
+   * @param xf_b PDF value for parton b
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -738,6 +734,7 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
     return;
   }
 
+  // -------------------------------------------------------------------------
   // Calculate the Insertion Operator
   /**
    * V = - 2/e^2 - 3/e - 8 + pi^2
@@ -751,6 +748,9 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
    */
   double v_plus_i = 2.;
 
+  // -------------------------------------------------------------------------
+  // Calculate C
+
   // Get the c term
   double A = c_term[4 * idx + 0];
   double B = c_term[4 * idx + 1];
@@ -763,6 +763,9 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
     pdf_ratio = 0.;
   }
   double c = A - B + g_contrib * (pdf_ratio - 1.) + h_contrib * pdf_ratio;
+
+  // -------------------------------------------------------------------------
+  // Calculate the new cross-section
 
   // Combine the B + V + I + C
   double mu2 = ev.get_particle(2).get_mom().m2();  // Scale Choice
@@ -786,7 +789,7 @@ __global__ void bvic_terms(event* events, int n, matrix* matrix, alpha_s* as,
   // -------------------------------------------------------------------------
   // Matching - Set the starting scale for the shower
 
-  // Power Shower: Now allow emissions all the way up to root_s
+  // Power Shower: allow emissions all the way up to root_s
   double sij = matrix->root_s * matrix->root_s;
 
   ev.set_shower_t(sij);
@@ -801,9 +804,8 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   /**
    * @brief Run the NLO correction kernels for pp -> Z
    *
-   * Calls h_event (real correction), c_terms (collinear subtraction integrals),
-   * and bvic_terms (Born + virtual + insertion + collinear combination),
-   * interleaved with external LHAPDF PDF evaluations.
+   * h_event (real), then c_terms and bvic_terms (Born + V + I + C), with
+   * LHAPDF evaluations between kernels.
    *
    * @param dv_events device vector of event records
    * @param matrix matrix element generator
@@ -853,7 +855,7 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
   cudaMemset(d_c_term, 0, 4 * n * sizeof(double));  // Initialize to zero
 
   debug_msg("running @c_terms");
-  // Reuse the existing arrays instead of creating new _coll arrays
+  // Reuse the H-event PDF arrays for the collinear terms
   c_terms<<<blocks, threads>>>(d_events, n, matrix, d_fl_a, d_fl_b, d_x_a,
                                d_x_b, d_s_hat, d_c_term);
   sync_gpu_and_check("c_terms");
@@ -882,12 +884,8 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
 }
 
 // -----------------------------------------------------------------------------
-// OLD LHC_LO FUNCTION FOR pp -> Z/gamma -> e+ e-
-/**
- * For the purposes of a suitable comparsion to NLO, the LO process has been
- * rewritten to just do pp -> Z, onshell Z. If needed, the old function is here
- * and can be uncommented.
- */
+// LHC_LO FUNCTION FOR pp -> Z/gamma -> e+ e- (commented out)
+// lhc_lo uses an on-shell Z so that LO compares directly with NLO.
 
 // __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int*
 // fl_a,
@@ -943,15 +941,15 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
 //   double rho_4 = ev.gen_random();
 
 //   // Generate s_hat
-//   double I_a = atan(((mz_cut_a * mz_cut_a) - mz * mz) / (mz * gz));
-//   double I_b = atan(((mz_cut_b * mz_cut_b) - mz * mz) / (mz * gz));
+//   double I_a = atan(((mz_cut_a * mz_cut_a) - mz2) / (mz * gz));
+//   double I_b = atan(((mz_cut_b * mz_cut_b) - mz2) / (mz * gz));
 //   double I = I_a + (I_b - I_a) * rho_1;
-//   double s_hat = (mz * gz * tan(I)) + (mz * mz);
+//   double s_hat = (mz * gz * tan(I)) + mz2;
 
 //   // generate y
-//   double limit =
+//   double lim =
 //       fmin(100., 0.5 * log((matrix->root_s * matrix->root_s) / s_hat));
-//   double y = -limit + 2. * limit * rho_2;
+//   double y = -lim + 2. * lim * rho_2;
 
 //   // Generate cos(theta), phi
 //   double ct = -1. + 2. * rho_3;
@@ -1014,10 +1012,10 @@ void lhc_nlo(thrust::device_vector<event>& dv_events, matrix* matrix,
 //   double dxs;
 //   dxs = (1. / s_hat);
 //   dxs *= (I_b - I_a);
-//   dxs *= (pow((s_hat - mz * mz), 2) + mz * mz * gz * gz) / (mz * gz);
+//   dxs *= (pow((s_hat - mz2), 2) + mz2 * gz2) / (mz * gz);
 //   dxs *= log((matrix->root_s * matrix->root_s) / s_hat);
 //   dxs *= (1. / (2. * s_hat)) * (1. / (8. * M_PI)) * lome;
-//   dxs *= GeV_minus_2_to_pb;  // 5 flavours + units
+//   dxs *= GeV_minus_2_to_pb;  // units
 //   dxs /= pd[abs(fl) - 1];    // Flavour Selection
 //   dxs *= 2.;                 // Two Possible Orientations
 

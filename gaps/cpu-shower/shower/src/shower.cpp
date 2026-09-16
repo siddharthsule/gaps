@@ -4,12 +4,7 @@
 
 void shower::select_winner(event& ev, double* winner) const {
   /**
-   * @brief Select the winner splitting in the event
-   *
-   * This function generates the highest transverse momentum splitting for every
-   * possible dipoles in the event. It then chooses the winner emission from the
-   * generated splittings, by picking the one with the highest transverse
-   * momentum. This winner emission is then used in the veto step
+   * @brief Select the winner (highest transverse momentum) trial splitting
    *
    * @param ev The event to select the winner from
    * @param winner The array to store the winner emission data
@@ -99,7 +94,7 @@ void shower::select_winner(event& ev, double* winner) const {
           continue;
         }
 
-        // Calulate the integrated overestimate
+        // Calculate the integrated overestimate
         double pdf_max = get_pdf_max(sf, ev.get_particle(ij).get_eta());
         double j0_max = is_ff(sf) ? 1. : 2.;
         double c =
@@ -130,14 +125,8 @@ void shower::select_winner(event& ev, double* winner) const {
           }
         }
 
-        // If g->bb or g->cc, check if tt is above the quark mass threshold
-        /**
-         * This blurs the lines between a massless and massive shower, but our
-         * goal is to preserve the physics logic. Without this, in the
-         * hadronisation step, the constiuent reshuffler has to do more work to
-         * accomdate for the charm and bottom quarks to have the right mass,
-         * which might reshuffle the light quark momenta.
-         */
+        // If g->bb or g->cc, check if tt is above the quark mass threshold, so
+        // the hadronisation reshuffler need not push c/b onto their masses
         if (is_g2qqbar(sf) || is_g2qbarq(sf)) {
           if ((get_splitting_flavour(sf) == 5 && tt < mb2) ||
               (get_splitting_flavour(sf) == 4 && tt < mc2)) {
@@ -210,28 +199,14 @@ void shower::select_winner(event& ev, double* winner) const {
 
 void shower::generate_splitting(event& ev) {
   /**
-   * @brief Generate a splitting for the current event
-   *
-   * This function generates a splitting for the current event, by selecting the
-   * winner emission and performing the veto algorithm. If the veto is passed,
-   * the event is modified to include the new parton and the shower scale is
-   * updated.
+   * @brief Generate one splitting for the event via the veto algorithm
    *
    * @param ev The event to generate the splitting for
    */
 
   while (ev.get_shower_t() > t_c) {
-    /**
-     * Shower Variables - useful to store as collective
-     *
-     * t, c and end_shower stored in event, because they
-     * are unique to each event, and not throwaway values
-     * like these.
-     *
-     * Winner variables: (sf, ij, k, sijk, z, y, phi)
-     * Stored in ONE array, so we make it 7 x n_events
-     * Stored all as doubles, so static_cast<int> for sf, ij, k
-     */
+    // Winner variables (sf, ij, k, sijk, z, y, phi), 7 per event, all stored
+    // as doubles (static_cast<int> for sf, ij, k); t and c live in the event
     double winner[7] = {0., 0., 0., 0., 0., 0., 0.};
 
     // select the winner splitting function
@@ -297,15 +272,8 @@ void shower::generate_splitting(event& ev) {
         continue;
       }
 
-      /**
-       * Why the factor of z?
-       * --------------------
-       * From LHAPDF, we get xf(x, q2). This means our ratio will be equal to
-       * (x/z)f(x/z, q2) / xf(x, q2) = 1/z * f(x/z, q2) / f(x, q2)
-       *
-       * So, we can either adjust the jacobian by multiplying by z or adjust the
-       * pdf_ratio by dividing by z. We choose the latter.
-       */
+      // LHAPDF gives xf(x, q2), so the ratio is 1/z * f(x/z, q2) / f(x, q2);
+      // the factor of z removes the 1/z here rather than in the jacobian
       pdf_ratio *= z;
 
       // Mutliply by (t - m2) / t for ISR to account for quark masses
@@ -407,9 +375,9 @@ void shower::generate_splitting(event& ev) {
         ev.set_particle_eta(k, ev.get_particle(k).get_eta() / y);
       }
 
-      // add emitted parton
+      // add emitted parton (return = overflowed)
       particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
-      ev.add_emission(em);
+      if (!ev.add_emission(em)) return;
 
       // II Only - Lorentz Boost the new final state
       if (is_ii(sf)) {
@@ -423,15 +391,13 @@ void shower::generate_splitting(event& ev) {
 
 void shower::run(event& ev, bool nlo_matching) {
   /**
-   * @brief Run the shower for the current event
-   *
-   * This function runs the shower for the current event, by generating
-   * splittings until the shower scale is below the cutoff scale. The shower
-   * scale is set to the smallest transverse momentum splitting in the event,
-   * in order to prevent phase space overlap.
+   * @brief Run the shower for the current event down to the cutoff scale
    *
    * @param ev The event to run the shower for
    */
+
+  // Nothing to shower into if the record is already full
+  if (ev.get_overflowed()) return;
 
   // NLO Matching does the first emission and sets the shower scale
   // to the first emission pT. If NLO Matching is off, we find the
@@ -488,11 +454,8 @@ void shower::run(event& ev, bool nlo_matching) {
   while (ev.get_shower_t() > t_c) {
     // limit to max particles
     if (ev.get_size() == min(max_particles, ev.get_hard() + n_emissions_max)) {
-      // Only print warning if too many emissions for the code,
-      // not when the number of emissions is limited by the user
-      if (max_particles < n_emissions_max) {
-        std::cout << "Warning: Max Particles Reached" << std::endl;
-      }
+      // The record running out is an overflow, and the event is dropped
+      if (ev.get_size() >= max_particles) ev.set_overflowed();
       break;
     }
 

@@ -34,6 +34,9 @@ class event {
   // event validity - momentum and colour conservation
   bool validity = true;
 
+  // set when a particle could not be added for want of room in the record
+  bool overflowed = false;
+
   // differential cross section, used as the event weight
   double me2 = 0.;
   double dxs = 0.;
@@ -162,6 +165,14 @@ class event {
      */
 
     return validity;
+  }
+
+  __device__ bool get_overflowed() const {
+    /**
+     * @brief whether the record ran out of room
+     */
+
+    return overflowed;
   }
 
   // setters -------------------------------------------------------------------
@@ -323,17 +334,40 @@ class event {
     this->shower_c = shower_c;
   }
 
-  __device__ void add_emission(particle p) {
+  __device__ bool add_emission(particle p) {
     /**
-     * @brief add an emission particle to the event record. This sets the
-     * particle at index n_hard + n_emission and increments the number of
-     * emissions and the shower colour counter.
+     * @brief append a new emission to the event record and increment the
+     * emission counter.
      *
-     * @param p the emission particle to add
+     * @param p the particle to add
+     * @return false if the record is full, marking the event overflowed
      */
+
+    if (!add_particle(p)) return false;
+
+    shower_c++;
+    return true;
+  }
+
+  __device__ bool add_particle(particle p) {
+    /**
+     * @brief append a particle to the event record, leaving the colour
+     * counter alone.
+     *
+     * Used for colourless products (hadron decays), so shower_c stays put.
+     *
+     * @param p the particle to add
+     * @return false if the record is full, marking the event overflowed
+     */
+
+    if (n_hard + n_emission >= max_particles) {
+      overflowed = true;
+      return false;
+    }
+
     particles[n_hard + n_emission] = p;
     n_emission++;
-    shower_c++;
+    return true;
   }
 
   // set end_shower flag
@@ -355,6 +389,14 @@ class event {
      */
 
     this->validity = validity;
+  }
+
+  __device__ void set_overflowed() {
+    /**
+     * @brief mark the event as having run out of room in the record
+     */
+
+    overflowed = true;
   }
 
   // member functions ----------------------------------------------------------
@@ -390,11 +432,52 @@ class event {
 
   __device__ double gen_random() {
     /**
-     * Generate a random seed and random numberbased on the Event's seed
+     * @brief generate a random number based on the event seed
+     *
+     * @return the random number
      */
 
     return generate_lcg(seed);
   }
+
+  __device__ void compact() {
+    /**
+     * @brief remove the final state particles carrying a pid of zero
+     *
+     * NB: Any index into the record taken before this call is invalid after it.
+     */
+
+    // Counters
+    int size = n_hard + n_emission;
+    int dropped_hard = 0;
+    int dropped_emission = 0;
+    int write = 2;
+
+    // Count hard and emission changes
+    for (int read = 2; read < size; read++) {
+      if (particles[read].get_pid() == 0) {
+        if (read < n_hard) {
+          dropped_hard++;
+        } else {
+          dropped_emission++;
+        }
+        continue;
+      }
+
+      if (write != read) particles[write] = particles[read];
+      write++;
+    }
+
+    // Clear the tail and shorten the record
+    for (int i = write; i < size; i++) {
+      particles[i] = particle();
+    }
+
+    // Update the counters
+    n_hard -= dropped_hard;
+    n_emission -= dropped_emission;
+  }
+
   __device__ bool validate() {
     /**
      * @brief validate the event - check momentum and colour conservation
@@ -411,6 +494,7 @@ class event {
     for (int i = 0; i < get_size(); i++) {
       particle p = get_particle(i);
 
+      // flip the momentum if it's an initial state particle
       vec4 pmom = p.is_initial() ? -p.get_mom() : p.get_mom();
       int pcol = p.get_col();
       int p_acol = p.get_acol();
@@ -443,7 +527,7 @@ class event {
     }
 
     // Return validity
-    return pcheck && ccheck;
+    return pcheck && ccheck && !overflowed;
   }
 };
 

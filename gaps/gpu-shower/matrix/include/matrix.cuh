@@ -1,5 +1,5 @@
-#ifndef matrix_cuh
-#define matrix_cuh
+#ifndef matrix_cuh_
+#define matrix_cuh_
 
 #include "event.cuh"
 #include "interface.cuh"
@@ -9,13 +9,7 @@
 class matrix {
   /**
    * @class matrix
-   * @brief matrix element generation
-   *
-   * this class is used to generate the leading order matrix element for the
-   * ee->qq, eq->eq and qq-> ee processes the me^2 is calculated simulataneously
-   * for all events, but with a few random numbers for flavour and direction.
-   * this is a massless shower, so the system generates theoretical identical
-   * events for all flavours.
+   * @brief matrix element generation for e+ e- -> q qbar and p p -> Z
    */
 
  private:
@@ -75,4 +69,4 @@ void lhc_nlo(thrust::device_vector<event>& d_events, matrix* matrix,
 void run_matrix(thrust::device_vector<event>& d_events, const params& p,
                 int blocks);
 
-#endif  // matrix_cuh
+#endif  // matrix_cuh_

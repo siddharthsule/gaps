@@ -10,18 +10,6 @@ class shower {
   /**
    * @class shower
    * @brief the dipole shower
-   *
-   * this is the main result of the published work. it is a full implementation
-   * of a dipole shower on the gpu. it is designed to be as fast as possible*,
-   * and uses a number of tricks to achieve this. the main trick is to use a
-   * single kernel to perform the entire shower, and to use a number of
-   * optimisations to make the code as fast as possible.
-   *
-   * with the event object storing all the neccessary information and with the
-   * fact that kernel's can't be member functions, the shower class has been
-   * removed
-   *
-   * *: as possible as a phd student can make it ;)
    */
 
  private:

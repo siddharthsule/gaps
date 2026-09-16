@@ -1,6 +1,7 @@
 #ifndef shower_cuh_
 #define shower_cuh_
 
+// event and qcd includes all the necessary headers
 #include "interface.cuh"
 #include "pdf.cuh"
 #include "qcd.cuh"
@@ -9,26 +10,20 @@ class shower {
   /**
    * @class shower
    * @brief the dipole shower
-   *
-   * this is the main result of the published work. it is a full implementation
-   * of a dipole shower on the gpu. it is designed to be as fast as possible*,
-   * and uses a number of tricks to achieve this. the main trick is to use a
-   * single kernel to perform the entire shower, and to use a number of
-   * optimisations to make the code as fast as possible.
-   *
-   * with the event object storing all the neccessary information and with the
-   * fact that kernel's can't be member functions, the shower class has been
-   * removed
-   *
-   * *: as possible as a phd student can make it ;)
    */
  public:
+  // ---------------------------------------------------------------------------
+  // member variables
   double t_c;
   double as_max;
 
  public:
+  // ---------------------------------------------------------------------------
   // constructor
   __device__ void setup(double t_c, double as_max);
+
+  // ---------------------------------------------------------------------------
+  // member functions
 
   // splitting functions
   __device__ double sf_value(double z, double y, int sf) const;
@@ -60,7 +55,7 @@ class shower {
   __device__ void generate_possible_splittings(int ij_pid, int k_pid,
                                                bool ij_init, bool k_init,
                                                int* sf_codes) const;
-  __device__ bool validate_splitting(int ij, int sf, bool emt_init,
+  __device__ bool validate_splitting(int ij, const int sf, bool emt_init,
                                      bool spc_init) const;
   __device__ void sf_to_flavs(int sf, int* flavs) const;
   __device__ void sf_to_text(int sf, char* text) const;
@@ -100,6 +95,7 @@ __global__ void shower_setup_kernel(shower* sh, double t_c, double as_max);
 
 __global__ void prep_shower(event* events, bool nlo_matching, int n);
 
+// select the winner emission
 __global__ void select_winner_split_func(shower* shower, event* events,
                                          int* active_idx, int n,
                                          double* winner);
@@ -112,18 +108,20 @@ __global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
                                double* x_a, double* x_b, double* q2,
                                double* winner);
 
+// veto algorithm
 __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
                          int* active_idx, int n, double* xf_a, double* xf_b,
                          bool* accept_emission, double* winner);
 
+// perform the splitting
 __global__ void do_splitting(shower* shower, event* events, int* active_idx,
                              int n, bool* accept_emission, double* winner);
 
 __global__ void check_too_many_particles(event* events, int* active_idx,
                                          int n_emissions_max,
-                                         int* d_too_many_particles,
                                          int* d_completed, int n);
 
+// run the shower
 // all tasks wrapped into a function
 void run_shower(thrust::device_vector<event>& dv_events, const params& p,
                 int blocks);

@@ -4,11 +4,17 @@
 // constructor
 
 __device__ void shower::setup(double t_c, double as_max) {
+  /**
+   * @brief construct the shower; the pdf and alpha_s objects stay on the host
+   *
+   * @param t_c the shower cutoff scale
+   * @param as_max the maximum value of alpha_s, the veto overestimate
+   */
   this->t_c = t_c;
   this->as_max = as_max;
 }
 
-// kernel to set up the matrix object on the device
+// kernel to set up the shower object on the device
 __global__ void shower_setup_kernel(shower* sh, double t_c, double as_max) {
   /**
    * @brief Set up the shower object on the device
@@ -33,6 +39,7 @@ __global__ void prep_shower(event* events, bool nlo_matching, int n) {
    * @brief Prepares the shower for the event
    *
    * @param events The events to prepare
+   * @param nlo_matching Whether NLO matching provides the first emission
    * @param n The number of events
    */
   // ---------------------------------------------
@@ -42,6 +49,8 @@ __global__ void prep_shower(event* events, bool nlo_matching, int n) {
   // ---------------------------------------------
   // Shower Preamble
   event& ev = events[idx];
+  // Nothing to shower into if the record is already full
+  if (ev.get_overflowed()) return;
   // ---------------------------------------------
 
   // NLO Matching does the first emission and sets the shower scale
@@ -102,16 +111,9 @@ __global__ void select_winner_split_func(shower* shower, event* events,
                                          int* active_idx, int n,
                                          double* winner) {
   /**
-   * @brief Select the winner splitting in the event
+   * @brief Select the winner (highest transverse momentum) trial splitting
    *
-   * This function generates the highest transverse momentum splitting for every
-   * possible dipoles in the event. It then chooses the winner emission from the
-   * generated splittings, by picking the one with the highest transverse
-   * momentum. This winner emission is then used in the veto step
-   *
-   * when you profile the code, you will notice that this is the process that
-   * takes up half of the shower time. this method below is a first attempt at
-   * parallelizing the process.
+   * This kernel takes about half of the shower time.
    *
    * @param shower The shower object
    * @param events The events to run the shower on
@@ -127,6 +129,7 @@ __global__ void select_winner_split_func(shower* shower, event* events,
   // Shower Preamble
   if (events[active_idx[idx]].has_shower_ended()) return;
   event& ev = events[active_idx[idx]];
+  if (ev.get_overflowed()) return;
   // ---------------------------------------------
 
   // default values
@@ -208,11 +211,12 @@ __global__ void select_winner_split_func(shower* shower, event* events,
         double eta = shower->is_fi(sf) ? ev.get_particle(k).get_eta()
                                        : ev.get_particle(ij).get_eta();
         shower->get_boundaries(zm, zp, sijk, eta, sf);
+
         if (zm < 0. || zp > 1. || zm > zp) {
           continue;
         }
 
-        // calculate the integrated overestimate
+        // Calculate the integrated overestimate
         double pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
         double j0_max = shower->is_ff(sf) ? 1. : 2.;
         double c = shower->as_max / (2. * M_PI) *
@@ -243,14 +247,8 @@ __global__ void select_winner_split_func(shower* shower, event* events,
           }
         }
 
-        // If g->bb or g->cc, check if tt is above the quark mass threshold
-        /**
-         * This blurs the lines between a massless and massive shower, but our
-         * goal is to preserve the physics logic. Without this, in the
-         * hadronisation step, the constiuent reshuffler has to do more work to
-         * accomdate for the charm and bottom quarks to have the right mass,
-         * which might reshuffle the light quark momenta.
-         */
+        // If g->bb or g->cc, check if tt is above the quark mass threshold, so
+        // the hadronisation reshuffler need not push c/b onto their masses
         if (shower->is_g2qqbar(sf) || shower->is_g2qbarq(sf)) {
           if ((shower->get_splitting_flavour(sf) == 5 && tt < mb2) ||
               (shower->get_splitting_flavour(sf) == 4 && tt < mc2)) {
@@ -322,8 +320,8 @@ __global__ void check_cutoff(event* events, int* active_idx, shower* shower,
    *
    * @param events The events to run the shower on
    * @param active_idx The event index held by each active slot
+   * @param shower The shower object
    * @param d_completed The number of completed events
-   * @param cutoff The cutoff scale
    * @param n The number of events
    */
   // ---------------------------------------------
@@ -334,15 +332,10 @@ __global__ void check_cutoff(event* events, int* active_idx, shower* shower,
   // Shower Preamble
   if (events[active_idx[idx]].has_shower_ended()) return;
   event& ev = events[active_idx[idx]];
+  if (ev.get_overflowed()) return;
   // ---------------------------------------------
 
-  /**
-   * end shower if t < cutoff
-   *
-   * ev.get_shower_t() <= cutoff is equally valid
-   * i just prefer this way because this way is
-   * how we usually write it in literature
-   */
+  // end shower if t < cutoff, written !(t > t_c) as in the literature
   if (!(ev.get_shower_t() > shower->t_c)) {
     ev.shower_has_ended(true);
     atomicAdd(d_completed, 1);  // increment the number of completed events
@@ -353,14 +346,8 @@ __global__ void check_cutoff(event* events, int* active_idx, shower* shower,
 
 // -----------------------------------------------------------------------------
 
-/**
- * PDF Ratio Calculation
- * ---------------------
- *
- * This is done in two steps:
- * - PDFs are evaluated for ij and i, see pdf.cuh
- * - Ratio is calculated in the veto_alg kernel
- */
+// PDF ratio: xf is evaluated for ij and i (see pdf.cuh), and the ratio is
+// taken in the veto_alg kernel
 
 // -----------------------------------------------------------------------------
 
@@ -388,6 +375,7 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
   // Shower Preamble
   if (events[active_idx[idx]].has_shower_ended()) return;
   event& ev = events[active_idx[idx]];
+  if (ev.get_overflowed()) return;
   // ---------------------------------------------
 
   // set to false, only set to true if accepted
@@ -420,6 +408,7 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
 
   // Get PDF Ratio and PDF Max for FI and IF/II
   double pdf_ratio(1.), pdf_max(1.);
+
   if (!shower->is_ff(sf)) {
     // Check Momentum Fraction
     if (!(shower->check_mom_frac(sf, ev.get_particle(ij).get_pid(),
@@ -438,7 +427,7 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
     // Calculate the ratio and handle division by zero
     pdf_ratio = xf_a[idx] / xf_b[idx];
 
-    // Verify the pdfratio
+    // cancel emission if pdf_ratio is nan, inf, or less than 0
     if (isnan(pdf_ratio) || isinf(pdf_ratio) || (pdf_ratio <= 0.)) {
       return;
     }
@@ -448,18 +437,8 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
       return;
     }
 
-    // Get PDF Max
-    pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
-
-    /**
-     * Why the factor of z?
-     * --------------------
-     * From LHAPDF, we get xf(x, q2). This means our ratio will be equal to
-     * (x/z)f(x/z, q2) / xf(x, q2) = 1/z * f(x/z, q2) / f(x, q2)
-     *
-     * So, we can either adjust the jacobian by multiplying by z or adjust the
-     * pdf_ratio by dividing by z. We choose the latter.
-     */
+    // LHAPDF gives xf(x, q2), so the ratio is 1/z * f(x/z, q2) / f(x, q2);
+    // the factor of z removes the 1/z here rather than in the jacobian
     pdf_ratio *= z;
 
     // Mutliply by (t - m2) / t for ISR to account for quark masses
@@ -467,6 +446,9 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
       int fl = abs(ev.get_particle(ij).get_pid());
       pdf_ratio *= (t - (fl == 5 ? mb * mb : (fl == 4 ? mc * mc : 0.))) / t;
     }
+
+    // Get PDF Max
+    pdf_max = shower->get_pdf_max(sf, ev.get_particle(ij).get_eta());
   }
 
   // Jacobian
@@ -521,9 +503,10 @@ __global__ void do_splitting(shower* shower, event* events, int* active_idx,
   // Shower Preamble
   if (events[active_idx[idx]].has_shower_ended()) return;
   event& ev = events[active_idx[idx]];
+  if (ev.get_overflowed()) return;
   // ---------------------------------------------
 
-  // Do not run if the shower has ended
+  // Do not run if the emission was not accepted by the veto algorithm
   if (!accept_emission[idx]) {
     return;
   }
@@ -572,9 +555,9 @@ __global__ void do_splitting(shower* shower, event* events, int* active_idx,
     ev.set_particle_eta(k, ev.get_particle(k).get_eta() / y);
   }
 
-  // add emitted parton
+  // add emitted parton (return = overflowed)
   particle em = particle(flavs[2], moms[1], colj[0], colj[1]);
-  ev.add_emission(em);
+  if (!ev.add_emission(em)) return;
 
   // II Only - Lorentz Boost the new final state
   if (shower->is_ii(sf)) {
@@ -588,14 +571,17 @@ __global__ void do_splitting(shower* shower, event* events, int* active_idx,
 
 __global__ void check_too_many_particles(event* events, int* active_idx,
                                          int n_emissions_max,
-                                         int* d_too_many_particles,
                                          int* d_completed, int n) {
   /**
    * @brief Check if the event has too many particles
    *
+   * Ends overflowed events rather than skipping them, as this kernel owns
+   * their d_completed count, which the shower loop waits on.
+   *
    * @param events The events to run the shower on
    * @param active_idx The event index held by each active slot
-   * @param d_too_many_particles The number of events with too many particles
+   * @param n_emissions_max The maximum number of emissions
+   * @param d_completed The number of completed events
    * @param n The number of events
    */
   // ---------------------------------------------
@@ -608,11 +594,19 @@ __global__ void check_too_many_particles(event* events, int* active_idx,
   event& ev = events[active_idx[idx]];
   // ---------------------------------------------
 
-  // limit to max particles
-  if (ev.get_size() == min(max_particles, ev.get_hard() + n_emissions_max)) {
+  // An overflowed event has nowhere left to emit, whatever its scale
+  if (ev.get_overflowed()) {
     ev.shower_has_ended(true);
     atomicAdd(d_completed, 1);  // increment the number of completed events
-    atomicAdd(d_too_many_particles, 1);  // to print later
+    return;
+  }
+
+  // limit to max particles
+  if (ev.get_size() == min(max_particles, ev.get_hard() + n_emissions_max)) {
+    // The record running out is an overflow, and the event is dropped
+    if (ev.get_size() >= max_particles) ev.set_overflowed();
+    ev.shower_has_ended(true);
+    atomicAdd(d_completed, 1);  // increment the number of completed events
     return;
   }
 }
@@ -641,9 +635,8 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
    * @brief Run the shower on the events
    *
    * @param dv_events The events to run the shower on
-   * @param root_s The root s energy
-   * @param nlo_matching Whether to do NLO matching
-   * @param do_partitioning Whether to partition the events
+   * @param p The run parameters (cutoff, alpha_s, pdf, nlo, partitioning)
+   * @param blocks The number of thread blocks to launch the kernels with
    */
 
   // number of events - can get from d_events.size()
@@ -673,17 +666,8 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   // set up the pdf evaluator
   pdf_wrapper pdf(p.showerpdf);
 
-  /**
-   * Shower Variables - useful to store as collective
-   *
-   * t, c and end_shower stored in event, because they
-   * are unique to each event, and not throwaway values
-   * like these.
-   *
-   * Winner variables: (sf, ij, k, sijk, z, y, phi)
-   * Stored in ONE array, so we make it 7 x n_events
-   * Stored all as doubles, so static_cast<int> for sf, ij, k
-   */
+  // Winner variables (sf, ij, k, sijk, z, y, phi), 7 per event, all stored
+  // as doubles (static_cast<int> for sf, ij, k); t and c live in the event
   thrust::device_vector<double> dv_winner(7 * n_events, 0.0);
   double* d_winner = thrust::raw_pointer_cast(dv_winner.data());
 
@@ -731,11 +715,6 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   cudaMalloc(&d_completed, sizeof(int));
   cudaMemset(d_completed, 0, sizeof(int));
 
-  // allocate device memory to counts events that surpass max particles
-  int* d_too_many_particles;
-  cudaMalloc(&d_too_many_particles, sizeof(int));
-  cudaMemset(d_too_many_particles, 0, sizeof(int));
-
   // ---------------------------------------------------------------------------
   // prepare the shower
 
@@ -753,6 +732,17 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   // (Varying) kernel size
   int n = n_events;
 
+  // An event whose starting scale is already at or below the cutoff has no
+  // shower to run. End it here, before select_winner draws for it: the CPU
+  // loop never enters for such an event, so its PRNG has to be left where
+  // the CPU leaves it for the hadronisation to follow the same stream. This
+  // occurs with NLO matching
+  debug_msg("running @check_cutoff (initial)");
+  check_cutoff<<<blocks, p.threads>>>(d_events, d_active_idx, d_shower,
+                                      d_completed, n);
+  sync_gpu_and_check("check_cutoff (initial)");
+  cudaMemcpy(&completed, d_completed, sizeof(int), cudaMemcpyDeviceToHost);
+
   while (completed < n_events) {
     // run all the kernels here...
 
@@ -761,8 +751,7 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
 
     debug_msg("running @check_too_many_particles");
     check_too_many_particles<<<blocks, p.threads>>>(
-        d_events, d_active_idx, p.n_emissions_max, d_too_many_particles,
-        d_completed, n);
+        d_events, d_active_idx, p.n_emissions_max, d_completed, n);
     sync_gpu_and_check("check_too_many_particles");
 
     // -------------------------------------------------------------------------
@@ -849,27 +838,10 @@ void run_shower(thrust::device_vector<event>& dv_events, const params& p,
   }
   std::cout << std::endl;
 
-  // print the number of events that surpassed the max particles
-  int too_many_particles;
-  cudaMemcpy(&too_many_particles, d_too_many_particles, sizeof(int),
-             cudaMemcpyDeviceToHost);
-  if (too_many_particles > 0) {
-    // Only print warning if too many emissions for the code,
-    // not when the number of emissions is limited by the user
-    if (max_particles < p.n_emissions_max) {
-      std::cerr << "Warning: " << too_many_particles
-                << " events surpassed the maximum number of particles"
-                << std::endl;
-      std::cerr << "Consider increasing max_particles, default: "
-                << max_particles << std::endl;
-    }
-  }
-
   // ---------------------------------------------------------------------------
 
   // free the memory
   cudaFree(d_shower);
   cudaFree(d_as);
   cudaFree(d_completed);
-  cudaFree(d_too_many_particles);
 }

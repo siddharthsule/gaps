@@ -14,6 +14,9 @@
 // hadronisation
 #include "hadronisation.h"
 
+// decays
+#include "hadronic_decays.h"
+
 // analysis
 #include "observables.h"
 
@@ -40,7 +43,7 @@ void run_generator(const params& p) {
    */
 
   // ---------------------------------------------------------------------------
-  // inititalisation
+  // initialisation
 
   std::cout << "Initialising..." << std::endl;
   std::vector<event> events(p.n_events);  // Create n events
@@ -123,35 +126,78 @@ void run_generator(const params& p) {
   }
 
   // ---------------------------------------------------------------------------
+  // hadronic decays
+
+  std::chrono::duration<double> diff_dec(0.0);
+
+  if (p.hadronise) {
+    std::cout << "Decaying Hadrons (CPU)..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+
+    hadronic_decays decay(p.ctau_max);
+
+    for (int i = 0; i < p.n_events; i++) {
+      decay.run(events[i]);
+      std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
+    }
+    std::cout << "" << std::endl;
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_dec = end - start;
+  } else {
+    std::cout << "Skipping decay section (hadronise disabled)..." << std::endl;
+  }
+
+  // ---------------------------------------------------------------------------
   // analysis
 
-  std::cout << "Analysing Events (CPU)..." << std::endl;
-  start = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff_an(0.0);
 
-  // remove existing file
-  std::remove(p.storage_file.c_str());
+  if (!p.skip_analysis) {
+    std::cout << "Analysing Events (CPU)..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
 
-  analysis an(p.process);
+    // remove existing file
+    std::remove(p.storage_file.c_str());
 
-  // analyze events (including validation of colour and momentum conservation)
-  for (int i = 0; i < p.n_events; i++) {
-    an.validate(events[i]);
-    an.analyze(events[i]);
-    std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
+    analysis an(p.process);
+
+    // analyze events (including validation of colour and momentum conservation)
+    for (int i = 0; i < p.n_events; i++) {
+      an.validate(events[i]);
+      an.analyze(events[i]);
+      std::cerr << "\rEvent " << i + 1 << " of " << p.n_events << std::flush;
+    }
+    std::cout << "" << std::endl;
+
+    if (an.invalid > 0) {
+      std::cout << "error: invalid events found" << std::endl;
+      std::cout << "number of invalid events: " << an.invalid << "\n";
+
+      if (an.overflowed > 0) {
+        std::cout << an.overflowed << " of them ran out of room in the record"
+                  << std::endl;
+        std::cout << "Consider increasing max_particles, default: "
+                  << max_particles << std::endl;
+      }
+      std::cout << "" << std::endl;
+    }
+
+    // storage
+    an.finalize(p.storage_file);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_an = end - start;
+  } else {
+    std::cout << "Skipping analysis section (skip_analysis enabled)..."
+              << std::endl;
   }
-  std::cout << "" << std::endl;
-
-  // storage
-  an.finalize(p.storage_file);
-
-  end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff_an = end - start;
 
   // ---------------------------------------------------------------------------
   // results
 
-  double diff =
-      diff_me.count() + diff_sh.count() + diff_had.count() + diff_an.count();
+  double diff = diff_me.count() + diff_sh.count() + diff_had.count() +
+                diff_dec.count() + diff_an.count();
 
   std::cout << "" << std::endl;
   std::cout << "EVENT GENERATION COMPLETE" << std::endl;
@@ -159,6 +205,7 @@ void run_generator(const params& p) {
   std::cout << "ME Time: " << diff_me.count() << " s" << std::endl;
   std::cout << "Sh Time: " << diff_sh.count() << " s" << std::endl;
   std::cout << "Hd Time: " << diff_had.count() << " s" << std::endl;
+  std::cout << "Dc Time: " << diff_dec.count() << " s" << std::endl;
   std::cout << "An Time: " << diff_an.count() << " s" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "Total time: " << diff << " s" << std::endl;
@@ -168,15 +215,17 @@ void run_generator(const params& p) {
   // exist.
   std::ofstream outfile("cpu-time.dat", std::ios_base::app);
 
-  // write diff_sh.count() to the file.
+  // write the timings to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
-          << diff_had.count() << ", " << diff_an.count() << ", " << diff
-          << std::endl;
+          << diff_had.count() << ", " << diff_dec.count() << ", "
+          << diff_an.count() << ", " << diff << std::endl;
 
   // close the file.
   outfile.close();
 
-  std::cout << "Histograms written to " << p.storage_file << std::endl;
+  if (!p.skip_analysis) {
+    std::cout << "Histograms written to " << p.storage_file << std::endl;
+  }
   std::cout << "Timing data written to cpu-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
@@ -186,9 +235,7 @@ int main(int argc, char* argv[]) {
   /**
    * @brief Main function to run the CPU Shower
    *
-   * All Validation is done in the Python Interface, so here is just the
-   * main function to run the generator. We simply add one check for the
-   * number of events.
+   * All validation is done in the Python interface.
    */
 
   params run_params(argv);

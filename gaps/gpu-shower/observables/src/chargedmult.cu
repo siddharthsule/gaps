@@ -23,7 +23,9 @@ __global__ void calculate_chargedmult(const event* events, double* results,
 
   int nch = 0;
   for (int i = 2; i < ev.get_size(); ++i) {
-    if (particle_to_charge(ev.get_particle(i).get_pid()) != 0) ++nch;
+    if (particle_to_charge(ev.get_particle(i).get_pid()) != 0) {
+      ++nch;
+    }
   }
 
   results[20 * idx + result_slot] = static_cast<double>(nch);

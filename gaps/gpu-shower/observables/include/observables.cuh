@@ -9,6 +9,7 @@
 #include "chargedmult.cuh"
 #include "eventshapes.cuh"
 #include "jets.cuh"
+#include "log_scaled_mom.cuh"
 #include "mczinc.cuh"
 
 class analysis {
@@ -35,55 +36,56 @@ class analysis {
   // ---------------------------------------------------------------------------
   // constructor
 
-  // can't have strings as device variables, in future could use char*
+  // can't have strings as device variables, so histogram names are char arrays
   __host__ __device__ analysis(int process)
       : process(process), wtot(0.), ntot(0.) {
     // lep: e+ e- -> q qbar
     if (process == 1) {
-      hists[0] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y23\n");
-      hists[1] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y34\n");
-      hists[2] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y45\n");
-      hists[3] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y56\n");
-      hists[4] = histo1d(100, 0., 0.5, "/gaps_lep/tvalue\n");
-      hists[5] = histo1d(100, 0., 0.5, "/gaps_lep/tzoomd\n");
-      hists[6] = histo1d(100, 0., 1., "/gaps_lep/hjm\n");
-      hists[7] = histo1d(100, 0., 0.5, "/gaps_lep/ljm\n");
-      hists[8] = histo1d(100, 0., 0.5, "/gaps_lep/wjb\n");
-      hists[9] = histo1d(100, 0., 0.2, "/gaps_lep/njb\n");
-      hists[10] = histo1d(59, 0.5, 59.5, "/gaps_lep/nump\n");
-      hists[11] = histo1d(42, .58, 1., "/ALEPH_2004_S5765862/d54-x01-y01\n");
-      hists[12] = histo1d(39, 0., .39, "/ALEPH_2004_S5765862/d62-x01-y01\n");
-      hists[13] = histo1d(31, 0., .31, "/ALEPH_2004_S5765862/d78-x01-y01\n");
-      hists[14] = histo1d(38, 0., .38, "/ALEPH_2004_S5765862/d110-x01-y01\n");
-      hists[15] = histo1d(40, 0., .4, "/ALEPH_2004_S5765862/d70-x01-y01\n");
-      hists[16] = histo1d(49, 1., 10.8, "/ALEPH_2004_S5765862/d157-x01-y01\n");
-      hists[17] = histo1d(47, 2., 11.4, "/ALEPH_2004_S5765862/d165-x01-y01\n");
-      hists[18] = histo1d(44, 3.2, 12., "/ALEPH_2004_S5765862/d173-x01-y01\n");
-      hists[19] = histo1d(45, 4., 13., "/ALEPH_2004_S5765862/d180-x01-y01\n");
-      hists[20] = histo1d(28, 1, 57, "/L3_2004_I652683/d59-x01-y01\n");
+      hists[0] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y23");
+      hists[1] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y34");
+      hists[2] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y45");
+      hists[3] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y56");
+      hists[4] = histo1d(100, 0., 0.5, "/gaps_lep/tvalue");
+      hists[5] = histo1d(100, 0., 0.5, "/gaps_lep/tzoomd");
+      hists[6] = histo1d(100, 0., 1., "/gaps_lep/hjm");
+      hists[7] = histo1d(100, 0., 0.5, "/gaps_lep/ljm");
+      hists[8] = histo1d(100, 0., 0.5, "/gaps_lep/wjb");
+      hists[9] = histo1d(100, 0., 0.2, "/gaps_lep/njb");
+      hists[10] = histo1d(59, 0.5, 59.5, "/gaps_lep/nump");
+      hists[11] = histo1d(42, .58, 1., "/ALEPH_2004_S5765862/d54-x01-y01");
+      hists[12] = histo1d(39, 0., .39, "/ALEPH_2004_S5765862/d62-x01-y01");
+      hists[13] = histo1d(31, 0., .31, "/ALEPH_2004_S5765862/d78-x01-y01");
+      hists[14] = histo1d(38, 0., .38, "/ALEPH_2004_S5765862/d110-x01-y01");
+      hists[15] = histo1d(40, 0., .4, "/ALEPH_2004_S5765862/d70-x01-y01");
+      hists[16] = histo1d(49, 1., 10.8, "/ALEPH_2004_S5765862/d157-x01-y01");
+      hists[17] = histo1d(47, 2., 11.4, "/ALEPH_2004_S5765862/d165-x01-y01");
+      hists[18] = histo1d(44, 3.2, 12., "/ALEPH_2004_S5765862/d173-x01-y01");
+      hists[19] = histo1d(45, 4., 13., "/ALEPH_2004_S5765862/d180-x01-y01");
+      hists[20] = histo1d(28, 1, 57, "/L3_2004_I652683/d59-x01-y01");
+      hists[21] = histo1d(40, 0., 8., "/L3_2004_I652683/d65-x01-y01");
     }
 
     // lhc: p p -> e+ e-
     else if (process == 2) {
-      hists[0] = histo1d(100, mz_cut_a, mz_cut_b, "/gaps_lhc/zmass\n");
-      hists[1] = histo1d(100, 0., 100., "/gaps_lhc/zpt\n");
-      hists[2] = histo1d(100, 0.5, 1000., "/gaps_lhc/zptfull\n", true);
-      hists[3] = histo1d(100, -3.2, 3.2, "/gaps_lhc/zphi\n");
-      hists[4] = histo1d(100, -10., 10., "/gaps_lhc/zrap\n");
-      hists[5] = histo1d(100, 0., 100., "/gaps_lhc/leptpt\n");
-      hists[6] = histo1d(100, -10., 10., "/gaps_lhc/lepteta\n");
-      hists[7] = histo1d(100, 0., 100., "/gaps_lhc/j1pt\n");
-      hists[8] = histo1d(100, 0., 100., "/gaps_lhc/j2pt\n");
-      hists[9] = histo1d(100, 0., 100., "/gaps_lhc/j3pt\n");
-      hists[10] = histo1d(100, -10., 10., "/gaps_lhc/j1eta\n");
-      hists[11] = histo1d(100, -10., 10., "/gaps_lhc/j2eta\n");
-      hists[12] = histo1d(100, -10., 10., "/gaps_lhc/j3eta\n");
-      hists[13] = histo1d(10, -0.5, 9.5, "/gaps_lhc/njets\n");
-      hists[14] = histo1d(100, -10., 10., "/gaps_lhc/detazj1\n");
-      hists[15] = histo1d(100, 0., 10., "/gaps_lhc/dRzj1\n");
-      hists[16] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j2\n");
-      hists[17] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j3\n");
-      hists[18] = histo1d(100, 0., 10., "/gaps_lhc/dRj2j3\n");
+      hists[0] = histo1d(100, mz_cut_a, mz_cut_b, "/gaps_lhc/zmass");
+      hists[1] = histo1d(100, 0., 100., "/gaps_lhc/zpt");
+      hists[2] = histo1d(100, 0.5, 1000., "/gaps_lhc/zptfull", true);
+      hists[3] = histo1d(100, -3.2, 3.2, "/gaps_lhc/zphi");
+      hists[4] = histo1d(100, -10., 10., "/gaps_lhc/zrap");
+      hists[5] = histo1d(100, 0., 100., "/gaps_lhc/leptpt");
+      hists[6] = histo1d(100, -10., 10., "/gaps_lhc/lepteta");
+      hists[7] = histo1d(100, 0., 100., "/gaps_lhc/j1pt");
+      hists[8] = histo1d(100, 0., 100., "/gaps_lhc/j2pt");
+      hists[9] = histo1d(100, 0., 100., "/gaps_lhc/j3pt");
+      hists[10] = histo1d(100, -10., 10., "/gaps_lhc/j1eta");
+      hists[11] = histo1d(100, -10., 10., "/gaps_lhc/j2eta");
+      hists[12] = histo1d(100, -10., 10., "/gaps_lhc/j3eta");
+      hists[13] = histo1d(10, -0.5, 9.5, "/gaps_lhc/njets");
+      hists[14] = histo1d(100, -10., 10., "/gaps_lhc/detazj1");
+      hists[15] = histo1d(100, 0., 10., "/gaps_lhc/dRzj1");
+      hists[16] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j2");
+      hists[17] = histo1d(100, 0., 10., "/gaps_lhc/dRj1j3");
+      hists[18] = histo1d(100, 0., 10., "/gaps_lhc/dRj2j3");
     }
   }
 };
@@ -92,14 +94,15 @@ class analysis {
 // kernels and wrappers
 
 // validate events - colour and momentum conservation
-__global__ void validate_events(event* events, int* invalid, int n);
+__global__ void validate_events(event* events, int* invalid, int* overflowed,
+                                int n);
 
 // fill histograms simultaneously
 __global__ void fill_histos(analysis* an, const event* events, double* results,
                             int process, int n);
 
 // analysis wrapped in a function
-void do_analysis(thrust::device_vector<event>& d_events, const params& p,
+void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
                  int blocks);
 
 #endif  // observables_cuh_

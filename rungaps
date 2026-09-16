@@ -142,6 +142,10 @@ def parse_arguments():
                    metavar=('D', 'U', 'S', 'DIQUARK'),
                    help='relative weights for quark flavours in gluon splitting and cluster decay (default: 1.0 1.0 0.37 0.33)')
 
+    p.add_argument('-ctau_max', '--ctau_max',
+                   type=float, default=10.0,
+                   help='proper decay length at or above which a hadron is a final state particle, in mm (default: 10.0)')
+
     # Run options
     p.add_argument('-n', '--nevents',
                    type=int,
@@ -165,6 +169,10 @@ def parse_arguments():
                    default=128,
                    help='set the number of threads per block (default: 128)')
 
+    p.add_argument('--skip-analysis',
+                   action='store_true',
+                   help='skip event validation, observables and histogram output (default: False)')
+
     # Compilation
     p.add_argument('--no-compile',
                    action='store_true',
@@ -185,6 +193,12 @@ def parse_arguments():
 
     # Parse the arguments
     args = p.parse_args()
+
+    # Hadronisation is LEP only: the cluster model has no beam remnants
+    if args.hadronise and args.process == 'LHC':
+        p.error('-hadronise is available for LEP only. The cluster model has '
+                'no beam remnants, so the colour lines of an LHC event cannot '
+                'be closed into clusters.')
 
     # Resolve dependent defaults after parsing flags.
     if args.me2pdf is None:
@@ -294,7 +308,7 @@ def compile_and_run(args):
 
     if args.runtype == 'tune':
 
-        # Remove previous results and make folder
+        # Remove previous results
         if os.path.exists('gpu-time.dat'):
             os.remove('gpu-time.dat')
 

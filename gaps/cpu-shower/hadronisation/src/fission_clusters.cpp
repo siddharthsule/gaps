@@ -2,23 +2,21 @@
 
 void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
   /**
-   * @brief Fission clusters that are too heavy into two lighter clusters.
+   * @brief Fission clusters with M^clpow >= clmax^clpow + (m1 + m2)^clpow.
    *
-   * Threshold condition: M^clpow >= clmax^clpow + (m1 + m2)^clpow
-   *
-   * Follows the classic Herwig approach (arXiv:0803.0883): the cluster is
-   * split collinearly along the quark direction in the cluster rest frame.
-   * The loop repeats until all splittable clusters fall below the threshold.
+   * Split along the quark direction in the rest frame (arXiv:0803.0883).
    *
    * @param ev the event to process
+   * @param cl the cluster list to update
    */
+  // Check for overflow
+  if (ev.get_overflowed()) return;
 
   const int max_attempts = 1000;
 
   bool all_below = false;
   while (!all_below) {
-    // Start with all_below = true, set to false if encounter a cluster that
-    // needs fissioning. If all clusters are below threshold, the loop exits.
+    // Cleared by any cluster above threshold, forcing another pass
     all_below = true;
 
     // Snapshot cluster count so newly added clusters are checked next pass
@@ -54,8 +52,7 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
       int fl = 0;
       bool valid = false;
 
-      // Using the range formula, check if the cluster can atleast split with
-      // the addition of the lightest pair (d dbar)
+      // Skip clusters too light to split even with the lightest pair (d dbar)
       double mq_min = const_mass[0];  // mass of d quark
       if (M < m1 + m2 + 2.0 * mq_min) {
         continue;
@@ -63,20 +60,19 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
 
       for (int attempts = 0; attempts < max_attempts; ++attempts) {
         // Random quark flavor from pool
-        fl = select_qq_flavour(ev.gen_random());
+        fl = choose_with_weights(pwt, 3, ev.gen_random()) + 1;
         double mq = const_mass[fl - 1];
 
         // Kinematic condition: M > m1 + m2 + 2*mq
         if (M < m1 + m2 + 2.0 * mq) continue;
 
         // Sample M1 and M2
-        double range = M - m1 - m2 - 2.0 * mq;
-        double pp = psplit[tier];
-        M1 = (m1 + mq) + range * pow(ev.gen_random(), 1.0 / pp);
-        M2 = (m2 + mq) + range * pow(ev.gen_random(), 1.0 / pp);
+        double pspl = psplit[tier];
+        M1 = m1 + (M - m1 - mq) * pow(ev.gen_random(), 1.0 / pspl);
+        M2 = m2 + (M - m2 - mq) * pow(ev.gen_random(), 1.0 / pspl);
 
-        // Check if M1 + M2 ≤ M
-        if (M1 + M2 <= M) {
+        // Check if M1 + M2 <= M, and each cluster is above its own threshold
+        if ((M1 + M2 <= M) && (M1 >= m1 + mq) && (M2 >= m2 + mq)) {
           valid = true;
           break;
         }
@@ -84,6 +80,12 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
 
       if (!valid) {
         continue;
+      }
+
+      // Check if room to add fissioned particles
+      if (ev.get_size() + 2 > max_particles) {
+        ev.set_overflowed();
+        return;
       }
 
       double mq = const_mass[fl - 1];
@@ -102,15 +104,15 @@ void hadronisation::fission_clusters(event& ev, cluster_list& cl) const {
       // Two-body kinematics: parent cluster → C1 + C2
 
       vec4 c1_lab, c2_lab;
-      kallen(c_lab, M1, M2, c1_lab, c2_lab, axis);
+      one_to_two_decay(c_lab, M1, M2, c1_lab, c2_lab, axis);
 
       // C1 → original quark (q1) + new antiquark
       vec4 c_q1_lab_new, c_qbar_lab;
-      kallen(c1_lab, m1, mq, c_q1_lab_new, c_qbar_lab, axis);
+      one_to_two_decay(c1_lab, m1, mq, c_q1_lab_new, c_qbar_lab, axis);
 
       // C2 → new quark + original antiquark (q2)
       vec4 c_q_lab, c_qbar2_lab_new;
-      kallen(c2_lab, mq, m2, c_q_lab, c_qbar2_lab_new, axis);
+      one_to_two_decay(c2_lab, mq, m2, c_q_lab, c_qbar2_lab_new, axis);
 
       // -----------------------------------------------------------------------
       // Update particles and clusters

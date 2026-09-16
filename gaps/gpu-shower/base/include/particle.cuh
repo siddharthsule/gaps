@@ -1,7 +1,6 @@
 #ifndef particle_cuh_
 #define particle_cuh_
 
-// particles have vec4 momentum, vec4 #includes base
 #include "vec4.cuh"
 
 class particle {
@@ -14,7 +13,7 @@ class particle {
    * anti-colour, and the particle pseudorapidity.
    */
 
- public:
+ private:
   // ---------------------------------------------------------------------------
   // member variables
 
@@ -24,6 +23,7 @@ class particle {
   int acol;
   double eta;
 
+ public:
   // ---------------------------------------------------------------------------
   // constructor
 
@@ -32,7 +32,7 @@ class particle {
       : pid(pid), mom(momentum), col(col), acol(acol), eta(eta) {}
 
   // ---------------------------------------------------------------------------
-  // getters and setters
+  // getters
   __host__ __device__ int get_pid() const {
     /**
      * @brief get the particle id
@@ -149,7 +149,6 @@ class particle {
     return (pid == 21) || (1 <= abs(pid) && abs(pid) <= 5);
   }
 
-  // if two particles are in a colour connected dipole
   __device__ bool is_color_connected(particle p) {
     /**
      * @brief check if the particle is in a colour connected dipole with another

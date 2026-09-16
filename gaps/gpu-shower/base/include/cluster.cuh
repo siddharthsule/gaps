@@ -1,6 +1,7 @@
 #ifndef cluster_cuh_
 #define cluster_cuh_
 
+#include "decay_kinematics.cuh"
 #include "event.cuh"
 #include "vec4.cuh"
 
@@ -16,8 +17,10 @@ class cluster {
    *
    * The stored momentum is a snapshot taken at construction. If a constituent's
    * momentum later changes, rebuild the cluster (add_cluster / set_cluster) to
-   * refresh it. Including event.cuh is safe here — event.cuh does not include
-   * cluster.cuh, so there is no circular dependency.
+   * refresh it. override_mom runs the other way, moving the cluster and
+   * carrying its constituents along. Including event.cuh is safe here —
+   * event.cuh does not include cluster.cuh, so there is no circular
+   * dependency.
    */
 
  private:
@@ -71,7 +74,42 @@ class cluster {
 
     return mom;
   }
+
+  // ---------------------------------------------------------------------------
+  // setters
+
+  __device__ void override_mom(vec4 new_mom, event& ev) {
+    /**
+     * @brief move the cluster onto new_mom, carrying its constituents along
+     *
+     * They are re-thrown on-shell along their old rest-frame axis; below
+     * threshold they keep their momenta and decay_clusters makes one hadron.
+     *
+     * @param new_mom the new four-momentum
+     * @param ev the event holding the constituents
+     */
+
+    // Get old momenta and masses
+    vec4 q1 = ev.get_particle(i1).get_mom();
+    vec4 q2 = ev.get_particle(i2).get_mom();
+    double m1 = q1.m();
+    double m2 = q2.m();
+
+    // The axis is taken in the old rest frame, before mom is reassigned
+    if (new_mom.m() >= m1 + m2) {
+      vec4 p1, p2;
+      if (one_to_two_decay(new_mom, m1, m2, p1, p2, mom.boost(q1))) {
+        ev.set_particle_mom(i1, p1);
+        ev.set_particle_mom(i2, p2);
+      }
+    }
+
+    mom = new_mom;
+  }
 };
+
+// -----------------------------------------------------------------------------
+// Cluster List
 
 struct cluster_list {
   /**
@@ -79,8 +117,8 @@ struct cluster_list {
    * @brief A fixed-size array of clusters for a single event, held separately
    * from the event record.
    *
-   * Moving cluster storage out of event keeps cluster data out of the event
-   * record during the shower phase where it is not needed.
+   * Held apart from event, so the event record carries no cluster data through
+   * the shower.
    *
    * Each hadronisation kernel receives a parallel array of cluster_list objects
    * (one per event) indexed by the same thread ID used to index events.
@@ -145,6 +183,19 @@ struct cluster_list {
      */
 
     data[i] = cluster(i1, i2, ev);
+  }
+
+  __device__ void override_cluster_mom(int i, vec4 new_mom, event& ev) {
+    /**
+     * @brief move the cluster at index i onto a new four-momentum, carrying
+     * its constituents with it
+     *
+     * @param i the index of the cluster
+     * @param new_mom the new four-momentum
+     * @param ev the event holding the constituents
+     */
+
+    data[i].override_mom(new_mom, ev);
   }
 
   // Clear the list at the start of form_clusters.

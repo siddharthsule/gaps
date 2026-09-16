@@ -21,7 +21,7 @@ __device__ double yij(const vec4& p, const vec4& q, double ecm2) {
 
 __global__ void cluster_durham(const event* events, double* results, int n) {
   /**
-   * @brief Cluster the event int jets using the Durham algorithm for LEP
+   * @brief Cluster the event into jets using the Durham algorithm for LEP
    *
    * @param events The events array
    * @param results The array to store the results
@@ -37,16 +37,7 @@ __global__ void cluster_durham(const event* events, double* results, int n) {
   const event& ev = events[idx];
   // ---------------------------------------------
 
-  /**
-   * on the size of arrays during the clustering process:
-   *
-   * the number of particles in the event is not known at compile time, so we
-   * cannot use a fixed size array. we could use a dynamic array, but that
-   * would require a lot of memory management, and we would have to use
-   * malloc and free. instead, we will use a fixed size array, and we will
-   * assume that the number of particles will not exceed max_particles. this is
-   * not a great solution, but ok for now.
-   */
+  // Fixed-size arrays of max_particles: no dynamic allocation on the device
 
   // get the center of mass energy squared
   double ecm2 =
@@ -208,7 +199,7 @@ __device__ double dij(const vec4& p, const vec4& q) {
 
 __global__ void cluster_genkt(const event* events, double* results, int n) {
   /**
-   * @brief Cluster the event int jets using the Gen-kt algorithm for LHC
+   * @brief Cluster the event into jets using the Gen-kt algorithm for LHC
    *
    * @param events The events array
    * @param results The array to store the results

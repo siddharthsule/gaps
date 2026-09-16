@@ -7,13 +7,9 @@ __device__ void matrix::setup(int process, bool nlo, double root_s) {
   /**
    * @brief construct the matrix element generator
    *
-   * stores the run configuration used by all matrix element functions: which
-   * hard process to generate (lep or lhc), whether to run at lo or nlo, and
-   * the collider center-of-mass energy.
-   *
-   * @param process the hard process: 1 = lep (e+e- -> qqbar), 2 = lhc (pp -> Z)
-   * @param nlo whether to generate at nlo (true) or lo (false)
-   * @param root_s the collider center-of-mass energy
+   * @param process 1 = lep (e+e- -> qqbar), 2 = lhc (pp -> Z)
+   * @param nlo nlo (true) or lo (false)
+   * @param root_s collider center-of-mass energy
    */
   this->process = process;
   this->nlo = nlo;
@@ -24,13 +20,21 @@ __device__ void matrix::setup(int process, bool nlo, double root_s) {
 // kernel to set up the matrix object on the device
 __global__ void matrix_setup_kernel(matrix* matrix, int process, bool nlo,
                                     double root_s) {
+  /**
+   * @brief set up the matrix class on the device
+   *
+   * @param matrix the matrix class
+   * @param process 1 = lep (e+e- -> qqbar), 2 = lhc (pp -> Z)
+   * @param nlo nlo (true) or lo (false)
+   * @param root_s collider center-of-mass energy
+   */
   matrix->setup(process, nlo, root_s);
 }
 
 // -----------------------------------------------------------------------------
 // main
 
-// function to generate the lo matrix elements + momenta
+// wrapper for the matrix element
 void run_matrix(thrust::device_vector<event>& d_events, const params& p,
                 int blocks) {
   /**
@@ -56,6 +60,7 @@ void run_matrix(thrust::device_vector<event>& d_events, const params& p,
   as_setup_kernel<<<1, 1>>>(d_as, p.asmz);
   sync_gpu_and_check("as_setup_kernel");
 
+  // PDF: defaults to NNPDF40MC (lo or nlo), or user-specified
   // set up the pdf evaluator (for LHC processes)
   std::string pdf_name_corrected = p.me2pdf != "Null"
                                        ? p.me2pdf

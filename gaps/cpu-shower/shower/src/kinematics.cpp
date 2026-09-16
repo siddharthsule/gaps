@@ -126,7 +126,7 @@ void shower::make_kinematics(vec4* kinematics, const double z, const double y,
   vec4 kt = m.boost_back(kt_b2b);
 
   // --------------------------------------------------
-  // k_perp Calculation - Gram-Schmidt Process (OLD)
+  // k_perp Calculation - Gram-Schmidt Process (unused)
 
   // vec4 q = pijt + pkt;
   // double rkt = sqrt(calculate_t(z, y, q.m2(), sf));

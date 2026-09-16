@@ -48,6 +48,9 @@ This command should build the program and generate 10000 events on the GPU. More
 
 # Simulate N Events over multiple CPUs
 ./rungaps -p <LEP/LHC> [-nlo] -n nevents -r cpu-cluster -ncpu ncores
+
+# Run GPU and CPU back-to-back for comparison
+./rungaps -p <LEP/LHC> [-nlo] -n nevents -r compare
 ```
 
 The histograms are saved as Yoda files [[arxiv:2312.15070](https://arxiv.org/abs/2312.15070)]. To generate the plots, use Rivet [[2404.15984](https://arxiv.org/abs/2404.15984)] as follows:
@@ -83,12 +86,15 @@ You can adjust the following parameters:
 - `-clpow LIGHT CHARM BOTTOM`: Power in the cluster fission threshold condition
 - `-psplit LIGHT CHARM BOTTOM`: Power in the cluster mass sampling distribution
 - `-pwt D U S DIQUARK`: Relative flavour weights for quark selection in gluon splitting and cluster decay
+- `-ctau_max MM`: Proper decay length at or above which a hadron is a final state particle, in mm (default: 10.0)
 - `--no-compile`: Skip compilation and run with pre-built binaries
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)
 - `-nsys, -codecarbon, -gprof`: Profiling Tools
+- `--skip-analysis`: Skip event validation, observables and histogram output
+- `-r tune`: Sweep GPU kernel launch configurations (thread-block sizes, event counts) for tuning the number of threads per block
 
-The LHC LO process $pp \to Z/\gamma \to e^+e^-$ has been replaced with $pp \to Z$, as it is a better complementary to the NLO process. If needed, the old code can be uncommented in `lhc.cpp/.cu`.
+The LHC LO process is $pp \to Z$, as it is a better complement to the NLO process. Code for $pp \to Z/\gamma \to e^+e^-$ is kept commented out in `lhc.cpp/.cu`.
 
 To learn more about the code and how it all works, see the [documentation](doc/README.md).
 

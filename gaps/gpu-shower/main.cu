@@ -14,6 +14,9 @@
 // hadronisation
 #include "hadronisation.cuh"
 
+// decays
+#include "hadronic_decays.cuh"
+
 // jet and event shape analysis
 #include "observables.cuh"
 
@@ -138,16 +141,39 @@ void run_generator(const params& p) {
   }
 
   // ---------------------------------------------------------------------------
+  // hadronic decays
+
+  std::chrono::duration<double> diff_dec(0.0);
+
+  if (p.hadronise) {
+    std::cout << "Decaying Hadrons..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+
+    run_decays(dv_events, p, blocks);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_dec = end - start;
+  } else {
+    std::cout << "Skipping decay section (hadronise disabled)..." << std::endl;
+  }
+
+  // ---------------------------------------------------------------------------
   // analyze events
 
-  std::cout << "Analysing events..." << std::endl;
-  start = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff_an(0.0);
 
-  // analysis
-  do_analysis(dv_events, p, blocks);
+  if (!p.skip_analysis) {
+    std::cout << "Analysing events..." << std::endl;
+    start = std::chrono::high_resolution_clock::now();
 
-  end = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<double> diff_an = end - start;
+    do_analysis(dv_events, p, blocks);
+
+    end = std::chrono::high_resolution_clock::now();
+    diff_an = end - start;
+  } else {
+    std::cout << "Skipping analysis section (skip_analysis enabled)..."
+              << std::endl;
+  }
 
   // ---------------------------------------------------------------------------
   // Additionally Try Moving Events to Host
@@ -172,8 +198,8 @@ void run_generator(const params& p) {
   // ---------------------------------------------------------------------------
   // results
 
-  double diff =
-      diff_me.count() + diff_sh.count() + diff_had.count() + diff_an.count();
+  double diff = diff_me.count() + diff_sh.count() + diff_had.count() +
+                diff_dec.count() + diff_an.count();
 
   std::cout << "" << std::endl;
   std::cout << "EVENT GENERATION COMPLETE" << std::endl;
@@ -181,6 +207,7 @@ void run_generator(const params& p) {
   std::cout << "ME Time: " << diff_me.count() << " s" << std::endl;
   std::cout << "Sh Time: " << diff_sh.count() << " s" << std::endl;
   std::cout << "Hd Time: " << diff_had.count() << " s" << std::endl;
+  std::cout << "Dc Time: " << diff_dec.count() << " s" << std::endl;
   std::cout << "An Time: " << diff_an.count() << " s" << std::endl;
   std::cout << "" << std::endl;
   std::cout << "Total Time: " << diff << " s" << std::endl;
@@ -192,15 +219,17 @@ void run_generator(const params& p) {
   // exist.
   std::ofstream outfile("gpu-time.dat", std::ios_base::app);
 
-  // write diff_sh.count() to the file.
+  // write the timings to the file.
   outfile << diff_me.count() << ", " << diff_sh.count() << ", "
-          << diff_had.count() << ", " << diff_an.count() << ", " << diff
-          << std::endl;
+          << diff_had.count() << ", " << diff_dec.count() << ", "
+          << diff_an.count() << ", " << diff << std::endl;
 
   // close the file.
   outfile.close();
 
-  std::cout << "Histograms written to " << p.storage_file << std::endl;
+  if (!p.skip_analysis) {
+    std::cout << "Histograms written to " << p.storage_file << std::endl;
+  }
   std::cout << "Timing data written to gpu-time.dat" << std::endl;
   std::cout << "------------------------------------------------" << std::endl;
 }
@@ -210,14 +239,12 @@ int main(int argc, char* argv[]) {
   /**
    * @brief Main function to run the GPU Shower
    *
-   * All Validation is done in the Python Interface, so here is just the
-   * main function to run the generator. We simply add one check for the
-   * number of events.
+   * All validation is done in the Python interface.
    */
 
   params run_params(argv);
 
-  // if more than max_events, run in batches
+  // more than max_events must be split into batches by the Python interface
   if (run_params.n_events > max_events) {
     std::cout << "More Events than GPU Can Handle at Once!" << std::endl;
     return 1;

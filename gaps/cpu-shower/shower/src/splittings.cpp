@@ -19,48 +19,152 @@
 // Values --------------------------------
 
 double v_qqg_ff(double z, double y) {
+  /**
+   * @brief q -> qg splitting function value, FF dipole
+   *
+   * @param z Energy fraction retained by the emitter quark
+   * @param y CS FF dipole invariant
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (2. / (1. - z * (1. - y)) - (1. + z));
 }
 
 double v_ggg_ff(double z, double y) {
+  /**
+   * @brief g -> gg splitting function value, FF dipole
+   *
+   * @param z Energy fraction retained by the emitter gluon
+   * @param y CS FF dipole invariant
+   * @return Splitting function value at (z, y)
+   */
+
   return k_ca / 2. * (2. / (1. - z * (1. - y)) - 2. + z * (1. - z));
 }
 
 double v_gqq_ff(double z, double y) {
+  /**
+   * @brief g -> q qbar splitting function value, FF dipole
+   *
+   * @param z Energy fraction carried by one of the two daughter quarks
+   * @param y CS FF dipole invariant
+   * @return Splitting function value at (z, y)
+   */
+
   return k_tr / 2. * (1. - 2. * z * (1. - z));
 }
 
 // Estimates ------------------------------
 
-double e_qqg_ff(double z) { return k_cf * 2. / (1. - z); }
+double e_qqg_ff(double z) {
+  /**
+   * @brief Overestimate of the q -> qg (FF) splitting function value
+   *
+   * @param z Energy fraction retained by the emitter quark
+   * @return Overestimate value at z
+   */
 
-double e_ggg_ff(double z) { return k_ca / (1. - z); }
+  return k_cf * 2. / (1. - z);
+}
 
-double e_gqq_ff(double z) { return k_tr / 2.; }
+double e_ggg_ff(double z) {
+  /**
+   * @brief Overestimate of the g -> gg (FF) splitting function value
+   *
+   * @param z Energy fraction retained by the emitter gluon
+   * @return Overestimate value at z
+   */
+
+  return k_ca / (1. - z);
+}
+
+double e_gqq_ff(double z) {
+  /**
+   * @brief Overestimate of the g -> q qbar (FF) splitting function value
+   *
+   * @param z Unused; the overestimate is constant in z
+   * @return Overestimate value
+   */
+
+  return k_tr / 2.;
+}
 
 // Integrals ------------------------------
 
 double i_qqg_ff(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> qg (FF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qqg_ff over [zm, zp]
+   */
+
   return k_cf * 2. * log((1. - zm) / (1. - zp));
 }
 
 double i_ggg_ff(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> gg (FF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_ggg_ff over [zm, zp]
+   */
+
   return k_ca * log((1. - zm) / (1. - zp));
 }
 
-double i_gqq_ff(double zm, double zp) { return k_tr / 2. * (zp - zm); }
+double i_gqq_ff(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> q qbar (FF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqq_ff over [zm, zp]
+   */
+
+  return k_tr / 2. * (zp - zm);
+}
 
 // Generate Z ------------------------------
 
 double g_qqg_ff(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> qg (FF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_ggg_ff(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> gg (FF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_gqq_ff(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> q qbar (FF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm + (zp - zm) * rand;
 }
 
@@ -70,48 +174,152 @@ double g_gqq_ff(double zm, double zp, double rand) {
 // Values --------------------------------
 
 double v_qqg_fi(double z, double y) {
+  /**
+   * @brief q -> qg splitting function value, FI dipole
+   *
+   * @param z Energy fraction retained by the emitter quark
+   * @param y CS variable x (spectator momentum fraction)
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (2. / (1. - z + (1. - y)) - (1. + z));
 }
 
 double v_ggg_fi(double z, double y) {
+  /**
+   * @brief g -> gg splitting function value, FI dipole
+   *
+   * @param z Energy fraction retained by the emitter gluon
+   * @param y CS variable x (spectator momentum fraction)
+   * @return Splitting function value at (z, y)
+   */
+
   return k_ca / 2. * (2. / (1. - z + (1. - y)) - 2. + z * (1. - z));
 }
 
 double v_gqq_fi(double z, double y) {
+  /**
+   * @brief g -> q qbar splitting function value, FI dipole
+   *
+   * @param z Energy fraction carried by one of the two daughter quarks
+   * @param y CS variable x (spectator momentum fraction)
+   * @return Splitting function value at (z, y)
+   */
+
   return k_tr / 2. * (1. - 2. * z * (1. - z));
 }
 
 // Estimates ------------------------------
 
-double e_qqg_fi(double z) { return k_cf * 2. / (1. - z); }
+double e_qqg_fi(double z) {
+  /**
+   * @brief Overestimate of the q -> qg (FI) splitting function value
+   *
+   * @param z Energy fraction retained by the emitter quark
+   * @return Overestimate value at z
+   */
 
-double e_ggg_fi(double z) { return k_ca / (1. - z); }
+  return k_cf * 2. / (1. - z);
+}
 
-double e_gqq_fi(double z) { return k_tr / 2.; }
+double e_ggg_fi(double z) {
+  /**
+   * @brief Overestimate of the g -> gg (FI) splitting function value
+   *
+   * @param z Energy fraction retained by the emitter gluon
+   * @return Overestimate value at z
+   */
+
+  return k_ca / (1. - z);
+}
+
+double e_gqq_fi(double z) {
+  /**
+   * @brief Overestimate of the g -> q qbar (FI) splitting function value
+   *
+   * @param z Unused; the overestimate is constant in z
+   * @return Overestimate value
+   */
+
+  return k_tr / 2.;
+}
 
 // Integrals ------------------------------
 
 double i_qqg_fi(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> qg (FI) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qqg_fi over [zm, zp]
+   */
+
   return k_cf * 2. * log((1. - zm) / (1. - zp));
 }
 
 double i_ggg_fi(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> gg (FI) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_ggg_fi over [zm, zp]
+   */
+
   return k_ca * log((1. - zm) / (1. - zp));
 }
 
-double i_gqq_fi(double zm, double zp) { return k_tr / 2. * (zp - zm); }
+double i_gqq_fi(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> q qbar (FI) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqq_fi over [zm, zp]
+   */
+
+  return k_tr / 2. * (zp - zm);
+}
 
 // Generate Z ------------------------------
 
 double g_qqg_fi(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> qg (FI) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_ggg_fi(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> gg (FI) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_gqq_fi(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> q qbar (FI) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm + (zp - zm) * rand;
 }
 
@@ -121,74 +329,252 @@ double g_gqq_fi(double zm, double zp, double rand) {
 // Values --------------------------------
 
 double v_qqg_if(double z, double y) {
+  /**
+   * @brief q -> qg splitting function value, IF dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable u
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (2. / (1. - z + y) - (1. + z));
 }
 
 // q -> gq backwards is g -> q qbar!
-double v_qgq_if(double z, double y) { return k_tr * (1. - 2. * z * (1. - z)); }
+double v_qgq_if(double z, double y) {
+  /**
+   * @brief q -> gq splitting function value, IF dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable u
+   * @return Splitting function value at (z, y)
+   */
+
+  return k_tr * (1. - 2. * z * (1. - z));
+}
 
 double v_ggg_if(double z, double y) {
+  /**
+   * @brief g -> gg splitting function value, IF dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable u
+   * @return Splitting function value at (z, y)
+   */
+
   return k_ca * (1. / (1. - z + y) + (1. - z) / z - 1. + z * (1. - z));
 }
 
 // g -> q q backwards is q -> gq!
-// Also now g -> q qbar != g -> qbar q
+// Here g -> q qbar != g -> qbar q
 double v_gqqbar_if(double z, double y) {
+  /**
+   * @brief g -> q qbar splitting function value, IF dipole (quark continues)
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable u
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (z + 2. * (1. - z) / z);
 }
 
 double v_gqbarq_if(double z, double y) {
+  /**
+   * @brief g -> qbar q splitting function value, IF dipole (qbar continues)
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable u
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (z + 2. * (1. - z) / z);
 }
 
 // Estimates ------------------------------
 
-double e_qqg_if(double z) { return k_cf * 2. / (1. - z); }
+double e_qqg_if(double z) {
+  /**
+   * @brief Overestimate of the q -> qg (IF) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
 
-double e_qgq_if(double z) { return k_tr; }
+  return k_cf * 2. / (1. - z);
+}
 
-double e_ggg_if(double z) { return k_ca * (1 / (1. - z) + 1 / z); }
+double e_qgq_if(double z) {
+  /**
+   * @brief Overestimate of the q -> gq (IF) splitting function value
+   *
+   * @param z Unused; the overestimate is constant in z
+   * @return Overestimate value
+   */
 
-double e_gqqbar_if(double z) { return k_cf * 2. / z; }
+  return k_tr;
+}
 
-double e_gqbarq_if(double z) { return k_cf * 2. / z; }
+double e_ggg_if(double z) {
+  /**
+   * @brief Overestimate of the g -> gg (IF) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_ca * (1 / (1. - z) + 1 / z);
+}
+
+double e_gqqbar_if(double z) {
+  /**
+   * @brief Overestimate of the g -> q qbar (IF) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_cf * 2. / z;
+}
+
+double e_gqbarq_if(double z) {
+  /**
+   * @brief Overestimate of the g -> qbar q (IF) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_cf * 2. / z;
+}
 
 // Integrals ------------------------------
 
 double i_qqg_if(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> qg (IF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qqg_if over [zm, zp]
+   */
+
   return k_cf * 2. * log((1. - zm) / (1. - zp));
 }
 
-double i_qgq_if(double zm, double zp) { return k_tr * (zp - zm); }
+double i_qgq_if(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> gq (IF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qgq_if over [zm, zp]
+   */
+
+  return k_tr * (zp - zm);
+}
 
 double i_ggg_if(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> gg (IF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_ggg_if over [zm, zp]
+   */
+
   return k_ca * log((zp * (1. - zm)) / (zm * (1. - zp)));
 }
 
-double i_gqqbar_if(double zm, double zp) { return k_cf * 2 * log(zp / zm); }
+double i_gqqbar_if(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> q qbar (IF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqqbar_if over [zm, zp]
+   */
 
-double i_gqbarq_if(double zm, double zp) { return k_cf * 2 * log(zp / zm); }
+  return k_cf * 2 * log(zp / zm);
+}
+
+double i_gqbarq_if(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> qbar q (IF) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqbarq_if over [zm, zp]
+   */
+
+  return k_cf * 2 * log(zp / zm);
+}
 
 // Generate Z ------------------------------
 
 double g_qqg_if(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> qg (IF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_qgq_if(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> gq (IF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm + (zp - zm) * rand;
 }
 
 double g_ggg_if(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> gg (IF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   double m = pow(zm / (1.0 - zm), rand - 1) * pow(zp / (1.0 - zp), -rand);
   return 1. / (1. + m);
 }
 
 double g_gqqbar_if(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> q qbar (IF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm * pow(zp / zm, rand);
 }
 
 double g_gqbarq_if(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> qbar q (IF) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm * pow(zp / zm, rand);
 }
 
@@ -198,74 +584,252 @@ double g_gqbarq_if(double zm, double zp, double rand) {
 // Values --------------------------------
 
 double v_qqg_ii(double z, double y) {
+  /**
+   * @brief q -> qg splitting function value, II dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable v
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf * (2. / (1. - z) - (1. + z));
 }
 
 // q -> gq backwards is g -> q qbar!
-double v_qgq_ii(double z, double y) { return k_tr * (1. - 2. * z * (1. - z)); }
+double v_qgq_ii(double z, double y) {
+  /**
+   * @brief q -> gq splitting function value, II dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable v
+   * @return Splitting function value at (z, y)
+   */
+
+  return k_tr * (1. - 2. * z * (1. - z));
+}
 
 double v_ggg_ii(double z, double y) {
+  /**
+   * @brief g -> gg splitting function value, II dipole
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable v
+   * @return Splitting function value at (z, y)
+   */
+
   return k_ca * (1. / (1. - z) + (1. - z) / z - 1. + z * (1. - z));
 }
 
 // g -> q q backwards is q -> gq!
-// Also now g -> q qbar != g -> qbar q
+// Here g -> q qbar != g -> qbar q
 double v_gqqbar_ii(double z, double y) {
+  /**
+   * @brief g -> q qbar splitting function value, II dipole (quark continues)
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable v
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf / 2. * (z + 2. * (1. - z) / z);
 }
 
 double v_gqbarq_ii(double z, double y) {
+  /**
+   * @brief g -> qbar q splitting function value, II dipole (qbar continues)
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @param y CS variable v
+   * @return Splitting function value at (z, y)
+   */
+
   return k_cf / 2. * (z + 2. * (1. - z) / z);
 }
 
 // Estimates ------------------------------
 
-double e_qqg_ii(double z) { return k_cf * 2. / (1. - z); }
+double e_qqg_ii(double z) {
+  /**
+   * @brief Overestimate of the q -> qg (II) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
 
-double e_qgq_ii(double z) { return k_tr; }
+  return k_cf * 2. / (1. - z);
+}
 
-double e_ggg_ii(double z) { return k_ca * (1 / (1. - z) + 1 / z); }
+double e_qgq_ii(double z) {
+  /**
+   * @brief Overestimate of the q -> gq (II) splitting function value
+   *
+   * @param z Unused; the overestimate is constant in z
+   * @return Overestimate value
+   */
 
-double e_gqqbar_ii(double z) { return k_cf * 2. / z; }
+  return k_tr;
+}
 
-double e_gqbarq_ii(double z) { return k_cf * 2. / z; }
+double e_ggg_ii(double z) {
+  /**
+   * @brief Overestimate of the g -> gg (II) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_ca * (1 / (1. - z) + 1 / z);
+}
+
+double e_gqqbar_ii(double z) {
+  /**
+   * @brief Overestimate of the g -> q qbar (II) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_cf * 2. / z;
+}
+
+double e_gqbarq_ii(double z) {
+  /**
+   * @brief Overestimate of the g -> qbar q (II) splitting function value
+   *
+   * @param z CS variable x (emitter momentum fraction)
+   * @return Overestimate value at z
+   */
+
+  return k_cf * 2. / z;
+}
 
 // Integrals ------------------------------
 
 double i_qqg_ii(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> qg (II) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qqg_ii over [zm, zp]
+   */
+
   return k_cf * 2. * log((1. - zm) / (1. - zp));
 }
 
-double i_qgq_ii(double zm, double zp) { return k_tr * (zp - zm); }
+double i_qgq_ii(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the q -> gq (II) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_qgq_ii over [zm, zp]
+   */
+
+  return k_tr * (zp - zm);
+}
 
 double i_ggg_ii(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> gg (II) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_ggg_ii over [zm, zp]
+   */
+
   return k_ca * log((zp * (1. - zm)) / (zm * (1. - zp)));
 }
 
-double i_gqqbar_ii(double zm, double zp) { return k_cf * 2. * log(zp / zm); }
+double i_gqqbar_ii(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> q qbar (II) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqqbar_ii over [zm, zp]
+   */
 
-double i_gqbarq_ii(double zm, double zp) { return k_cf * 2. * log(zp / zm); }
+  return k_cf * 2. * log(zp / zm);
+}
+
+double i_gqbarq_ii(double zm, double zp) {
+  /**
+   * @brief Analytic integral of the g -> qbar q (II) overestimate over [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @return Integral of e_gqbarq_ii over [zm, zp]
+   */
+
+  return k_cf * 2. * log(zp / zm);
+}
 
 // Generate Z ------------------------------
 
 double g_qqg_ii(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> qg (II) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return 1. + (zp - 1.) * pow((1. - zm) / (1. - zp), rand);
 }
 
 double g_qgq_ii(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the q -> gq (II) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm + (zp - zm) * rand;
 }
 
 double g_ggg_ii(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> gg (II) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   double m = pow(zm / (1.0 - zm), rand - 1) * pow(zp / (1.0 - zp), -rand);
   return 1. / (1. + m);
 }
 
 double g_gqqbar_ii(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> q qbar (II) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm * pow(zp / zm, rand);
 }
 
 double g_gqbarq_ii(double zm, double zp, double rand) {
+  /**
+   * @brief Sample z from the g -> qbar q (II) overestimate on [zm, zp]
+   *
+   * @param zm Lower z boundary
+   * @param zp Upper z boundary
+   * @param rand Uniform random number in [0, 1]
+   * @return Sampled z value
+   */
+
   return zm * pow(zp / zm, rand);
 }
 
@@ -394,6 +958,7 @@ bool shower::is_ii(int sf) const {
 
   return sf / 1000 == 3;
 }
+
 bool shower::is_fsr(int sf) const {
   /**
    * @brief Check if the splitting function is an FSR splitting
@@ -835,15 +1400,7 @@ void shower::generate_possible_splittings(int ij_pid, int k_pid, bool ij_init,
   /**
    * @brief Generate all possible splittings for a given dipole
    *
-   * Why check so manY splitting functions, if 11 are enough?
-   *
-   * Need to determine the possible splittings rather than testing all
-   * possible splittings. This is a major bottleneck in the code.
-   *
-   * Given a combination of emitter and spectator (FF, FI, IF, II), if the
-   * emitter is a quark, there are only two possible splittings: q -> qg and
-   * q -> gq. If the emitter is a gluon, there are six possible splittings:
-   * g -> gg and ten g -> qq
+   * Listing only the allowed codes (at most 11) avoids testing every code.
    *
    * @param ij_pid: particle ID of the emitter
    * @param k_pid: particle ID of the spectator
@@ -931,14 +1488,9 @@ void shower::generate_possible_splittings(int ij_pid, int k_pid, bool ij_init,
 bool shower::validate_splitting(int ij, int sf, bool emt_init,
                                 bool spc_init) const {
   /**
-   * @brief Validate the Splitting in the Select Winner Step
+   * @brief Check if the splitting is allowed for the given dipole
    *
-   * Validate the Splitting in the Select Winner Step of Veto Algorithm
-   * i.e. "is this splitting allowed for the given dipole?"
-   *
-   * UPDATE: Not used anymore, as we now use the generate_possible_splittings
-   * to generate all possible splittings and then select the winner, and these
-   * generated splittings are all valid by definition!
+   * Unused: generate_possible_splittings only yields valid codes.
    *
    * @param ij: particle ID of the emitter
    * @param sf: splitting function code

@@ -30,9 +30,11 @@ def prepare_runparams(runtype, args):
         'clpow': ','.join(str(x) for x in args.clpow),
         'psplit': ','.join(str(x) for x in args.psplit),
         'pwt': ','.join(str(x) for x in args.pwt),
+        'ctau_max': str(args.ctau_max),
         'nevents': str(args.nevents),
         'id_offset': '0',
         'output_file': f'{runtype}.yoda',
+        'skip_analysis': '1' if args.skip_analysis else '0',
     }
 
     # Add GPU-specific parameters
@@ -48,7 +50,7 @@ def params_to_list(params, runtype):
     """
     @brief Convert parameter dictionary to ordered list for C++/CUDA program.
 
-    Order matches the expected argv order in main.cpp/main.cu
+    Order matches the argv order read in interface.h/interface.cuh
 
     @param params: Dictionary of parameters
     @param runtype: 'cpu' or 'gpu'
@@ -72,9 +74,11 @@ def params_to_list(params, runtype):
         params['clpow'],
         params['psplit'],
         params['pwt'],
+        params['ctau_max'],
         params['nevents'],
         params['id_offset'],
         params['output_file'],
+        params['skip_analysis'],
     ]
 
     # Add GPU-specific parameters
@@ -105,7 +109,7 @@ def run(runtype, args):
         command = profile + command
 
     # Run the command
-    subprocess.run(command)
+    subprocess.run(command, check=True)
 
 
 def run_cpu_cluster(ncpu, args):
@@ -241,5 +245,3 @@ def run_gpu_large_sample(args):
 
     print("")
     print("All GPU batches have completed.")
-
-

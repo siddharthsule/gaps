@@ -9,7 +9,7 @@
  *
  * To test that the two implementations are equivalent, we can use the random
  * number generator as the control variable. If the physics is correct, then
- * everthing should be the same.
+ * everything should be the same.
  */
 
 __device__ __inline__ double generate_lcg(unsigned long& current_seed) {

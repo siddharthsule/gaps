@@ -20,6 +20,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/matrix/include
     ${CMAKE_SOURCE_DIR}/shower/include
     ${CMAKE_SOURCE_DIR}/hadronisation/include
+    ${CMAKE_SOURCE_DIR}/decays/include
     ${CMAKE_SOURCE_DIR}/observables/include
 )
 
@@ -28,6 +29,7 @@ file(GLOB BASE_SOURCES "${CMAKE_SOURCE_DIR}/base/src/*.cu")
 file(GLOB MATRIX_SOURCES "${CMAKE_SOURCE_DIR}/matrix/src/*.cu")
 file(GLOB SHOWER_SOURCES "${CMAKE_SOURCE_DIR}/shower/src/*.cu")
 file(GLOB HADRONISATION_SOURCES "${CMAKE_SOURCE_DIR}/hadronisation/src/*.cu")
+file(GLOB DECAYS_SOURCES "${CMAKE_SOURCE_DIR}/decays/src/*.cu")
 file(GLOB OBSERVABLES_SOURCES "${CMAKE_SOURCE_DIR}/observables/src/*.cu")
 file(GLOB MAIN_SOURCES "${CMAKE_SOURCE_DIR}/main.cu")
 
@@ -37,6 +39,7 @@ set(SOURCES
     ${MATRIX_SOURCES}
     ${SHOWER_SOURCES}
     ${HADRONISATION_SOURCES}
+    ${DECAYS_SOURCES}
     ${OBSERVABLES_SOURCES}
     ${PDF_WRAPPER_SOURCES}
     ${MAIN_SOURCES}

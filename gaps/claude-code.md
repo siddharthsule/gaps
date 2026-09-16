@@ -13,7 +13,7 @@ All changes you make will be reviewed by the user before committing, so you can 
 
 ## Goal
 
-Audit the `matrix/`, `shower/`, `hadronisation/`, and `observables/` subdirectories in both trees to verify line-by-line consistency. This consistency is both a correctness requirement (identical numerical output) and a pedagogical one (new developers should be able to read the two side-by-side to learn GPU porting via CUDA).
+Audit the `matrix/`, `shower/`, `hadronisation/`, `observables/` and `decays/` subdirectories in both trees to verify line-by-line consistency. This consistency is both a correctness requirement (identical numerical output) and a pedagogical one (new developers should be able to read the two side-by-side to learn GPU porting via CUDA).
 
 Secondary goal: add docstrings to any function that lacks one, in either implementation.
 
@@ -174,17 +174,17 @@ In these cases, report with a note that it *might* be intentional. A false fix h
 
 ## Scope: additional files
 
-Beyond the two subdirectories, audit:
+Beyond the five subdirectories, audit:
 
 - `gaps/interface/` — check for internal consistency across all files, and verify that the interface is consistent with how `cpu-shower` and `gpu-shower` consume or expose it.
 - `rungaps` — check for consistency with `interface/` and the two shower implementations.
 - `README.md` — cross-reference the documented CLI arguments against those actually accepted by `rungaps` and `interface/`. Add any missing arguments. Do not remove or rewrite existing entries; only append, in the same style.
 
-Shared headers outside the two subdirectories are **out of scope** for physics-logic changes. Report shared-header issues rather than fixing them, noting the header path so the user can address them separately.
+Shared headers outside the five subdirectories are **out of scope** for physics-logic changes. Report shared-header issues rather than fixing them, noting the header path so the user can address them separately.
 
 ## Workflow
 
-Process in this order: `matrix/`, `shower/`, `hadronisation/`, `observables/`, then `interface/` + `rungaps` + `README.md` as a single final section. For each subdirectory:
+Process in this order: `matrix/`, `shower/`, `hadronisation/`, `observables/`, `decays/`, then `interface/` + `rungaps` + `README.md` as a single final section. For each subdirectory:
 
 1. **Orchestrator (you) builds the pairings.** List all files in both trees and build the CPU↔CUDA file pairings using the Pairing algorithm above (including any kernel + helper decompositions). This step stays on the orchestrator — do not delegate pairing, because it needs a whole-subdirectory view to spot variant-suffixed and unpaired files.
 2. **Dispatch one subagent per CPU↔GPU file pair** (see Parallel subagent execution below). Each subagent owns exactly one pair, performs the full function-level audit on it, applies its own trivial and confident complex fixes, and returns a structured report fragment.
@@ -319,7 +319,7 @@ This applies to **new** code only. It does **not** license renaming existing sym
 
 - All code is snake_case and well commented, per Code style for anything you write above. This never overrides the no-rename rule: existing symbols are reported, not renamed.
 - The only permitted modifications to `cpu-shower/` are: copying an existing GPU docstring over, or adding a new docstring to a previously undocumented function. No logic changes to CPU code, ever.
-- Do not modify any files outside the two audited subdirectories and the `interface/` + `rungaps` + `README.md` scope — report shared-header issues instead.
+- Do not modify any files outside the five audited subdirectories and the `interface/` + `rungaps` + `README.md` scope — report shared-header issues instead.
 - Do not change GPU code in ways that alter numerical behavior unless you can clearly justify the change with reference to the correct source, and be especially cautious around floating-point and CUDA intrinsics.
 - Preserve existing backend-specific adaptations in `gpu-shower`; don't fix them toward the CPU version unless CPU is clearly right.
 - Match the project's existing comment and docstring style rather than imposing a new one.

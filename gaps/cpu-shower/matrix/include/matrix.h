@@ -8,13 +8,7 @@
 class matrix {
   /**
    * @class matrix
-   * @brief matrix element generation
-   *
-   * this class is used to generate the leading order matrix element for the
-   * ee->qq, eq->eq and qq-> ee processes the me^2 is calculated simulataneously
-   * for all events, but with a few random numbers for flavour and direction.
-   * this is a massless shower, so the system generates theoretical identical
-   * events for all flavours.
+   * @brief matrix element generation for e+ e- -> q qbar and p p -> Z
    */
 
  private:
@@ -52,19 +46,11 @@ class matrix {
     /**
      * @brief construct the matrix element generator
      *
-     * stores the run configuration used by all matrix element functions: which
-     * hard process to generate (lep or lhc), whether to run at lo or nlo, and
-     * the collider center-of-mass energy. also builds the pdf and alpha_s(mz)
-     * objects needed for the lhc and nlo calculations respectively.
-     *
-     * @param process the hard process: 1 = lep (e+e- -> qqbar), 2 = lhc (pp ->
-     * Z)
-     * @param nlo whether to generate at nlo (true) or lo (false)
-     * @param root_s the collider center-of-mass energy
-     * @param asmz the strong coupling alpha_s(mz) used to set up the alpha_s
-     * runner
-     * @param pdf_name the pdf set to use, or "Null" for the default NNPDF40MC
-     * set
+     * @param process 1 = lep (e+e- -> qqbar), 2 = lhc (pp -> Z)
+     * @param nlo nlo (true) or lo (false)
+     * @param root_s collider center-of-mass energy
+     * @param asmz alpha_s(mz) for the alpha_s runner
+     * @param pdf_name pdf set, or "Null" for the default NNPDF40MC set
      */
   }
 

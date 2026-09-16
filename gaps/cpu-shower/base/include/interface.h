@@ -28,9 +28,11 @@ class params {
   double clpow[3];           // Power in threshold condition
   double psplit[3];          // Power in mass sampling distribution
   double pwt[4];             // Flavor weights (d, u, s, diquark)
+  double ctau_max;           // Final state proper decay length in mm
   int n_events;              // Number of events to generate
   int id_offset;             // Offset for event IDs
   std::string storage_file;  // Name of the file to store the histograms
+  bool skip_analysis;        // Whether to skip the analysis section
 
  private:
   static void parse_triple(const std::string& s, double out[3]) {
@@ -64,9 +66,11 @@ class params {
     parse_triple(argv[14], clpow);
     parse_triple(argv[15], psplit);
     parse_quadruple(argv[16], pwt);
-    n_events = atoi(argv[17]);
-    id_offset = atoi(argv[18]);
-    storage_file = argv[19];
+    ctau_max = atof(argv[17]);
+    n_events = atoi(argv[18]);
+    id_offset = atoi(argv[19]);
+    storage_file = argv[20];
+    skip_analysis = atoi(argv[21]);
   }
 };
 

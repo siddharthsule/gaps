@@ -7,7 +7,8 @@
 // -----------------------------------------------------------------------------
 // validate events before binning
 
-__global__ void validate_events(event* events, int* invalid, int n) {
+__global__ void validate_events(event* events, int* invalid, int* overflowed,
+                                int n) {
   /**
    * @brief Validate the event
    *
@@ -16,6 +17,7 @@ __global__ void validate_events(event* events, int* invalid, int n) {
    *
    * @param events The array of event objects
    * @param invalid The number of invalid events
+   * @param overflowed How many of those ran out of room in the record
    * @param n The number of events
    */
   // ---------------------------------------------
@@ -29,8 +31,8 @@ __global__ void validate_events(event* events, int* invalid, int n) {
   ev.set_validity(ev.validate());
 
   if (!ev.get_validity()) {
-    // printf("invalid event\n");
     atomicAdd(invalid, 1);
+    if (ev.get_overflowed()) atomicAdd(overflowed, 1);
   }
 }
 
@@ -72,7 +74,6 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());  // wjb
     an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());  // njb
     an->hists[10].fill(ev.get_size() - 2, ev.get_dxs());     // nump
-    an->hists[20].fill(results[20 * idx + 10], ev.get_dxs()); // L3 charged multiplicity
 
     // ALEPH
     an->hists[11].fill(results[20 * idx + 4], ev.get_dxs());
@@ -88,6 +89,10 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[17].fill(-log(pow(10., results[20 * idx + 1])), ev.get_dxs());
     an->hists[18].fill(-log(pow(10., results[20 * idx + 2])), ev.get_dxs());
     an->hists[19].fill(-log(pow(10., results[20 * idx + 3])), ev.get_dxs());
+
+    // L3
+    an->hists[20].fill(results[20 * idx + 10], ev.get_dxs());  // L3 nch
+    fill_log_scaled_mom(ev, an->hists[21], ev.get_dxs());      // L3 xi
   }
 
   // LHC: p p -> e+ e-
@@ -131,11 +136,11 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
 
 void write_xsec(double xsec, double xsec_err, const std::string& filename) {
   /**
-   * @brief Write the cross-section to a string in YODA format
+   * @brief Append the cross-section to a file in YODA format
    *
    * @param xsec The cross-section value
    * @param xsec_err The cross-section error
-   * @return std::string The formatted string
+   * @param filename The file to append to
    */
 
   std::stringstream ss;
@@ -167,8 +172,8 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
    * @brief Run the analysis
    *
    * @param dv_events device vector of event records
-   * @param filename output file name
-   * @param process LHC, DIS or LEP
+   * @param p run parameters (process, storage_file, threads, ...)
+   * @param blocks number of CUDA blocks
    */
 
   // device analysis object
@@ -184,28 +189,45 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
   int n_events = dv_events.size();
 
   // validate the events
+
+  // Events failing momentum or colour conservation, or overflowed
   int* d_invalid;
   cudaMalloc(&d_invalid, sizeof(int));
   cudaMemset(d_invalid, 0, sizeof(int));
 
-  validate_events<<<blocks, p.threads>>>(d_events, d_invalid, n_events);
+  // Of those, the ones that ran out of room in the record
+  int* d_overflowed;
+  cudaMalloc(&d_overflowed, sizeof(int));
+  cudaMemset(d_overflowed, 0, sizeof(int));
+
+  validate_events<<<blocks, p.threads>>>(d_events, d_invalid, d_overflowed,
+                                         n_events);
   sync_gpu_and_check("validate_events");
 
-  int h_invalid;
+  int h_invalid, h_overflowed;
   cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
+  cudaMemcpy(&h_overflowed, d_overflowed, sizeof(int),
+             cudaMemcpyDeviceToHost);
   cudaFree(d_invalid);
+  cudaFree(d_overflowed);
 
   if (h_invalid > 0) {
     std::cout << "" << std::endl;
     std::cout << "error: invalid events found" << std::endl;
     std::cout << "number of invalid events: " << h_invalid << "\n";
+
+    if (h_overflowed > 0) {
+      std::cout << h_overflowed << " of them ran out of room in the record"
+                << std::endl;
+      std::cout << "Consider increasing max_particles, default: "
+                << max_particles << std::endl;
+    }
   }
   std::cout << "" << std::endl;
 
   // do the analysis
 
-  // Make a vector to store the results of the analysis
-  // For now, we set a size 20 per event and use that to store the results
+  // Store the results of the analysis, 20 slots per event
   thrust::device_vector<double> dv_results(20 * n_events, -50.);
   double* d_results = thrust::raw_pointer_cast(dv_results.data());
 
@@ -255,9 +277,21 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
   // Write cross-section in YODA format
   write_xsec(xsec, xsec_err, p.storage_file);
 
+  // Scale and write histograms
   for (auto& hist : h_an->hists) {
     if (hist.name[0] != 'h') {
-      hist.scale_w(1. / h_an->wtot);
+      // Special Case for L3: d59 is quoted per bin, not per unit n_ch, so the
+      // bin width cancels the height = sumw / width that plotting applies
+      if (std::string(hist.name) == "/L3_2004_I652683/d59-x01-y01") {
+        hist.scale_w(hist.bins[0].width() / h_an->wtot);
+      }
+
+      // Other histos
+      else {
+        hist.scale_w(1. / h_an->wtot);
+      }
+
+      // Write to File
       write(hist, p.storage_file);
     }
   }

@@ -65,6 +65,7 @@ __global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
   // NOTE: a = after, b = before
 
   switch (splitting_case) {
+    // FI splittings: z and x (here, y)
     case 1:
       flavours_a[idx] = k_pid;
       flavours_b[idx] = k_pid;
@@ -73,6 +74,8 @@ __global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
       q2[idx] = t;
       break;
 
+    // IF splittings: x (here, z) and u (here, y)
+    // II splittings: x (here, z) and v (here, y)
     case 2:
     case 3:
 
@@ -83,7 +86,7 @@ __global__ void setup_pdfratio(shower* shower, event* events, int* active_idx,
           flavours_b[idx] = ij_pid;
           break;
 
-        // q -> gq
+        // q -> gq (back wards is g -> q qbar / qbar q)
         case 1:
           flavours_a[idx] = 21;
           flavours_b[idx] = ij_pid;
@@ -178,6 +181,11 @@ __device__ double shower::get_pdf_max(int sf, double ij_eta) const {
   if (get_splitting_case(sf) == 0) {
     return 1.;
   }
+
+  /**
+   * The values below are measured from the pdf ratio itself. For more
+   * information, refer to the paper or the docs.
+   */
 
   // IF/II q -> gq type splittings
   if ((get_splitting_case(sf) > 1) && (get_splitting_type(sf) == 1)) {

@@ -6,8 +6,10 @@ void run_hadronisation(thrust::device_vector<event>& dv_events,
   /**
    * @brief Run the hadronisation on the events
    *
-   * Runs the five hadronisation steps in sequence, one kernel per step.
+   * Runs the hadronisation steps in sequence, one kernel per step.
    * Each kernel processes all events in parallel (one thread per event).
+   *
+   * Every step skips an overflowed event; validate() drops it later.
    *
    * @param dv_events The device vector of showered events
    * @param dv_cls    Per-event cluster lists (allocated by the caller)
@@ -24,6 +26,11 @@ void run_hadronisation(thrust::device_vector<event>& dv_events,
   h_had = new hadronisation(p.clmax, p.clpow, p.psplit, p.pwt);
   cudaMalloc(&d_had, sizeof(hadronisation));
   cudaMemcpy(d_had, h_had, sizeof(hadronisation), cudaMemcpyHostToDevice);
+
+  // The hadrons a flavour pair forms are the same for every event, so the
+  // lists are built once here rather than rebuilt inside the decay
+  debug_msg("running @build_candidate_table");
+  build_candidate_table<<<1, 64>>>();
 
   // Cluster lists — one list per event
   cluster_list* d_cls = thrust::raw_pointer_cast(dv_cls.data());

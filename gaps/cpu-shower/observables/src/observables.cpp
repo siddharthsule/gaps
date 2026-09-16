@@ -14,24 +14,20 @@ void analysis::validate(event& ev) {
   ev.set_validity(ev.validate());
 
   if (!ev.get_validity()) {
-    printf("invalid event\n");
+    invalid++;
+    if (ev.get_overflowed()) overflowed++;
     return;
   }
 }
 
 void analysis::analyze(const event& ev) {
   /**
-   * @brief Analyze the event and store the results
-   *
-   * This function first validates the event, then calculates the observables
-   * for the corresponding process. The results are then stored in the
-   * histograms and written to a file.
+   * @brief Analyze the event and fill the histograms
    *
    * @param ev The event object
    */
 
-  // Make a vector to store the results of the analysis
-  // For now, we set a size 20 per event and use that to store the results
+  // Store the results of the analysis, 20 slots per event
   double results[20];
   for (int i = 0; i < 20; ++i) {
     results[i] = -50.0;
@@ -84,6 +80,7 @@ void analysis::analyze(const event& ev) {
     double cmul[1] = {-50.};
     calculate_chargedmult(ev, cmul);
     hists[20].fill(cmul[0], ev.get_dxs());
+    fill_log_scaled_mom(ev, hists[21], ev.get_dxs());
   }
 
   // LHC: p p -> e+ e-
@@ -128,11 +125,11 @@ void analysis::analyze(const event& ev) {
 
 void write_xsec(double xsec, double xsec_err, const std::string& filename) {
   /**
-   * @brief Write the cross-section to a string in YODA format
+   * @brief Append the cross-section to a file in YODA format
    *
    * @param xsec The cross-section value
    * @param xsec_err The cross-section error
-   * @return std::string The formatted string
+   * @param filename The file to append to
    */
 
   std::stringstream ss;
@@ -176,7 +173,18 @@ void analysis::finalize(const std::string& filename) {
   // Scale and write histograms
   for (auto& hist : hists) {
     if (hist.name != "hst") {
-      hist.scale_w(1. / wtot);
+      // Special Case for L3: d59 is quoted per bin, not per unit n_ch, so the
+      // bin width cancels the height = sumw / width that plotting applies
+      if (hist.name == "/L3_2004_I652683/d59-x01-y01") {
+        hist.scale_w(hist.bins[0].width() / wtot);
+      }
+
+      // Other histos
+      else {
+        hist.scale_w(1. / wtot);
+      }
+
+      // Write to File
       hist.write(filename);
     }
   }

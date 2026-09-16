@@ -48,8 +48,8 @@ const double k_nc = 3.;
 const int k_nf = 5;
 
 // Charm and Bottom quark masses
-const double mc = 1.60;
-const double mb = 5.00;
+const double mc = 1.30;
+const double mb = 4.75;
 const double mc2 = mc * mc;
 const double mb2 = mb * mb;
 

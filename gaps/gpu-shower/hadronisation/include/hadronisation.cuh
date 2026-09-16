@@ -1,19 +1,18 @@
 #ifndef hadronisation_cuh_
 #define hadronisation_cuh_
 
+// event and qcd includes all the necessary headers
 #include "cluster.cuh"
+#include "decay_kinematics.cuh"
 #include "event.cuh"
-#include "hadrons.cuh"
 #include "interface.cuh"
 #include "qcd.cuh"
+#include "utilities.cuh"
 
 class hadronisation {
   /**
    * @class hadronisation
-   * @brief the hadronisation class
-   *
-   * Here's to new beginnings! This class will be responsible for a simple
-   * cluster hadronisation model
+   * @brief the cluster hadronisation algorithm
    */
 
  public:
@@ -39,6 +38,10 @@ class hadronisation {
 
   hadronisation() = default;
 
+  /**
+   * @brief construct a hadronisation model with custom fission and flavour
+   * parameters, overriding the defaults.
+   */
   hadronisation(const double clmax_in[3], const double clpow_in[3],
                 const double psplit_in[3], const double pwt_in[4]) {
     // Set the fission parameters
@@ -56,22 +59,18 @@ class hadronisation {
   // -------------------------------------------------------------------------
   // Device helper functions (called from kernels)
 
-  // Kallen Function for Decay Kinematics (isotropic)
-  __device__ void kallen(vec4 p0, double m1, double m2, vec4& p1, vec4& p2,
-                         double rho_1, double rho_2) const;
-
-  // Kallen Function for Decay Kinematics (collinear along axis)
-  __device__ void kallen(vec4 p0, double m1, double m2, vec4& p1, vec4& p2,
-                         vec4 axis) const;
-
   // Constituent Reshuffling
   __device__ double f_reshuffling(double k, double* masses, double ecms,
                                   event& ev) const;
 
-  // Flavour Selection for Gluon Splitting, Fission and Decay
-  __device__ int select_qq_flavour(double rho, bool include_diquarks = false,
-                                   double rho_diq = 0.0) const;
 };
+
+// -----------------------------------------------------------------------------
+// The hadrons every flavour pair forms, built once on the device before any
+// step that reads them. The table itself is file local to decay_clusters.cu;
+// only the launch has to be visible here.
+
+__global__ void build_candidate_table();
 
 // -----------------------------------------------------------------------------
 // Kernels — one per hadronisation step, one thread per event
@@ -96,8 +95,8 @@ __global__ void decay_clusters(event* events, cluster_list* cls,
                                hadronisation* had, int n);
 
 // -----------------------------------------------------------------------------
-// Host wrapper — allocates the hadronisation object on device and launches all
-// five kernels in sequence
+// Host wrapper — allocates the hadronisation object on device and launches the
+// steps in sequence
 
 void run_hadronisation(thrust::device_vector<event>& dv_events,
                        thrust::device_vector<cluster_list>& dv_cls,

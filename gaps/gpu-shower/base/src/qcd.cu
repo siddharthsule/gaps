@@ -35,6 +35,20 @@ __device__ alpha_s::alpha_s(double asmz, int n_loops, bool use_cmw)
 
 // setup
 __device__ void alpha_s::setup(double asmz, int n_loops, bool use_cmw) {
+  /**
+   * @brief The constructor, for an alpha_s already in device memory
+   *
+   * @param asmz alpha_s at the Z mass (MS-bar)
+   * @param n_loops number of loops for the running coupling (0=fixed, 1=LO,
+   * 2=NLO)
+   * @param use_cmw apply the CMW scheme rescaling when evaluating alpha_s
+   *
+   * asmb and asmc are computed WITHOUT the CMW correction because CMW is
+   * an additive shift applied at evaluation time, not a change to the
+   * running itself. The threshold values must stay in the MS-bar scheme
+   * so that crossing mb or mc gives a continuous coupling.
+   */
+
   this->n_loops = n_loops;
   this->use_cmw = use_cmw;
   this->asmz = asmz;

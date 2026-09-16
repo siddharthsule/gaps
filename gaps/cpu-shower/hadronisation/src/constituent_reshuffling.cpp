@@ -3,14 +3,11 @@
 double hadronisation::f_reshuffling(double k, double* masses, double ecms,
                                     event& ev) const {
   /**
-   * @brief function to find the factor k such that the sum of the reshuffled
-   * momenta equals Ecms
-   *
-   * for i in range(2, len(event)):
-   *     total += m.sqrt(k**2 * event[i].mom.P2() + masses[i-2]**2)
+   * @brief Sum_i sqrt(k^2*|p|_i^2 + m_i^2) - Ecms, whose root is the factor k
    *
    * @param k the factor to find
    * @param masses the constituent masses of the particles
+   * @param ecms the centre-of-mass energy
    * @param ev the event to reshuffle
    * @return the difference between the sum of the reshuffled momenta and Ecms
    */
@@ -34,22 +31,13 @@ void hadronisation::constituent_reshuffling(event& ev) const {
   /**
    * @brief reshuffle the quarks and gluons to their constituent masses
    *
-   * Reshuffles the momenta of the massless particles from the parton shower to
-   * massive particles. Fortunately, the sum of the momenta of the massless
-   * particles is (Ecms, 0), and we don't need to worry about boosting. We
-   * mainly need to find a factor k such that:
-   *
-   * Sum( sqrt(k^2*|p|_i^2 + m_i^2) ) = Ecms
-   *
-   * where p_i is the momentum of the massless particle, |p|_i is the
-   * three momentum of the massless particle, and m_i is the constituent mass of
-   * the massive particle. then, we can set the momentum of the massive
-   * particle to:
-   *
-   * k0 = sqrt(k^2*|p|_i^2 + m_i^2), |k|_i = |p|_i * k
+   * The partons sum to (Ecms, 0), so no boost: bisect for k with
+   * Sum( sqrt(k^2*|p|_i^2 + m_i^2) ) = Ecms, then set |p|_i -> k*|p|_i.
    *
    * @param ev the event to reshuffle
    */
+  // Check for overflow
+  if (ev.get_overflowed()) return;
 
   // Calculate total momentum sum of all particles
   vec4 total_momentum;

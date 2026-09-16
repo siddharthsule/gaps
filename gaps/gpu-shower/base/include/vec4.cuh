@@ -1,7 +1,6 @@
 #ifndef vec4_cuh_
 #define vec4_cuh_
 
-// base class, with all the important definitions
 #include "base.cuh"
 
 /**
@@ -42,7 +41,6 @@ class vec4 {
   // ---------------------------------------------------------------------------
   // getters
 
-  // get method to obtain attribute value
   __host__ __device__ double operator[](int i) const {
     /**
      * @brief get the component of the four vector
@@ -65,7 +63,6 @@ class vec4 {
     }
   }
 
-  // print a column vector with the attributes
   friend std::ostream& operator<<(std::ostream& os, const vec4& v) {
     /**
      * @brief print the four vector
@@ -79,7 +76,6 @@ class vec4 {
     return os;
   }
 
-  // simple mathematics with four vectors
   __device__ vec4 operator+(const vec4& v) const {
     /**
      * @brief addition of two four vectors
@@ -112,6 +108,7 @@ class vec4 {
     return vec4(e - v.e, px - v.px, py - v.py, pz - v.pz);
   }
 
+  // multiplication (and dot product)
   __device__ double operator*(const vec4& v) const {
     /**
      * @brief dot product of two four vectors
@@ -134,7 +131,6 @@ class vec4 {
     return vec4(e * v, px * v, py * v, pz * v);
   }
 
-  // division
   __device__ vec4 operator/(double v) const {
     /**
      * @brief division of a four vector by a scalar
@@ -146,7 +142,6 @@ class vec4 {
     return vec4(e / v, px / v, py / v, pz / v);
   }
 
-  // magnitude of the vector
   __device__ double m2() const {
     /**
      * @brief get the square of the magnitude of the four vector
@@ -168,7 +163,6 @@ class vec4 {
     return m2_val > 0 ? sqrt(m2_val) : 0;
   }
 
-  // 3 momenta
   __device__ double p2() const {
     /**
      * @brief get the square of the three momentum
