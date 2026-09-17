@@ -35,6 +35,19 @@ class shower {
         n_emissions_max(n_emissions_max),
         pdf(pdf_name),
         as(asmz, (fixed_as ? 0 : 2), use_cmw) {
+    /**
+     * @brief construct the shower; the pdf and alpha_s objects live here
+     *
+     * @param t_c the shower cutoff scale
+     * @param asmz alpha_s at the Z mass (MS-bar)
+     * @param fixed_as use a fixed coupling (0 loops) instead of two loop
+     * running
+     * @param use_cmw apply the CMW scheme rescaling when evaluating alpha_s
+     * @param n_emissions_max the maximum number of emissions
+     * @param pdf_name the name of the LHAPDF set used for the pdf ratios
+     *
+     * alpha_s is largest at the cutoff, so as(t_c) is the veto overestimate.
+     */
     as_max = as(t_c);
   }
 

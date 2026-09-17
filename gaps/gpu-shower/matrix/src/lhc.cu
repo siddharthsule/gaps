@@ -66,6 +66,13 @@ __global__ void lhc_lo_no_pdf(event* events, int n, matrix* matrix, int* fl_a,
    * @brief generate the leading order interaction p p -> Z (on-shell Z)
    *
    * @param events The events array
+   * @param n number of events
+   * @param matrix matrix element generator
+   * @param fl_a flavour of the PDF-a parton (output, for external evaluation)
+   * @param fl_b flavour of the PDF-b parton (output, for external evaluation)
+   * @param xa momentum fraction of parton a (output)
+   * @param xb momentum fraction of parton b (output)
+   * @param q2 factorisation scale squared (output)
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -373,7 +380,7 @@ __global__ void h_event(event* events, int n, matrix* matrix, alpha_s* as,
   double dxs_nlo = 1.;
   // dxs_nlo = 2.;  // Two Possible Orientations // (Done from LO!)
   dxs_nlo *= log((matrix->root_s * matrix->root_s) / pz.m2());  // from LO
-  dxs_nlo *= (1. - x_min) * (1. - x);                           // x, v Sampling
+  dxs_nlo *= (1. - x_min) * (1. - x);                           // x,v Sampling
   dxs_nlo *= 1. / (16. * M_PI);
   dxs_nlo *= 1. / pz.m2();       // Leftover
   dxs_nlo /= pd[abs(fl) - 1];    // Flavour Selection

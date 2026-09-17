@@ -34,9 +34,6 @@ class matrix {
                         double root_s = 91.2);
 
   // ---------------------------------------------------------------------------
-  // get functions
-
-  // ---------------------------------------------------------------------------
   // member functions
 
   // Matrix Element for e+e- -> qqbar, used for all LO
@@ -48,6 +45,8 @@ class matrix {
 
 // -----------------------------------------------------------------------------
 // Wrapper declarations
+
+// function for unique process
 
 // LEP LO
 void lep_lo(thrust::device_vector<event>& d_events, matrix* matrix, int blocks,

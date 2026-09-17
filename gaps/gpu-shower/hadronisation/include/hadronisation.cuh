@@ -62,7 +62,6 @@ class hadronisation {
   // Constituent Reshuffling
   __device__ double f_reshuffling(double k, double* masses, double ecms,
                                   event& ev) const;
-
 };
 
 // -----------------------------------------------------------------------------

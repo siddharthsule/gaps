@@ -119,7 +119,7 @@ __global__ void select_winner_split_func(shower* shower, event* events,
    * @param events The events to run the shower on
    * @param active_idx The event index held by each active slot
    * @param n The number of active slots
-   * @param winner The array to store the winner variables
+   * @param winner The array to store the winner emission data
    */
   // ---------------------------------------------
   // Kernel Preamble
@@ -401,7 +401,7 @@ __global__ void veto_alg(shower* shower, alpha_s* as, event* events,
     z0 = z;
   }
 
-  // Check Phase Space is Valid
+  // Check for Phase Space
   if (!(shower->check_phase_space(z, y, sf))) {
     return;
   }
