@@ -62,18 +62,19 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
 
   // LEP: e+ e- -> q qbar
   if (process == 1) {
+    // fill histograms
     // I know forloop can be done here, but just to note what is happening
-    an->hists[0].fill(results[20 * idx + 0], ev.get_dxs());  // log10y23
-    an->hists[1].fill(results[20 * idx + 1], ev.get_dxs());  // log10y34
-    an->hists[2].fill(results[20 * idx + 2], ev.get_dxs());  // log10y45
-    an->hists[3].fill(results[20 * idx + 3], ev.get_dxs());  // log10y56
+    an->hists[0].fill(results[20 * idx + 0], ev.get_dxs());       // log10y23
+    an->hists[1].fill(results[20 * idx + 1], ev.get_dxs());       // log10y34
+    an->hists[2].fill(results[20 * idx + 2], ev.get_dxs());       // log10y45
+    an->hists[3].fill(results[20 * idx + 3], ev.get_dxs());       // log10y56
     an->hists[4].fill(1. - results[20 * idx + 4], ev.get_dxs());  // tvalue
     an->hists[5].fill(1. - results[20 * idx + 5], ev.get_dxs());  // tzoomd
-    an->hists[6].fill(results[20 * idx + 6], ev.get_dxs());  // hjm
-    an->hists[7].fill(results[20 * idx + 7], ev.get_dxs());  // ljm
-    an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());  // wjb
-    an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());  // njb
-    an->hists[10].fill(ev.get_size() - 2, ev.get_dxs());     // nump
+    an->hists[6].fill(results[20 * idx + 6], ev.get_dxs());       // hjm
+    an->hists[7].fill(results[20 * idx + 7], ev.get_dxs());       // ljm
+    an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());       // wjb
+    an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());       // njb
+    an->hists[10].fill(ev.get_size() - 2, ev.get_dxs());          // nump
 
     // ALEPH
     an->hists[11].fill(results[20 * idx + 4], ev.get_dxs());
@@ -97,6 +98,7 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
 
   // LHC: p p -> e+ e-
   else if (process == 2) {
+    // fill histograms
     an->hists[0].fill(results[20 * idx + 0], ev.get_dxs());      // zmass
     an->hists[1].fill(results[20 * idx + 1], ev.get_dxs());      // zpt
     an->hists[2].fill(results[20 * idx + 1], ev.get_dxs());      // zptfull
@@ -206,8 +208,7 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
 
   int h_invalid, h_overflowed;
   cudaMemcpy(&h_invalid, d_invalid, sizeof(int), cudaMemcpyDeviceToHost);
-  cudaMemcpy(&h_overflowed, d_overflowed, sizeof(int),
-             cudaMemcpyDeviceToHost);
+  cudaMemcpy(&h_overflowed, d_overflowed, sizeof(int), cudaMemcpyDeviceToHost);
   cudaFree(d_invalid);
   cudaFree(d_overflowed);
 
@@ -242,7 +243,7 @@ void do_analysis(thrust::device_vector<event>& dv_events, const params& p,
 
     // L3
     calculate_chargedmult<<<blocks, p.threads>>>(d_events, d_results, 10,
-                                              n_events);
+                                                 n_events);
     sync_gpu_and_check("calculate_chargedmult");
   }
 

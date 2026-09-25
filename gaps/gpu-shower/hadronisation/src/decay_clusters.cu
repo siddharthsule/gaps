@@ -22,8 +22,8 @@
 // identical flavours at nJ = 1 that Pauli forbids.
 
 __device__ const int n_light_diquarks = 9;
-__device__ const int light_diquarks[n_light_diquarks] = {1103, 2101, 2103, 2203,
-                                              3101, 3103, 3201, 3203, 3303};
+__device__ const int light_diquarks[n_light_diquarks] = {
+    1103, 2101, 2103, 2203, 3101, 3103, 3201, 3203, 3303};
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -134,7 +134,7 @@ const int max_candidates = 24;
 // Writing out one hadron of a list.
 
 __device__ void add_candidate(int pid1, int pid2, int had_pid, candidate* out,
-                          int& n) {
+                              int& n) {
   /**
    * @brief Write out a hadron, where the table holds it and it carries weight.
    *
@@ -714,7 +714,6 @@ __global__ void decay_clusters(event* events, cluster_list* cls,
 
   // loop over all clusters
   int n_cl = cl.get_size();
-
   for (int i = 0; i < n_cl; i++) {
     cluster c = cl.get_cluster(i);
 
@@ -723,7 +722,6 @@ __global__ void decay_clusters(event* events, cluster_list* cls,
     int i2 = c.get_i2();
     int p1_pid = ev.get_particle(i1).get_pid();  // quark  (positive)
     int p2_pid = ev.get_particle(i2).get_pid();  // antiquark (negative)
-
     vec4 cl_mom = c.get_mom();
     double M = cl_mom.m();
 
@@ -767,7 +765,6 @@ __global__ void decay_clusters(event* events, cluster_list* cls,
         double rho_1 = ev.gen_random();
         double rho_2 = ev.gen_random();
         one_to_two_decay(cl_mom, h1_mass, h2_mass, h1, h2, rho_1, rho_2);
-
         ev.set_particle(i1, particle(h1_pid, h1, 0, 0));
         ev.set_particle(i2, particle(h2_pid, h2, 0, 0));
 

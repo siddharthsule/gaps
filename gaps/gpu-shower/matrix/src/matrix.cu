@@ -54,6 +54,7 @@ void run_matrix(thrust::device_vector<event>& d_events, const params& p,
   matrix_setup_kernel<<<1, 1>>>(d_matrix, p.process, p.nlo, p.root_s);
   sync_gpu_and_check("matrix_setup_kernel");
 
+  // Alpha S Calculator for CS NLO
   // set up the device alpha_s calculator
   alpha_s* d_as;
   cudaMalloc(&d_as, sizeof(alpha_s));
