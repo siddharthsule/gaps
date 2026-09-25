@@ -247,15 +247,6 @@ __global__ void select_winner_split_func(shower* shower, event* events,
           }
         }
 
-        // If g->bb or g->cc, check if tt is above the quark mass threshold, so
-        // the hadronisation reshuffler need not push c/b onto their masses
-        if (shower->is_g2qqbar(sf) || shower->is_g2qbarq(sf)) {
-          if ((shower->get_splitting_flavour(sf) == 5 && tt < mb2) ||
-              (shower->get_splitting_flavour(sf) == 4 && tt < mc2)) {
-            continue;
-          }
-        }
-
         // For FI, IF and II, skip events where q2 (=tt) is less than pdf limit
         if (!shower->is_ff(sf) && tt < (pdf_q_min * pdf_q_min)) {
           continue;
