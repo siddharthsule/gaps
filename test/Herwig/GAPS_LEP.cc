@@ -47,6 +47,7 @@ class GAPS_LEP : public Analysis {
   Histo1DPtr _h_light_jet_mass;
   Histo1DPtr _h_wide_jet_broadening;
   Histo1DPtr _h_narrow_jet_broadening;
+  Histo1DPtr _h_total_jet_broadening;
   Histo1DPtr _h_nump;  // Multiplicity
   // Histo2DPtr _h2_dalitz;  // Dalitz Plot for single emission cases
 
@@ -88,6 +89,7 @@ class GAPS_LEP : public Analysis {
     book(_h_light_jet_mass, "ljm", 100, 0., .5);
     book(_h_wide_jet_broadening, "wjb", 100, 0., .5);
     book(_h_narrow_jet_broadening, "njb", 100, 0., .2);
+    book(_h_total_jet_broadening, "tjb", 100, 0., .5);
     book(_h_nump, "nump", 59, 0.5, 59.5);
     // book(_h2_dalitz, "dalitz", 100, 0., 1., 100, 0., 1.);
   }
@@ -113,43 +115,22 @@ class GAPS_LEP : public Analysis {
       }
     }
 
-    // Thrust
+    // Thrust, for every event (T = 1 for two particles)
     const Thrust thrust = apply<Thrust>(e, "Thrust");
     const Vector3 n = thrust.thrustAxis();
 
     double thr = 1.0 - thrust.thrust();
-    if (partons.size() > 2) {
-      _h_thrust->fill(thr);
-      _h_thrust_zoom->fill(thr);
-    } else {
-      _h_thrust->fill(-50.);
-      _h_thrust_zoom->fill(-50.);
-    }
+    _h_thrust->fill(thr);
+    _h_thrust_zoom->fill(thr);
 
-    // Jet Masses and Broadenings
+    // Jet Masses and Broadenings, for every event as in ALEPH_2004; a lone
+    // massless particle can give a rounding-negative mass2, so clamp at zero
     const Hemispheres& hemi = apply<Hemispheres>(e, "Hemispheres");
-    if (partons.size() > 2) {
-      _h_heavy_jet_mass->fill(sqrt(hemi.scaledM2high()));
-      _h_wide_jet_broadening->fill(hemi.Bmax());
-
-      if (partons.size() > 3) {
-        double ljm = sqrt(hemi.scaledM2low());
-        double njb = hemi.Bmin();
-        if (ljm < 1e-6) ljm = -50.;
-        if (njb < 1e-6) njb = -50.;
-        _h_light_jet_mass->fill(ljm);
-        _h_narrow_jet_broadening->fill(njb);
-
-      } else {
-        _h_light_jet_mass->fill(-50.);
-        _h_narrow_jet_broadening->fill(-50.);
-      }
-    } else {
-      _h_heavy_jet_mass->fill(-50.);
-      _h_wide_jet_broadening->fill(-50.);
-      _h_light_jet_mass->fill(-50.);
-      _h_narrow_jet_broadening->fill(-50.);
-    }
+    _h_heavy_jet_mass->fill(sqrt(max(hemi.scaledM2high(), 0.)));
+    _h_light_jet_mass->fill(sqrt(max(hemi.scaledM2low(), 0.)));
+    _h_wide_jet_broadening->fill(hemi.Bmax());
+    _h_narrow_jet_broadening->fill(hemi.Bmin());
+    _h_total_jet_broadening->fill(hemi.Bsum());
 
     // // Dalitz Plot
     // if (partons.size() == 3) {
@@ -200,6 +181,7 @@ class GAPS_LEP : public Analysis {
     normalize(_h_light_jet_mass);
     normalize(_h_wide_jet_broadening);
     normalize(_h_narrow_jet_broadening);
+    normalize(_h_total_jet_broadening);
     normalize(_h_nump);
     // normalize(_h2_dalitz);
   }

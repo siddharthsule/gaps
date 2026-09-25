@@ -12,7 +12,7 @@ export RIVET_ANALYSIS_PATH=$PWD
 
 # Array of configurations
 if [ "$option" == "all" ]; then
-  configs=("LEP" "LHC" "LEPNLO" "LHCNLO" "LEPNLOHAD")
+  configs=("LEP" "LHC" "LEPNLO" "LHCNLO" "LEPNLOHAD" "LEPNLOHADNODEC")
 else
   configs=("$option")
 fi

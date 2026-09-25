@@ -44,13 +44,15 @@ void analysis::analyze(const event& ev) {
     double log10y56 = jet_rates[3];
 
     // event shapes
-    double ev_shapes[5] = {-50., -50., -50., -50., -50.};
+    double ev_shapes[7] = {-50., -50., -50., -50., -50., -50., -50.};
     calculate_ev_shapes(ev, ev_shapes);
     double thrust = ev_shapes[0];
     double hjm = ev_shapes[1];
     double ljm = ev_shapes[2];
     double wjb = ev_shapes[3];
     double njb = ev_shapes[4];
+    double tjb = ev_shapes[5];
+    double jmd = ev_shapes[6];
 
     // fill histograms
     hists[0].fill(log10y23, ev.get_dxs());
@@ -64,13 +66,14 @@ void analysis::analyze(const event& ev) {
     hists[8].fill(wjb, ev.get_dxs());
     hists[9].fill(njb, ev.get_dxs());
     hists[10].fill(ev.get_size() - 2, ev.get_dxs());
+    hists[22].fill(tjb, ev.get_dxs());
 
     // ALEPH
     hists[11].fill(thrust, ev.get_dxs());
     hists[12].fill(sqr(hjm), ev.get_dxs());
     hists[13].fill(wjb, ev.get_dxs());
-    hists[14].fill(sqr(hjm) - sqr(ljm), ev.get_dxs());
-    hists[15].fill(wjb + njb, ev.get_dxs());
+    hists[14].fill(jmd, ev.get_dxs());
+    hists[15].fill(tjb, ev.get_dxs());
     hists[16].fill(-log(pow(10, log10y23)), ev.get_dxs());
     hists[17].fill(-log(pow(10, log10y34)), ev.get_dxs());
     hists[18].fill(-log(pow(10, log10y45)), ev.get_dxs());

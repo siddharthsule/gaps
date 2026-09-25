@@ -40,8 +40,8 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   const event& ev = events[idx];
   // ---------------------------------------------
 
-  // Event Shapes Limited to More than 2 particles
-  if (ev.get_size() - 2 < 3) {
+  // Shapes need two particles
+  if (ev.get_size() - 2 < 2) {
     return;
   }
 
@@ -113,36 +113,32 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   // Jet Mass and Broadening Calculation
 
   vec4 p_with, p_against;
-  int n_with = 0, n_against = 0;
   double e_vis = 0., broad_with = 0., broad_against = 0.,
          broad_denominator = 0.;
 
   for (int i = 0; i < ev.get_size() - 2; ++i) {
     double mo_para = moms[i].dot(t_axis);
     double mo_perp = (moms[i] - (t_axis * mo_para)).p();
-    double enrg = moms[i].p();
+    double enrg = moms[i][0];
+    double pmag = moms[i].p();
 
     e_vis += enrg;
-    broad_denominator += 2. * enrg;
+    broad_denominator += 2. * pmag;
 
-    // P-scheme: replace energy component with 3-momentum magnitude
-    vec4 p4 = vec4(enrg, moms[i][1], moms[i][2], moms[i][3]);
+    // Hemisphere masses from the full four-momenta, hadron masses included
+    vec4 p4 = moms[i];
 
     if (mo_para > 0.) {
       p_with = p_with + p4;
       broad_with += mo_perp;
-      n_with++;
     } else if (mo_para < 0.) {
       p_against = p_against + p4;
       broad_against += mo_perp;
-      n_against++;
     } else {
       p_with = p_with + (p4 * 0.5);
       p_against = p_against + (p4 * 0.5);
       broad_with += 0.5 * mo_perp;
       broad_against += 0.5 * mo_perp;
-      n_with++;
-      n_against++;
     }
   }
 
@@ -163,11 +159,15 @@ __global__ void calculate_ev_shapes(const event* events, double* results,
   double b_w = fmax(broad_with, broad_against);
   double b_n = fmin(broad_with, broad_against);
 
-  // store the results (tvalue, hjm, ljm, wjb, njb)
+  // store the results (thrust, hjm, ljm, wjb, njb, tjb, rho_h - rho_l) for
+  // every event, as Rivet's Thrust and Hemispheres give them
   results[20 * idx + 4] = thr;
   results[20 * idx + 5] = thr;
   results[20 * idx + 6] = m_h;
-  results[20 * idx + 7] = (n_with == 1 || n_against == 1) ? -50. : m_l;
+  results[20 * idx + 7] = m_l;
   results[20 * idx + 8] = b_w;
-  results[20 * idx + 9] = (n_with == 1 || n_against == 1) ? -50. : b_n;
+  results[20 * idx + 9] = b_n;
+  results[20 * idx + 11] = b_w + b_n;
+  results[20 * idx + 12] =
+      fmax(mass2_with, mass2_against) - fmin(mass2_with, mass2_against);
 }

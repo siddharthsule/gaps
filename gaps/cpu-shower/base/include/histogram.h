@@ -200,8 +200,9 @@ class histo1d {
       a = bins[c].xmin;
     }
 
-    if (x > bins[r].xmin) {
-      if (x > bins[r].xmax) {
+    // bins are [xmin, xmax), as in YODA
+    if (x >= bins[r].xmin) {
+      if (x >= bins[r].xmax) {
         oflow.fill(x, w);
       } else {
         bins[r].fill(x, w);

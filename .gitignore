@@ -87,5 +87,6 @@ test/Herwig/hwbuild/
 !test/Herwig/herwig-lhc.yoda
 !test/Herwig/herwig-lhcnlo.yoda
 !test/Herwig/herwig-lepnlohad.yoda
+!test/Herwig/herwig-lepnlohadnodec.yoda
 
 !doc/results-in-paper-2/*

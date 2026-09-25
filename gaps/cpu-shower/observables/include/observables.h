@@ -66,6 +66,7 @@ class analysis {
       hists[19] = histo1d(45, 4., 13., "/ALEPH_2004_S5765862/d180-x01-y01");
       hists[20] = histo1d(28, 1, 57, "/L3_2004_I652683/d59-x01-y01");
       hists[21] = histo1d(40, 0., 8., "/L3_2004_I652683/d65-x01-y01");
+      hists[22] = histo1d(100, 0., 0.5, "/gaps_lep/tjb");
     }
 
     // lhc: p p -> e+ e-

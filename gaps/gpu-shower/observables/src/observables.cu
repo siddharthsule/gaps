@@ -75,17 +75,15 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());       // wjb
     an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());       // njb
     an->hists[10].fill(ev.get_size() - 2, ev.get_dxs());          // nump
+    an->hists[22].fill(results[20 * idx + 11], ev.get_dxs());     // tjb
 
     // ALEPH
     an->hists[11].fill(results[20 * idx + 4], ev.get_dxs());
     an->hists[12].fill(results[20 * idx + 6] * results[20 * idx + 6],
                        ev.get_dxs());
     an->hists[13].fill(results[20 * idx + 8], ev.get_dxs());
-    an->hists[14].fill(results[20 * idx + 6] * results[20 * idx + 6] -
-                           results[20 * idx + 7] * results[20 * idx + 7],
-                       ev.get_dxs());
-    an->hists[15].fill(results[20 * idx + 8] + results[20 * idx + 9],
-                       ev.get_dxs());
+    an->hists[14].fill(results[20 * idx + 12], ev.get_dxs());
+    an->hists[15].fill(results[20 * idx + 11], ev.get_dxs());
     an->hists[16].fill(-log(pow(10., results[20 * idx + 0])), ev.get_dxs());
     an->hists[17].fill(-log(pow(10., results[20 * idx + 1])), ev.get_dxs());
     an->hists[18].fill(-log(pow(10., results[20 * idx + 2])), ev.get_dxs());

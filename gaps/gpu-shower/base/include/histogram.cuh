@@ -189,8 +189,9 @@ class histo1d {
     }
 
     // atomic binning! each event is binned simultaneously here
-    if (x > bins[r].xmin) {
-      if (x > bins[r].xmax) {
+    // bins are [xmin, xmax), as in YODA
+    if (x >= bins[r].xmin) {
+      if (x >= bins[r].xmax) {
         oflow.atomic_fill(x, w);
       } else {
         bins[r].atomic_fill(x, w);
