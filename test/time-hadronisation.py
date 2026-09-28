@@ -217,7 +217,9 @@ if option == 'plot':
         ax.set_yscale('log')
         ax.grid(True, alpha=0.2, which='both')
 
-    axes[0].legend(loc='upper left', fontsize=8)
+    # Legend only when there is more than one series to tell apart
+    if len(runs) > 1:
+        axes[0].legend(loc='upper left', fontsize=8)
     axes[0].set_ylabel('Time (s)')
 
     fig2.tight_layout()
