@@ -19,7 +19,7 @@ if not args.formatting_only:
     os.chdir('../')
     with open(filename, 'w') as f:
         subprocess.run(
-            f"./rungaps -p LEP -nlo -cmw -hadronise -do_partitioning no -t {thr} -n {nev} -nsys", shell=True, stdout=f)
+            f"./rungaps -p LEP -nlo -cmw -hadronise -t {thr} -n {nev} -nsys", shell=True, stdout=f)
     os.chdir('test')
 
 # ------------------------------------------------------------------------------
@@ -216,8 +216,10 @@ if not (pdf1_df.empty and pdf2_df.empty and pdf3_df.empty):
     if not pdf2_df.empty:
         combined_row['Instances'] = int(pdf2_df['Instances'].iloc[0])
     else:
-        instances_candidates = pd.concat([pdf1_df['Instances'], pdf3_df['Instances']])
-        combined_row['Instances'] = int(instances_candidates.iloc[0]) if not instances_candidates.empty else 0
+        instances_candidates = pd.concat(
+            [pdf1_df['Instances'], pdf3_df['Instances']])
+        combined_row['Instances'] = int(
+            instances_candidates.iloc[0]) if not instances_candidates.empty else 0
 
     # Remove original rows and add combined row
     df = df[~df['Name'].isin(['PDF 1', 'PDF 2', 'PDF 3'])]
@@ -237,8 +239,10 @@ if not (nlo1_df.empty and nlo2_df.empty and nlo3_df.empty and nlo4_df.empty):
         nlo3_df.sum(numeric_only=True) + nlo4_df.sum(numeric_only=True)
     combined_row['Name'] = 'NLO Event Generation'
     # Pick instances from the first available NLO row
-    instances_candidates = pd.concat([nlo1_df['Instances'], nlo2_df['Instances'], nlo3_df['Instances'], nlo4_df['Instances']])
-    combined_row['Instances'] = int(instances_candidates.iloc[0]) if not instances_candidates.empty else 0
+    instances_candidates = pd.concat(
+        [nlo1_df['Instances'], nlo2_df['Instances'], nlo3_df['Instances'], nlo4_df['Instances']])
+    combined_row['Instances'] = int(
+        instances_candidates.iloc[0]) if not instances_candidates.empty else 0
 
     # Remove original rows and add combined row
     df = df[~df['Name'].isin(['NLO 1', 'NLO 2', 'NLO 3', 'NLO 4'])]
