@@ -38,10 +38,12 @@ void analysis::analyze(const event& ev) {
     // jet rates
     double jet_rates[4] = {-50., -50., -50., -50.};
     cluster_durham(ev, jet_rates);
-    double log10y23 = jet_rates[0];
-    double log10y34 = jet_rates[1];
-    double log10y45 = jet_rates[2];
-    double log10y56 = jet_rates[3];
+
+    // jet rates as -ln(y), the ALEPH variable
+    double lny23 = -log(pow(10, jet_rates[0]));
+    double lny34 = -log(pow(10, jet_rates[1]));
+    double lny45 = -log(pow(10, jet_rates[2]));
+    double lny56 = -log(pow(10, jet_rates[3]));
 
     // event shapes
     double ev_shapes[7] = {-50., -50., -50., -50., -50., -50., -50.};
@@ -55,13 +57,13 @@ void analysis::analyze(const event& ev) {
     double jmd = ev_shapes[6];
 
     // fill histograms
-    hists[0].fill(log10y23, ev.get_dxs());
-    hists[1].fill(log10y34, ev.get_dxs());
-    hists[2].fill(log10y45, ev.get_dxs());
-    hists[3].fill(log10y56, ev.get_dxs());
-    hists[4].fill(1. - thrust, ev.get_dxs());
-    hists[5].fill(1. - thrust, ev.get_dxs());
-    hists[6].fill(hjm, ev.get_dxs());
+    hists[0].fill(lny23, ev.get_dxs());
+    hists[1].fill(lny34, ev.get_dxs());
+    hists[2].fill(lny45, ev.get_dxs());
+    hists[3].fill(lny56, ev.get_dxs());
+    hists[4].fill(thrust, ev.get_dxs());
+    hists[5].fill(thrust, ev.get_dxs());
+    hists[6].fill(sqr(hjm), ev.get_dxs());
     hists[7].fill(ljm, ev.get_dxs());
     hists[8].fill(wjb, ev.get_dxs());
     hists[9].fill(njb, ev.get_dxs());
@@ -74,10 +76,10 @@ void analysis::analyze(const event& ev) {
     hists[13].fill(wjb, ev.get_dxs());
     hists[14].fill(jmd, ev.get_dxs());
     hists[15].fill(tjb, ev.get_dxs());
-    hists[16].fill(-log(pow(10, log10y23)), ev.get_dxs());
-    hists[17].fill(-log(pow(10, log10y34)), ev.get_dxs());
-    hists[18].fill(-log(pow(10, log10y45)), ev.get_dxs());
-    hists[19].fill(-log(pow(10, log10y56)), ev.get_dxs());
+    hists[16].fill(lny23, ev.get_dxs());
+    hists[17].fill(lny34, ev.get_dxs());
+    hists[18].fill(lny45, ev.get_dxs());
+    hists[19].fill(lny56, ev.get_dxs());
 
     // L3
     double cmul[1] = {-50.};

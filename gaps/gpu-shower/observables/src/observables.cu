@@ -62,15 +62,22 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
 
   // LEP: e+ e- -> q qbar
   if (process == 1) {
+    // jet rates as -ln(y), the ALEPH variable
+    double lny23 = -log(pow(10., results[20 * idx + 0]));
+    double lny34 = -log(pow(10., results[20 * idx + 1]));
+    double lny45 = -log(pow(10., results[20 * idx + 2]));
+    double lny56 = -log(pow(10., results[20 * idx + 3]));
+
     // fill histograms
     // I know forloop can be done here, but just to note what is happening
-    an->hists[0].fill(results[20 * idx + 0], ev.get_dxs());       // log10y23
-    an->hists[1].fill(results[20 * idx + 1], ev.get_dxs());       // log10y34
-    an->hists[2].fill(results[20 * idx + 2], ev.get_dxs());       // log10y45
-    an->hists[3].fill(results[20 * idx + 3], ev.get_dxs());       // log10y56
-    an->hists[4].fill(1. - results[20 * idx + 4], ev.get_dxs());  // tvalue
-    an->hists[5].fill(1. - results[20 * idx + 5], ev.get_dxs());  // tzoomd
-    an->hists[6].fill(results[20 * idx + 6], ev.get_dxs());       // hjm
+    an->hists[0].fill(lny23, ev.get_dxs());
+    an->hists[1].fill(lny34, ev.get_dxs());
+    an->hists[2].fill(lny45, ev.get_dxs());
+    an->hists[3].fill(lny56, ev.get_dxs());
+    an->hists[4].fill(results[20 * idx + 4], ev.get_dxs());       // tvalue
+    an->hists[5].fill(results[20 * idx + 5], ev.get_dxs());       // tzoomd
+    an->hists[6].fill(results[20 * idx + 6] * results[20 * idx + 6],
+                       ev.get_dxs());  // hjm
     an->hists[7].fill(results[20 * idx + 7], ev.get_dxs());       // ljm
     an->hists[8].fill(results[20 * idx + 8], ev.get_dxs());       // wjb
     an->hists[9].fill(results[20 * idx + 9], ev.get_dxs());       // njb
@@ -84,10 +91,10 @@ __global__ void fill_histos(analysis* an, const event* events, double* results,
     an->hists[13].fill(results[20 * idx + 8], ev.get_dxs());
     an->hists[14].fill(results[20 * idx + 12], ev.get_dxs());
     an->hists[15].fill(results[20 * idx + 11], ev.get_dxs());
-    an->hists[16].fill(-log(pow(10., results[20 * idx + 0])), ev.get_dxs());
-    an->hists[17].fill(-log(pow(10., results[20 * idx + 1])), ev.get_dxs());
-    an->hists[18].fill(-log(pow(10., results[20 * idx + 2])), ev.get_dxs());
-    an->hists[19].fill(-log(pow(10., results[20 * idx + 3])), ev.get_dxs());
+    an->hists[16].fill(lny23, ev.get_dxs());
+    an->hists[17].fill(lny34, ev.get_dxs());
+    an->hists[18].fill(lny45, ev.get_dxs());
+    an->hists[19].fill(lny56, ev.get_dxs());
 
     // L3
     an->hists[20].fill(results[20 * idx + 10], ev.get_dxs());  // L3 nch

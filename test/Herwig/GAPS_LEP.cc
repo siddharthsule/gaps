@@ -78,14 +78,14 @@ class GAPS_LEP : public Analysis {
 
     // Book histograms
     // specify custom binning
-    // book(_h_y_Durham[0], "log10y12", 100, -5., 0.);
-    book(_h_y_Durham[1], "log10y23", 100, -4.3, -0.3);
-    book(_h_y_Durham[2], "log10y34", 100, -4.3, -0.3);
-    book(_h_y_Durham[3], "log10y45", 100, -4.3, -0.3);
-    book(_h_y_Durham[4], "log10y56", 100, -4.3, -0.3);
-    book(_h_thrust, "tvalue", 100, 0., .5);
-    book(_h_thrust_zoom, "tzoomd", 100, 0., .5);
-    book(_h_heavy_jet_mass, "hjm", 100, 0., 1.);
+    // book(_h_y_Durham[0], "lny12", 100, 0., 12.);
+    book(_h_y_Durham[1], "lny23", 100, 0., 12.);
+    book(_h_y_Durham[2], "lny34", 100, 0., 12.);
+    book(_h_y_Durham[3], "lny45", 100, 0., 12.);
+    book(_h_y_Durham[4], "lny56", 100, 0., 12.);
+    book(_h_thrust, "tvalue", 100, .5, 1.);
+    book(_h_thrust_zoom, "tzoomd", 100, .5, 1.);
+    book(_h_heavy_jet_mass, "hjm", 100, 0., .5);
     book(_h_light_jet_mass, "ljm", 100, 0., .5);
     book(_h_wide_jet_broadening, "wjb", 100, 0., .5);
     book(_h_narrow_jet_broadening, "njb", 100, 0., .2);
@@ -104,14 +104,14 @@ class GAPS_LEP : public Analysis {
 
     // Jet Resolutions usng Durham Algorithm
     const FastJets durjet = apply<FastJets>(e, "DurhamJets");
-    double log10ynm;
+    double lnynm;
     for (size_t i = 1; i < 5; ++i) {
       double ynm = durjet.clusterSeq()->exclusive_ymerge_max(i + 1);
       if (ynm <= 0.0) {
-        _h_y_Durham[i]->fill(-50.0);
+        _h_y_Durham[i]->fill(50.0);
       } else {
-        log10ynm = log10(ynm);
-        _h_y_Durham[i]->fill(log10ynm);
+        lnynm = -log(ynm);
+        _h_y_Durham[i]->fill(lnynm);
       }
     }
 
@@ -119,14 +119,14 @@ class GAPS_LEP : public Analysis {
     const Thrust thrust = apply<Thrust>(e, "Thrust");
     const Vector3 n = thrust.thrustAxis();
 
-    double thr = 1.0 - thrust.thrust();
+    double thr = thrust.thrust();
     _h_thrust->fill(thr);
     _h_thrust_zoom->fill(thr);
 
     // Jet Masses and Broadenings, for every event as in ALEPH_2004; a lone
     // massless particle can give a rounding-negative mass2, so clamp at zero
     const Hemispheres& hemi = apply<Hemispheres>(e, "Hemispheres");
-    _h_heavy_jet_mass->fill(sqrt(max(hemi.scaledM2high(), 0.)));
+    _h_heavy_jet_mass->fill(max(hemi.scaledM2high(), 0.));
     _h_light_jet_mass->fill(sqrt(max(hemi.scaledM2low(), 0.)));
     _h_wide_jet_broadening->fill(hemi.Bmax());
     _h_narrow_jet_broadening->fill(hemi.Bmin());

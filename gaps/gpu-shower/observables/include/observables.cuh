@@ -41,13 +41,13 @@ class analysis {
       : process(process), wtot(0.), ntot(0.) {
     // lep: e+ e- -> q qbar
     if (process == 1) {
-      hists[0] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y23");
-      hists[1] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y34");
-      hists[2] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y45");
-      hists[3] = histo1d(100, -4.3, -0.3, "/gaps_lep/log10y56");
-      hists[4] = histo1d(100, 0., 0.5, "/gaps_lep/tvalue");
-      hists[5] = histo1d(100, 0., 0.5, "/gaps_lep/tzoomd");
-      hists[6] = histo1d(100, 0., 1., "/gaps_lep/hjm");
+      hists[0] = histo1d(100, 0., 12., "/gaps_lep/lny23");
+      hists[1] = histo1d(100, 0., 12., "/gaps_lep/lny34");
+      hists[2] = histo1d(100, 0., 12., "/gaps_lep/lny45");
+      hists[3] = histo1d(100, 0., 12., "/gaps_lep/lny56");
+      hists[4] = histo1d(100, 0.5, 1., "/gaps_lep/tvalue");
+      hists[5] = histo1d(100, 0.5, 1., "/gaps_lep/tzoomd");
+      hists[6] = histo1d(100, 0., 0.5, "/gaps_lep/hjm");
       hists[7] = histo1d(100, 0., 0.5, "/gaps_lep/ljm");
       hists[8] = histo1d(100, 0., 0.5, "/gaps_lep/wjb");
       hists[9] = histo1d(100, 0., 0.2, "/gaps_lep/njb");
