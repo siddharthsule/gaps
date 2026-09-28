@@ -10,8 +10,9 @@ class hadronic_decays {
    * @class hadronic_decays
    * @brief Decay the hadrons cluster decay leaves until the event is final.
    *
-   * States with ctau >= ctau_max are final; at 10 mm that leaves pi+-, K+-,
-   * K_S, K_L, p, n and the weakly decaying light baryons.
+   * States with ctau >= ctau_max are final. The default of 100 mm follows
+   * the LEP convention (L3: mean lifetime above 3.3e-10 s), leaving pi+-,
+   * K+-, K_L, p and n, and decaying K_S and the weakly decaying light baryons.
    */
 
  private:
@@ -19,7 +20,7 @@ class hadronic_decays {
   // member variables
 
   // Proper decay length at or above which a state is a final state particle
-  double ctau_max = 10.;  // mm
+  double ctau_max = 100.;  // mm
 
   // Cap on the passes over the event, so a malformed table cannot loop forever
   int max_generations = 100;

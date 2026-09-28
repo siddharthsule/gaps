@@ -143,8 +143,8 @@ def parse_arguments():
                    help='relative weights for quark flavours in gluon splitting and cluster decay (default: 1.0 1.0 0.37 0.33)')
 
     p.add_argument('-ctau_max', '--ctau_max',
-                   type=float, default=10.0,
-                   help='proper decay length at or above which a hadron is a final state particle, in mm (default: 10.0)')
+                   type=float, default=100.0,
+                   help='proper decay length at or above which a hadron is a final state particle, in mm (default: 100.0)')
 
     # Run options
     p.add_argument('-n', '--nevents',

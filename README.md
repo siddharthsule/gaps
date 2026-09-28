@@ -86,7 +86,7 @@ You can adjust the following parameters:
 - `-clpow LIGHT CHARM BOTTOM`: Power in the cluster fission threshold condition
 - `-psplit LIGHT CHARM BOTTOM`: Power in the cluster mass sampling distribution
 - `-pwt D U S DIQUARK`: Relative flavour weights for quark selection in gluon splitting and cluster decay
-- `-ctau_max MM`: Proper decay length at or above which a hadron is a final state particle, in mm (default: 10.0)
+- `-ctau_max MM`: Proper decay length at or above which a hadron is a final state particle, in mm (default: 100.0)
 - `--no-compile`: Skip compilation and run with pre-built binaries
 - `-t`: Number of threads per block on the GPU
 - `-do_partitioning`: Do Event Record Partitioning (GPU Speedup Trick)

@@ -16,6 +16,8 @@ parser.add_argument('--nreps', type=int, default=10,
                     help='Number of repetitions for each run (default: 10)')
 parser.add_argument('--ncpu', type=int, default=1,
                     help='Number of CPU threads (default: 1)')
+parser.add_argument('--gpu-only', action='store_true',
+                    help='Plot the GPU timings only, ignoring any CPU file')
 args = parser.parse_args()
 option = args.option
 nreps = args.nreps
@@ -51,7 +53,7 @@ if option == 'cpu' or option == 'gpu':
         os.remove(time_file)
 
     for n in n_list:
-        command = f"./rungaps -p LEP -nlo -hadronise -n {n} --skip-analysis --no-compile"
+        command = f"./rungaps -p LEP -nlo -cmw -hadronise -n {n} --skip-analysis --no-compile"
         if option == 'gpu':
             command += f" -t {thr}"
         elif option == 'cpu':
@@ -108,6 +110,10 @@ if option == 'plot':
     # Every timing file present, as (title, colour, columns, median, IQR)
     candidates = [('CPU', time_cpu, nreps * ncpu, 'C0'),
                   ('GPU', time_gpu, nreps, 'C2')]
+
+    # Drop the CPU series when only the GPU is to be shown
+    if args.gpu_only:
+        candidates = candidates[1:]
     runs = []
 
     for title, time_file, n_per_group, color in candidates:

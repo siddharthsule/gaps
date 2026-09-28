@@ -46,7 +46,7 @@ VARIANTS = (
 # The decay files in the order they are tried, and the proper decay length at
 # or above which a state is a final state particle [mm]
 DEC_NAMES = ("DECAY_LHCB.DEC", "DECAY_BELLE2.DEC")
-CTAU_MAX = 1000.0
+CTAU_MAX = 100.0
 
 # hbar c [GeV mm] and the speed of light [mm / s]
 HBARC = 1.973269804e-13
