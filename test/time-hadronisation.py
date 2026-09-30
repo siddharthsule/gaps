@@ -204,7 +204,11 @@ if option == 'plot':
             m, c = np.polyfit(log_n_fit, np.log(med[mask_fit, k]), 1)
             ax.plot(n_smooth, np.exp(m * np.log(n_smooth) + c),
                     '--', color=color, alpha=0.5, linewidth=1.5)
-            fit_lines.append(f'$p_{{\\mathrm{{{title}}}}} = {m:.2f}$')
+            # Subscript the exponent by series only when there are several
+            if len(runs) > 1:
+                fit_lines.append(f'$p_{{\\mathrm{{{title}}}}} = {m:.2f}$')
+            else:
+                fit_lines.append(f'$p = {m:.2f}$')
 
         # Annotate the fitted gradients (power-law exponents), bottom right
         ax.text(0.95, 0.05, '\n'.join(fit_lines),
